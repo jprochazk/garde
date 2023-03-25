@@ -1,0 +1,24 @@
+[package]
+name = "garde"
+version = "0.2.0"
+edition = "2021"
+repository = "https://github.com/jprochazk/garde"
+license = "MIT OR Apache-2.0"
+description = "Struct validation library"
+keywords = ["validation", "validate", "valid"]
+readme = "../README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["serde", "derive", "url", "card-validate", "phonenumber", "regex"]
+derive = ["garde_derive"]
+
+[dependencies]
+garde_derive = { version = "0.2", path = "../garde_derive", optional = true }
+serde = { version = "1.0", features = ["derive"], optional = true }
+
+url = { version = "2", optional = true }
+card-validate = { version = "2.2", optional = true }
+phonenumber = { version = "0.3", optional = true }
+regex = { version = "1", optional = true }

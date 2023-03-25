@@ -1,0 +1,18 @@
+[package]
+name = "garde_derive"
+version = "0.2.0"
+edition = "2021"
+repository = "https://github.com/jprochazk/garde"
+license = "MIT OR Apache-2.0"
+description = "Derive macros for garde"
+readme = "../README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2" }
+quote = { version = "1" }
+proc-macro2 = { version = "1" }
