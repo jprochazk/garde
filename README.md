@@ -1,4 +1,7 @@
-# Garde
+# Garde &emsp; [![Documentation]][docs.rs] [![Latest Version]][crates.io]
+
+[docs.rs]: https://docs.rs/garde/latest/garde/
+[crates.io]: https://crates.io/crates/garde
 
 A Rust validation library
 
