@@ -1,3 +1,5 @@
+//!
+//!
 //! Validation library
 //!
 //! ```rust
@@ -51,6 +53,27 @@
 //! for item in &data {
 //!     println!("{:?}", item.validate(&()));
 //! }
+//! ```
+//!
+//! ### Typestate
+//!
+//! This crate supports the typestate pattern via the [`Unvalidated`] and [`Valid`] types:
+//!
+//! ```rust
+//! use garde::{Valid, Validate, Unvalidated};
+//!
+//! #[derive(Debug, Validate)]
+//! struct Test {
+//!   #[garde(range(min = 10, max = 100))]
+//!   field: u64,
+//! }
+//!
+//! let value = Unvalidated(Test { field: 20 });
+//! // This is the only method for obtaining a `Valid<T>`
+//! let value: Valid<Test> = value.validate(&()).unwrap();
+//!
+//! let value = Unvalidated(Test { field: 0 });
+//! println!("{:?}", value.validate(&()));
 //! ```
 //!
 //! ### Available validation rules

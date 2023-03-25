@@ -21,7 +21,7 @@ pub trait Validate {
 /// [`Unvalidated`] type. This ensures that if you have a `Valid<T>`, it was
 /// definitely validated at some point. This is commonly referred to as the
 /// typestate pattern.
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Valid<T>(T);
 
 impl<T: Validate> Valid<T> {
@@ -41,7 +41,7 @@ impl<T> std::ops::Deref for Valid<T> {
 /// A struct which wraps a potentially invalid instance of some `T`.
 ///
 /// Use the `validate` method to turn this type into a `Valid<T>`.
-#[derive(Clone, Copy, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, serde::Deserialize)]
 pub struct Unvalidated<T>(pub T);
 
 impl<T: Validate> Unvalidated<T> {
