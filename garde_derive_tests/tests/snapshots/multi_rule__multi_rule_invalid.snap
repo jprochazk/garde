@@ -1,0 +1,28 @@
+---
+source: garde_derive_tests/tests/multi_rule.rs
+expression: snapshot
+---
+Test {
+    field: "text which does not begin with `test`",
+}
+`field` does not begin with "test"
+
+Test {
+    field: "non-ascii 😂😂😂",
+}
+`field` is not ascii
+`field` does not begin with "test"
+
+Test {
+    field: "aaaaaaaaa",
+}
+length of `field` is less than 10
+`field` does not begin with "test"
+
+Test {
+    field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+}
+length of `field` is greater than 100
+`field` does not begin with "test"
+
+

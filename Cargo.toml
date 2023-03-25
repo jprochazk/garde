@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "garde_derive_tests",
     "garde_derive",
     "garde",
 ]

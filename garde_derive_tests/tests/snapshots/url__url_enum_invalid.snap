@@ -1,0 +1,15 @@
+---
+source: garde_derive_tests/tests/url.rs
+expression: snapshot
+---
+Struct {
+    field: "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
+}
+`field` is not a valid url: relative URL without a base
+
+Tuple(
+    "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
+)
+`test` is not a valid url: relative URL without a base
+
+

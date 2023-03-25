@@ -1,0 +1,10 @@
+---
+source: garde_derive_tests/tests/email.rs
+expression: snapshot
+---
+Test {
+    field: "invalid.com",
+}
+`field` is not a valid email: value is missing `@`
+
+

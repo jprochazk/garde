@@ -1,0 +1,5 @@
+error: unrecognized validation rule
+ --> tests/compile-fail/unknown_rule.rs:3:13
+  |
+3 |     #[garde(unknown_rule)]
+  |             ^^^^^^^^^^^^

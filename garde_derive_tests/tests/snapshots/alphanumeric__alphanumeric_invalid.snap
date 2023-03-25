@@ -1,0 +1,10 @@
+---
+source: garde_derive_tests/tests/alphanumeric.rs
+expression: snapshot
+---
+Test {
+    field: "!!!!",
+}
+`field` is not alphanumeric
+
+

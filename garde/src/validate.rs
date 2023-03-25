@@ -12,7 +12,7 @@ pub trait Validate {
 
     /// Validates `Self`, returning an `Err` with an aggregate of all errors if
     /// the validation failed.
-    fn validate(&self, ctx: Self::Context) -> Result<(), Errors>;
+    fn validate(&self, ctx: &Self::Context) -> Result<(), Errors>;
 }
 
 /// A struct which wraps a valid instance of some `T`.
@@ -26,10 +26,11 @@ pub trait Validate {
 ///
 /// With the `serde` feature, this type also implements `serde::Deserialize` if
 /// `T::Context` implements `Default`.
+#[derive(Clone, Copy)]
 pub struct Valid<T>(T);
 
 impl<T: Validate> Valid<T> {
-    pub fn validate(value: T, ctx: <T as Validate>::Context) -> Result<Valid<T>, Errors> {
+    pub fn validate(value: T, ctx: &<T as Validate>::Context) -> Result<Valid<T>, Errors> {
         Validate::validate(&value, ctx)?;
         Ok(Valid(value))
     }
@@ -44,29 +45,5 @@ impl<T> std::ops::Deref for Valid<T> {
 
     fn deref(&self) -> &Self::Target {
         &self.0
-    }
-}
-
-impl<T> std::ops::DerefMut for Valid<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-// TODO: Some way to deserialize with a user-provided `ctx`.
-//       Not sure how this would work.
-#[cfg(feature = "serde")]
-impl<'de, T> serde::Deserialize<'de> for Valid<T>
-where
-    T: serde::Deserialize<'de> + Validate,
-    <T as Validate>::Context: Default,
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let value = T::deserialize(deserializer)?;
-        let ctx = T::Context::default();
-        Valid::validate(value, ctx).map_err(serde::de::Error::custom)
     }
 }
