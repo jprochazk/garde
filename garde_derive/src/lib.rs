@@ -10,12 +10,12 @@ use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{Attribute, Data, DeriveInput, Error, Expr, Generics, MetaNameValue, Token, Type};
 
-// TODO: validate regex in `pattern` by attempting to compile it in the proc
-// macro
+// TODO: test more error cases using `trybuild`
+// TODO: if some rule feature is not enabled, it should `compile_error`
+// TODO: custom error messages
 
 #[proc_macro_derive(Validate, attributes(garde))]
 pub fn derive_validate(input: TokenStream) -> TokenStream {
-    // TODO: remove known attributes from `input`
     let input = syn::parse_macro_input!(input as DeriveInput);
 
     let mut errors: Vec<Error> = vec![];
@@ -398,7 +398,6 @@ impl Parse for RuleOrAlias {
     }
 }
 
-// TODO: some of these rules should only exist with their respective features
 #[repr(u8)]
 enum Rule {
     Ascii,
@@ -655,6 +654,12 @@ fn parse_rule_length(content: ParseStream) -> syn::Result<Rule> {
         (Some(min), Some(max)) if min >= max => {
             return Err(Error::new(parts.span(), "min must be smaller than max"));
         }
+        (None, None) => {
+            return Err(Error::new(
+                parts.span(),
+                "please provide at least one of: `min`, `max`",
+            ));
+        }
         _ => {}
     }
     Ok(Rule::Length { min, max })
@@ -680,6 +685,12 @@ fn parse_rule_range(content: ParseStream) -> syn::Result<Rule> {
                 format!("unexpected `{}`", part.path.to_token_stream()),
             ));
         }
+    }
+    if let (None, None) = (&min, &max) {
+        return Err(Error::new(
+            parts.span(),
+            "please provide at least one of: `min`, `max`",
+        ));
     }
     Ok(Rule::Range { min, max })
 }

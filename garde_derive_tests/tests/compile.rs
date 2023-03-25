@@ -1,5 +1,3 @@
-// TODO: compile tests for tuple structs and enums
-
 #[test]
 fn ui() {
     let t = trybuild::TestCases::new();

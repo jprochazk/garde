@@ -79,3 +79,11 @@ fn url_enum_invalid() {
         &(),
     )
 }
+
+#[test]
+fn url_valid_wrapper() {
+    let value = Struct {
+        field: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    };
+    println!("{}", value.validate(&()).unwrap_err());
+}

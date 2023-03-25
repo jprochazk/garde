@@ -17,24 +17,14 @@ pub trait Validate {
 
 /// A struct which wraps a valid instance of some `T`.
 ///
-/// The only way to create an instance of this struct is through the `validate`
-/// associated function, which (as the name suggests) validates the value before
-/// returning a `Valid<T>`. This ensures that if you have a `Valid<T>`, it was
-/// definitely validated at some point.
-///
-/// This is commonly referred to as the typestate pattern.
-///
-/// With the `serde` feature, this type also implements `serde::Deserialize` if
-/// `T::Context` implements `Default`.
+/// The only way to create an instance of this struct is through the
+/// [`Unvalidated`] type. This ensures that if you have a `Valid<T>`, it was
+/// definitely validated at some point. This is commonly referred to as the
+/// typestate pattern.
 #[derive(Clone, Copy)]
 pub struct Valid<T>(T);
 
 impl<T: Validate> Valid<T> {
-    pub fn validate(value: T, ctx: &<T as Validate>::Context) -> Result<Valid<T>, Errors> {
-        Validate::validate(&value, ctx)?;
-        Ok(Valid(value))
-    }
-
     pub fn into_inner(self) -> T {
         self.0
     }
@@ -45,5 +35,15 @@ impl<T> std::ops::Deref for Valid<T> {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+#[derive(Clone, Copy, serde::Deserialize)]
+pub struct Unvalidated<T>(T);
+
+impl<T: Validate> Unvalidated<T> {
+    pub fn validate(self, ctx: &<T as Validate>::Context) -> Result<Valid<T>, Errors> {
+        self.0.validate(ctx)?;
+        Ok(Valid(self.0))
     }
 }

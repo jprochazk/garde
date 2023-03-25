@@ -115,6 +115,7 @@ dependencies = [
  "once_cell",
  "phonenumber",
  "regex",
+ "serde",
  "url",
 ]
 
@@ -344,6 +345,9 @@ name = "serde"
 version = "1.0.158"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "771d4d9c4163ee138805e12c710dd365e4f44be8be0503cb1bb9eb989425d9c9"
+dependencies = [
+ "serde_derive",
+]
 
 [[package]]
 name = "serde_derive"
