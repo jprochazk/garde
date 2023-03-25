@@ -116,6 +116,7 @@ dependencies = [
  "phonenumber",
  "regex",
  "serde",
+ "serde_json",
  "url",
 ]
 

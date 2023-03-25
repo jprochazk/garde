@@ -38,8 +38,11 @@ impl<T> std::ops::Deref for Valid<T> {
     }
 }
 
+/// A struct which wraps a potentially invalid instance of some `T`.
+///
+/// Use the `validate` method to turn this type into a `Valid<T>`.
 #[derive(Clone, Copy, serde::Deserialize)]
-pub struct Unvalidated<T>(T);
+pub struct Unvalidated<T>(pub T);
 
 impl<T: Validate> Unvalidated<T> {
     pub fn validate(self, ctx: &<T as Validate>::Context) -> Result<Valid<T>, Errors> {

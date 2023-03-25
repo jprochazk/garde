@@ -4,7 +4,7 @@ version = "0.2.0"
 edition = "2021"
 repository = "https://github.com/jprochazk/garde"
 license = "MIT OR Apache-2.0"
-description = "Struct validation library"
+description = "Validation library"
 keywords = ["validation", "validate", "valid"]
 readme = "../README.md"
 
@@ -32,3 +32,6 @@ phonenumber = { version = "0.3", optional = true }
 regex = { version = "1", optional = true }
 once_cell = { version = "1", optional = true }
 idna = { version = "0.3", optional = true }
+
+[dev-dependencies]
+serde_json = { version = "1" }

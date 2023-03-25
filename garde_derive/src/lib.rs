@@ -10,10 +10,6 @@ use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{Attribute, Data, DeriveInput, Error, Expr, Generics, MetaNameValue, Token, Type};
 
-// TODO: test more error cases using `trybuild`
-// TODO: if some rule feature is not enabled, it should `compile_error`
-// TODO: custom error messages
-
 #[proc_macro_derive(Validate, attributes(garde))]
 pub fn derive_validate(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as DeriveInput);
