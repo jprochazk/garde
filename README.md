@@ -2,6 +2,8 @@
 
 [docs.rs]: https://docs.rs/garde/latest/garde/
 [crates.io]: https://crates.io/crates/garde
+[Documentation]: https://img.shields.io/docsrs/garde
+[Latest Version]: https://img.shields.io/crates/v/garde.svg
 
 A Rust validation library
 
