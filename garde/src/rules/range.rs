@@ -1,18 +1,12 @@
+use std::fmt::Display;
+
 use crate::error::Error;
 
-pub fn apply<T: Bounds>(field_name: &str, v: &T, min: &T, max: &T) -> Result<(), Error> {
+pub fn apply<T: Bounds>(v: &T, (min, max): (&T, &T)) -> Result<(), Error> {
     if let Err(e) = v.check_bounds(min, max) {
         match e {
-            OutOfBounds::Lower => {
-                return Err(Error::new(
-                    format!("`{field_name}` is out of bounds").into(),
-                ))
-            }
-            OutOfBounds::Upper => {
-                return Err(Error::new(
-                    format!("`{field_name}` is out of bounds").into(),
-                ))
-            }
+            OutOfBounds::Lower => return Err(Error::new(format!("lower than {min}"))),
+            OutOfBounds::Upper => return Err(Error::new(format!("greater than {max}"))),
         }
     }
     Ok(())
@@ -26,7 +20,7 @@ pub fn apply<T: Bounds>(field_name: &str, v: &T, min: &T, max: &T) -> Result<(),
         note = "try implementing `garde::rules::range::Bounds` for `{Self}`"
     )
 )]
-pub trait Bounds: PartialOrd {
+pub trait Bounds: PartialOrd + Display {
     const MIN: Self;
     const MAX: Self;
     fn check_bounds(&self, lower_bound: &Self, upper_bound: &Self) -> Result<(), OutOfBounds>;

@@ -5,11 +5,11 @@ expression: snapshot
 Test {
     field: "a",
 }
-`field` does not begin with "test"
+value.field: value does not begin with "test"
 
 Test {
     field: "_test",
 }
-`field` does not begin with "test"
+value.field: value does not begin with "test"
 
 

@@ -10,24 +10,18 @@ struct Context<'a> {
 struct Test<'a> {
     #[garde(custom(custom_validate_fn))]
     a: &'a str,
-    #[garde(custom(|_, value: &str, ctx: &Context<'a>| {
+    #[garde(custom(|value: &str, ctx: &Context<'a>| {
         if value != ctx.needle {
-            return Err(garde::Error::new(format!("`b` is not equal to {}", ctx.needle).into()));
+            return Err(garde::Error::new(format!("`b` is not equal to {}", ctx.needle)));
         }
         Ok(())
     }))]
     b: &'a str,
 }
 
-fn custom_validate_fn(
-    field_name: &str,
-    value: &str,
-    ctx: &Context<'_>,
-) -> Result<(), garde::Error> {
+fn custom_validate_fn(value: &str, ctx: &Context<'_>) -> Result<(), garde::Error> {
     if value != ctx.needle {
-        return Err(garde::Error::new(
-            format!("`{field_name}` is not equal to {}", ctx.needle).into(),
-        ));
+        return Err(garde::Error::new(format!("not equal to {}", ctx.needle)));
     }
     Ok(())
 }

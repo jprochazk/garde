@@ -1,10 +1,8 @@
 use crate::error::Error;
 
-pub fn apply<T: Pattern>(field_name: &str, v: &T, pat: &regex::Regex) -> Result<(), Error> {
+pub fn apply<T: Pattern>(v: &T, (pat,): (&regex::Regex,)) -> Result<(), Error> {
     if !v.matches(pat) {
-        return Err(Error::new(
-            format!("`{field_name}` does not match pattern /{pat}/").into(),
-        ));
+        return Err(Error::new(format!("does not match pattern /{pat}/")));
     }
     Ok(())
 }

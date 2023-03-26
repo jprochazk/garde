@@ -5,11 +5,11 @@ expression: snapshot
 Test {
     field: "dcba",
 }
-`field` does not match pattern /^abcd|efgh$/
+value.field: does not match pattern /^abcd|efgh$/
 
 Test {
     field: "hgfe",
 }
-`field` does not match pattern /^abcd|efgh$/
+value.field: does not match pattern /^abcd|efgh$/
 
 

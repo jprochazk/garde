@@ -1,18 +1,10 @@
 use crate::error::Error;
 
-pub fn apply<T: Length>(field_name: &str, v: &T, min: usize, max: usize) -> Result<(), Error> {
+pub fn apply<T: Length>(v: &T, (min, max): (usize, usize)) -> Result<(), Error> {
     if let Err(e) = v.check_length(min, max) {
         match e {
-            InvalidLength::Min => {
-                return Err(Error::new(
-                    format!("length of `{field_name}` is less than {min}").into(),
-                ))
-            }
-            InvalidLength::Max => {
-                return Err(Error::new(
-                    format!("length of `{field_name}` is greater than {max}").into(),
-                ))
-            }
+            InvalidLength::Min => return Err(Error::new(format!("length is lower than {min}"))),
+            InvalidLength::Max => return Err(Error::new(format!("length is greater than {max}"))),
         }
     }
     Ok(())

@@ -1,0 +1,12 @@
+---
+source: garde_derive_tests/tests/dive.rs
+expression: snapshot
+---
+Test {
+    field: Inner {
+        field: "",
+    },
+}
+value.field.field: length is lower than 1
+
+

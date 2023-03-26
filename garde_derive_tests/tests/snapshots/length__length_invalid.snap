@@ -5,11 +5,11 @@ expression: snapshot
 Test {
     field: "aaaaaaaaa",
 }
-length of `field` is less than 10
+value.field: length is lower than 10
 
 Test {
     field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 }
-length of `field` is greater than 100
+value.field: length is greater than 100
 
 

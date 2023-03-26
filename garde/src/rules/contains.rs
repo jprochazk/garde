@@ -1,10 +1,8 @@
 use crate::error::Error;
 
-pub fn apply<T: Contains>(field_name: &str, v: &T, pat: &str) -> Result<(), Error> {
+pub fn apply<T: Contains>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
     if !v.check_contains(pat) {
-        return Err(Error::new(
-            format!("`{field_name}` does not contain \"{pat}\"").into(),
-        ));
+        return Err(Error::new(format!("does not contain \"{pat}\"")));
     }
     Ok(())
 }

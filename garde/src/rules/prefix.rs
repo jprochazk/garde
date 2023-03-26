@@ -11,11 +11,9 @@ pub trait Prefix {
     fn has_prefix(&self, pat: &str) -> bool;
 }
 
-pub fn apply<T: Prefix>(field_name: &str, v: &T, pat: &str) -> Result<(), Error> {
+pub fn apply<T: Prefix>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
     if !v.has_prefix(pat) {
-        return Err(Error::new(
-            format!("`{field_name}` does not begin with \"{pat}\"").into(),
-        ));
+        return Err(Error::new(format!("value does not begin with \"{pat}\"")));
     }
     Ok(())
 }

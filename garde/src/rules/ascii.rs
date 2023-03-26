@@ -1,8 +1,8 @@
 use crate::error::Error;
 
-pub fn apply<T: Ascii>(field_name: &str, v: &T) -> Result<(), Error> {
+pub fn apply<T: Ascii>(v: &T, _: ()) -> Result<(), Error> {
     if !v.check_ascii() {
-        return Err(Error::new(format!("`{field_name}` is not ascii").into()));
+        return Err(Error::new("not ascii"));
     }
     Ok(())
 }

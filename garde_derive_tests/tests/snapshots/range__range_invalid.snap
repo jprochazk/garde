@@ -5,11 +5,11 @@ expression: snapshot
 Test {
     field: 9,
 }
-`field` is out of bounds
+value.field: lower than 10
 
 Test {
     field: 101,
 }
-`field` is out of bounds
+value.field: greater than 100
 
 

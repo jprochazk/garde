@@ -3,11 +3,9 @@ use std::str::FromStr;
 
 use crate::error::Error;
 
-pub fn apply<T: Ip>(field_name: &str, v: &T, kind: IpKind) -> Result<(), Error> {
+pub fn apply<T: Ip>(v: &T, (kind,): (IpKind,)) -> Result<(), Error> {
     if v.try_parse_ip(kind).is_err() {
-        return Err(Error::new(
-            format!("`{field_name}` is not a valid {kind} address").into(),
-        ));
+        return Err(Error::new(format!("not a valid {kind} address")));
     }
     Ok(())
 }

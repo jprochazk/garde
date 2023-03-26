@@ -5,6 +5,6 @@ expression: snapshot
 Struct {
     field: "asdf",
 }
-`field` is not a valid url: relative URL without a base
+value.field: not a valid url: relative URL without a base
 
 

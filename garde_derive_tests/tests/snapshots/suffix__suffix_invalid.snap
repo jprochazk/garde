@@ -5,11 +5,11 @@ expression: snapshot
 Test {
     field: "a",
 }
-field does not end with "test"
+value.field: does not end with "test"
 
 Test {
     field: "test_",
 }
-field does not end with "test"
+value.field: does not end with "test"
 
 

@@ -11,11 +11,9 @@ pub trait Suffix {
     fn has_suffix(&self, pat: &str) -> bool;
 }
 
-pub fn apply<T: Suffix>(field_name: &str, v: &T, pat: &str) -> Result<(), Error> {
+pub fn apply<T: Suffix>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
     if !v.has_suffix(pat) {
-        return Err(Error::new(
-            format!("{field_name} does not end with \"{pat}\"").into(),
-        ));
+        return Err(Error::new(format!("does not end with \"{pat}\"")));
     }
     Ok(())
 }
