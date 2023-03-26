@@ -68,11 +68,11 @@
 //!   field: u64,
 //! }
 //!
-//! let value = Unvalidated(Test { field: 20 });
+//! let value = Unvalidated::new(Test { field: 20 });
 //! // This is the only method for obtaining a `Valid<T>`
 //! let value: Valid<Test> = value.validate(&()).unwrap();
 //!
-//! let value = Unvalidated(Test { field: 0 });
+//! let value = Unvalidated::new(Test { field: 0 });
 //! println!("{:?}", value.validate(&()));
 //! ```
 //!
@@ -104,12 +104,6 @@
 //! - `length` uses `.chars().count()` for UTF-8 strings instead of `.len()`.
 //! - For `contains`, `prefix`, and `suffix`, the pattern must be a string literal, because the `Pattern` API [is currently unstable](https://github.com/rust-lang/rust/issues/27721).
 //!
-
-// TODO: test more error cases using `trybuild`
-// TODO: if some rule feature is not enabled, it should `compile_error`
-// TODO: custom error messages
-// TODO: nested validation (`dive` rule)
-// TODO: impl `Validate` for various containers (`HashMap`, `Vec`, etc.)
 
 pub mod error;
 pub mod rules;

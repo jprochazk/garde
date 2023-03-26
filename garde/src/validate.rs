@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::error::Errors;
 
 /// The core trait of this crate.
@@ -41,12 +43,29 @@ impl<T> std::ops::Deref for Valid<T> {
 /// A struct which wraps a potentially invalid instance of some `T`.
 ///
 /// Use the `validate` method to turn this type into a `Valid<T>`.
-#[derive(Debug, Clone, Copy, serde::Deserialize)]
-pub struct Unvalidated<T>(pub T);
+#[derive(Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+pub struct Unvalidated<T>(T);
 
 impl<T: Validate> Unvalidated<T> {
+    pub fn new(v: T) -> Self {
+        Self(v)
+    }
+
     pub fn validate(self, ctx: &<T as Validate>::Context) -> Result<Valid<T>, Errors> {
         self.0.validate(ctx)?;
         Ok(Valid(self.0))
+    }
+}
+
+impl<T: Validate> From<T> for Unvalidated<T> {
+    fn from(value: T) -> Self {
+        Self(value)
+    }
+}
+
+impl<T: Debug> Debug for Unvalidated<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Debug::fmt(&self.0, f)
     }
 }
