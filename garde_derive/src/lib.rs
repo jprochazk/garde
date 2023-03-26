@@ -384,7 +384,7 @@ fn parse_fields<'a>(
                         RuleOrAttr::Rule(span, rule) => {
                             if dive {
                                 errors.push(Error::new(
-                                    attr.meta.span(),
+                                    span,
                                     format!(
                                         "`{}` may not be used together with `dive`",
                                         rule.name()
@@ -395,7 +395,7 @@ fn parse_fields<'a>(
 
                             if rules.contains(&rule) {
                                 errors.push(Error::new(
-                                    attr.meta.span(),
+                                    span,
                                     format!("duplicate rule `{}`", rule.name()),
                                 ));
                                 continue;
@@ -407,20 +407,14 @@ fn parse_fields<'a>(
                             // TODO: not allowed on tuple structs
                             Attr::Alias(v) => {
                                 if alias.is_some() {
-                                    errors.push(Error::new(
-                                        attr.meta.span(),
-                                        "duplicate attribute `rename`",
-                                    ));
+                                    errors.push(Error::new(span, "duplicate attribute `rename`"));
                                     continue;
                                 }
                                 alias = Some(v);
                             }
                             Attr::Dive => {
                                 if dive {
-                                    errors.push(Error::new(
-                                        attr.meta.span(),
-                                        "duplicate attribute `dive`",
-                                    ));
+                                    errors.push(Error::new(span, "duplicate attribute `dive`"));
                                     continue;
                                 }
                                 dive = true;
