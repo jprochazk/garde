@@ -29,7 +29,11 @@ pub fn __check_fail<T: Validate + Debug>(cases: &[T], ctx: &T::Context) -> Strin
     let mut snapshot = String::new();
     for case in cases {
         if let Err(error) = case.validate(ctx) {
-            writeln!(&mut snapshot, "{case:#?}\n{error}\n").unwrap();
+            writeln!(&mut snapshot, "{case:#?}").unwrap();
+            for (path, error) in error.flatten() {
+                writeln!(&mut snapshot, "{path}: {error}").unwrap();
+            }
+            writeln!(&mut snapshot).unwrap();
         } else {
             eprintln!(
                 "{} input: {case:?}",

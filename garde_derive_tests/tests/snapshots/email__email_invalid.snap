@@ -5,6 +5,6 @@ expression: snapshot
 Test {
     field: "invalid.com",
 }
-`field` is not a valid email: value is missing `@`
+value.field: not a valid email: value is missing `@`
 
 

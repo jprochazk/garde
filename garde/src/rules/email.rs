@@ -6,11 +6,9 @@ use regex::Regex;
 
 use crate::error::Error;
 
-pub fn apply<T: Email>(field_name: &str, v: &T) -> Result<(), Error> {
+pub fn apply<T: Email>(v: &T, _: ()) -> Result<(), Error> {
     if let Err(e) = v.try_parse_email() {
-        return Err(Error::new(
-            format!("`{field_name}` is not a valid email: {e}").into(),
-        ));
+        return Err(Error::new(format!("not a valid email: {e}")));
     }
     Ok(())
 }

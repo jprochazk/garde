@@ -16,11 +16,9 @@ pub trait PhoneNumber {
     fn try_parse_phone_number(&self) -> Result<(), Self::Error>;
 }
 
-pub fn apply<T: PhoneNumber>(field_name: &str, v: &T) -> Result<(), Error> {
+pub fn apply<T: PhoneNumber>(v: &T, _: ()) -> Result<(), Error> {
     if let Err(e) = v.try_parse_phone_number() {
-        return Err(Error::new(
-            format!("`{field_name}` is not a valid phone number: {e}").into(),
-        ));
+        return Err(Error::new(format!("not a valid phone number: {e}")));
     }
     Ok(())
 }

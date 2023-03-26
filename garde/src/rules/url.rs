@@ -2,11 +2,9 @@ use std::fmt::Display;
 
 use crate::error::Error;
 
-pub fn apply<T: Url>(field_name: &str, v: &T) -> Result<(), Error> {
+pub fn apply<T: Url>(v: &T, _: ()) -> Result<(), Error> {
     if let Err(e) = v.try_parse_url() {
-        return Err(Error::new(
-            format!("`{field_name}` is not a valid url: {e}").into(),
-        ));
+        return Err(Error::new(format!("not a valid url: {e}")));
     }
     Ok(())
 }

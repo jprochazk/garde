@@ -5,6 +5,6 @@ expression: snapshot
 Test {
     field: "_____",
 }
-`field` does not contain "test"
+value.field: does not contain "test"
 
 

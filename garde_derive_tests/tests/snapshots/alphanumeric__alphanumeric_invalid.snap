@@ -5,6 +5,6 @@ expression: snapshot
 Test {
     field: "!!!!",
 }
-`field` is not alphanumeric
+value.field: not alphanumeric
 
 

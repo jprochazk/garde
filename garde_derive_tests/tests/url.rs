@@ -6,11 +6,12 @@ use garde::Validate;
 #[derive(Debug, Validate)]
 struct Struct<'a> {
     #[garde(url)]
+    #[garde(rename = "field")]
     field: &'a str,
 }
 
 #[derive(Debug, Validate)]
-struct Tuple<'a>(#[garde(rename = "test", url)] &'a str);
+struct Tuple<'a>(#[garde(url)] &'a str);
 
 #[derive(Debug, Validate)]
 enum Enum<'a> {
@@ -18,7 +19,7 @@ enum Enum<'a> {
         #[garde(url)]
         field: &'a str,
     },
-    Tuple(#[garde(rename = "test", url)] &'a str),
+    Tuple(#[garde(url)] &'a str),
 }
 
 #[test]

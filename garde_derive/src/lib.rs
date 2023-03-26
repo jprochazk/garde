@@ -1,8 +1,7 @@
 use std::collections::BTreeSet;
-use std::str::FromStr;
 
 use proc_macro::TokenStream;
-use proc_macro2::{Ident, TokenStream as TokenStream2};
+use proc_macro2::{Ident, Literal, Span, TokenStream as TokenStream2};
 use quote::{format_ident, quote, ToTokens};
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
@@ -68,54 +67,57 @@ impl ToTokens for Validation {
         let context = &self.context;
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
-        match &self.inner {
-            InputKind::Struct(inner) => {
-                let fields = inner.iter();
+        let inner = match &self.inner {
+            InputKind::FieldStruct(inner) => {
+                let fields = inner
+                    .iter()
+                    .map(|(key, field)| EmitField::FieldStruct(key, field));
 
                 quote! {
-                    impl #impl_generics ::garde::Validate for #ident #ty_generics #where_clause {
-                        type Context = #context;
-
-                        fn validate(&self, ctx: &Self::Context) -> Result<(), ::garde::Errors> {
-                            let mut errors = ::garde::Errors::new();
-
-                            #(#fields)*
-
-                            if !errors.fields.is_empty() {
-                                return Err(errors);
-                            }
-
-                            Ok(())
-                        }
-                    }
+                    ::garde::error::Errors::fields(|errors| {
+                        #(#fields)*
+                    })
                 }
-                .to_tokens(tokens)
+            }
+            InputKind::TupleStruct(inner) => {
+                let fields = inner
+                    .iter()
+                    .enumerate()
+                    .map(|(i, field)| EmitField::TupleStruct(i, field));
+
+                quote! {
+                    ::garde::error::Errors::list(|errors| {
+                        #(#fields)*
+                    })
+                }
             }
             InputKind::Enum(inner) => {
                 let variants = inner.iter();
 
                 quote! {
-                    impl #impl_generics ::garde::Validate for #ident #ty_generics #where_clause {
-                        type Context = #context;
-
-                        fn validate(&self, ctx: &Self::Context) -> Result<(), ::garde::Errors> {
-                            let mut errors = ::garde::Errors::new();
-
-                            match self {
-                                #(#variants)*
-                            }
-
-                            if !errors.fields.is_empty() {
-                                return Err(errors);
-                            }
-
-                            Ok(())
-                        }
+                    match self {
+                        #(#variants)*
                     }
                 }
-                .to_tokens(tokens)
+            }
+        };
+
+        quote! {
+            impl #impl_generics ::garde::Validate for #ident #ty_generics #where_clause {
+                type Context = #context;
+
+                fn validate(&self, ctx: &Self::Context) -> Result<(), ::garde::Errors> {
+                    let errors = #inner ;
+
+                    if !errors.is_empty() {
+                        return Err(errors);
+                    }
+
+                    Ok(())
+                }
             }
         }
+        .to_tokens(tokens)
     }
 }
 
@@ -160,20 +162,28 @@ fn parse_context_meta(input: ParseStream) -> syn::Result<Type> {
 }
 
 enum InputKind {
-    Struct(Vec<Field>),
+    FieldStruct(Vec<(Ident, Field)>),
+    TupleStruct(Vec<Field>),
     Enum(Vec<Variant>),
 }
 
 fn parse_input_kind(data: &Data, errors: &mut Vec<Error>) -> syn::Result<InputKind> {
     match data {
-        Data::Struct(v) => {
-            let fields = match &v.fields {
-                syn::Fields::Named(v) => parse_fields(false, v.named.iter(), errors),
-                syn::Fields::Unnamed(v) => parse_fields(true, v.unnamed.iter(), errors),
-                syn::Fields::Unit => vec![],
-            };
-            Ok(InputKind::Struct(fields))
-        }
+        Data::Struct(v) => match &v.fields {
+            syn::Fields::Named(v) => Ok(InputKind::FieldStruct(
+                parse_fields(v.named.iter(), errors)
+                    .into_iter()
+                    .map(|(ident, field)| (ident.unwrap(), field))
+                    .collect(),
+            )),
+            syn::Fields::Unnamed(v) => Ok(InputKind::TupleStruct(
+                parse_fields(v.unnamed.iter(), errors)
+                    .into_iter()
+                    .map(|(_, field)| (field))
+                    .collect(),
+            )),
+            syn::Fields::Unit => Ok(InputKind::TupleStruct(vec![])),
+        },
         Data::Enum(v) => {
             let variants = parse_variants(v.variants.iter(), errors);
             Ok(InputKind::Enum(variants))
@@ -192,7 +202,7 @@ struct Variant {
 
 enum VariantKind {
     Unit,
-    Struct(Vec<Field>),
+    Struct(Vec<(Ident, Field)>),
     Tuple(Vec<Field>),
 }
 
@@ -201,35 +211,55 @@ impl ToTokens for VariantKind {
         match self {
             VariantKind::Unit => quote! {=> {}}.to_tokens(tokens),
             VariantKind::Struct(fields) => {
-                let field_names = fields.iter().map(|field| field.ident.emit_ident());
-                let fields = fields.iter().map(VariantField);
-                quote!({#(#field_names)*} => {#(#fields)*}).to_tokens(tokens)
+                let field_names = fields.iter().map(|(key, _)| key);
+                let fields = fields
+                    .iter()
+                    .map(|(key, field)| EmitField::FieldEnum(key, field));
+                quote! {
+                    {#(#field_names)*} => ::garde::error::Errors::fields(|errors| {
+                        #(#fields)*
+                    }),
+                }
+                .to_tokens(tokens)
             }
             VariantKind::Tuple(fields) => {
-                let field_names = fields.iter().map(|field| field.ident.emit_ident());
-                let fields = fields.iter().map(VariantField);
-                quote!((#(#field_names)*) => {#(#fields)*}).to_tokens(tokens)
+                let field_names = fields
+                    .iter()
+                    .enumerate()
+                    .map(|(i, _)| format_ident!("_{i}"));
+                let fields = fields
+                    .iter()
+                    .enumerate()
+                    .map(|(i, field)| EmitField::TupleEnum(format_ident!("_{i}"), field));
+                quote! {
+                    (#(#field_names)*) => ::garde::error::Errors::list(|errors| {
+                        #(#fields)*
+                    }),
+                }
+                .to_tokens(tokens)
             }
         }
     }
 }
 
-struct VariantField<'a>(&'a Field);
+enum EmitField<'a> {
+    FieldStruct(&'a Ident, &'a Field),
+    TupleStruct(usize, &'a Field),
+    FieldEnum(&'a Ident, &'a Field),
+    TupleEnum(Ident, &'a Field),
+}
 
-impl<'a> ToTokens for VariantField<'a> {
+impl<'a> ToTokens for EmitField<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
-        let rules = self
-            .0
-            .rules
-            .iter()
-            .map(|rule| rule.emit(self.0, &self.0.alias, false));
-
-        quote! {
-            #(
-                #rules
-            )*
+        match self {
+            EmitField::FieldStruct(key, v) => v.emit(FieldEmitKind::FieldStruct(key), tokens),
+            EmitField::TupleStruct(index, v) => v.emit(
+                FieldEmitKind::TupleStruct(&Literal::usize_unsuffixed(*index)),
+                tokens,
+            ),
+            EmitField::FieldEnum(key, v) => v.emit(FieldEmitKind::FieldEnum(key), tokens),
+            EmitField::TupleEnum(index, v) => v.emit(FieldEmitKind::TupleEnum(index), tokens),
         }
-        .to_tokens(tokens)
     }
 }
 
@@ -250,12 +280,18 @@ fn parse_variants<'a>(
     for v in variants {
         let ident = v.ident.clone();
         let kind = match &v.fields {
-            syn::Fields::Named(v) => {
-                VariantKind::Struct(parse_fields(false, v.named.iter(), errors))
-            }
-            syn::Fields::Unnamed(v) => {
-                VariantKind::Tuple(parse_fields(true, v.unnamed.iter(), errors))
-            }
+            syn::Fields::Named(v) => VariantKind::Struct(
+                parse_fields(v.named.iter(), errors)
+                    .into_iter()
+                    .map(|(ident, field)| (ident.unwrap(), field))
+                    .collect(),
+            ),
+            syn::Fields::Unnamed(v) => VariantKind::Tuple(
+                parse_fields(v.unnamed.iter(), errors)
+                    .into_iter()
+                    .map(|(_, field)| (field))
+                    .collect(),
+            ),
             syn::Fields::Unit => VariantKind::Unit,
         };
         out.push(Variant { ident, kind })
@@ -265,70 +301,76 @@ fn parse_variants<'a>(
 }
 
 struct Field {
-    ident: FieldIdent,
     ty: Type,
-    alias: Option<Ident>,
+    dive: bool,
     rules: BTreeSet<Rule>,
 }
 
-impl ToTokens for Field {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let rules = self
-            .rules
-            .iter()
-            .map(|rule| rule.emit(self, &self.alias, true));
+enum FieldEmitKind<'a> {
+    FieldStruct(&'a Ident),
+    TupleStruct(&'a Literal),
+    FieldEnum(&'a Ident),
+    TupleEnum(&'a Ident),
+}
 
+impl Field {
+    fn emit(&self, kind: FieldEmitKind, tokens: &mut TokenStream2) {
+        let (access, key, add_fn) = match &kind {
+            FieldEmitKind::FieldStruct(key) => {
+                (quote!(&self.#key), Some(key.to_string()), quote!(insert))
+            }
+            FieldEmitKind::TupleStruct(index) => (quote!(&self.#index), None, quote!(push)),
+            FieldEmitKind::FieldEnum(key) => (quote!(#key), Some(key.to_string()), quote!(insert)),
+            FieldEmitKind::TupleEnum(index) => (quote!(#index), None, quote!(push)),
+        };
+
+        let error =
+            match self.dive {
+                true => quote!(
+                    ::garde::validate::Validate::validate(#access, ctx)
+                        .err()
+                        .unwrap_or_else(|| ::garde::error::Errors::empty())
+                ),
+                false => {
+                    let rules = self.rules.iter().map(|rule| rule.emit(self)).map(
+                        |RuleEmit { rule, args }| {
+                            quote! {
+                                if let Err(error) = (#rule)(#access, #args) {
+                                    errors.push(error)
+                                }
+                            }
+                        },
+                    );
+                    quote!(::garde::error::Errors::simple(|errors| {#(#rules)*}))
+                }
+            };
+
+        let key = key.map(|key| quote!(#key,));
         quote! {
-            #(
-                #rules
-            )*
+            errors.#add_fn(#key #error);
         }
         .to_tokens(tokens)
     }
 }
 
-enum FieldIdent {
-    Name(Ident),
-    Index(usize),
-}
-
-impl FieldIdent {
-    fn emit_ident(&self) -> TokenStream2 {
-        match self {
-            FieldIdent::Name(v) => quote!(#v),
-            FieldIdent::Index(v) => format_ident!("_{v}").to_token_stream(),
-        }
-    }
-
-    fn emit_access(&self) -> TokenStream2 {
-        match self {
-            FieldIdent::Name(v) => quote!(#v),
-            FieldIdent::Index(v) => TokenStream2::from_str(&format!("{v}")).unwrap(),
-        }
-    }
-}
-
 fn parse_fields<'a>(
-    unnamed: bool,
     fields: impl Iterator<Item = &'a syn::Field>,
     errors: &mut Vec<Error>,
-) -> Vec<Field> {
+) -> Vec<(Option<Ident>, Field)> {
     let mut out = vec![];
 
-    for (i, f) in fields.enumerate() {
-        let ident = if unnamed {
-            FieldIdent::Index(i)
-        } else {
-            FieldIdent::Name(f.ident.clone().unwrap())
-        };
-
-        let ty = f.ty.clone();
+    for field in fields {
+        let ident = field.ident.clone();
+        let ty = field.ty.clone();
+        let mut dive = false;
         let mut alias = None;
         let mut rules = BTreeSet::new();
-        for attr in f.attrs.iter() {
+
+        // TODO: refactor this to not be so deeply nested
+        for attr in field.attrs.iter() {
             if attr.path().is_ident("garde") {
                 let meta_list = match attr
-                    .parse_args_with(Punctuated::<RuleOrAlias, Token![,]>::parse_terminated)
+                    .parse_args_with(Punctuated::<RuleOrAttr, Token![,]>::parse_terminated)
                 {
                     Ok(rule) => rule,
                     Err(e) => {
@@ -339,7 +381,18 @@ fn parse_fields<'a>(
 
                 for meta in meta_list {
                     match meta {
-                        RuleOrAlias::Rule(rule) => {
+                        RuleOrAttr::Rule(span, rule) => {
+                            if dive {
+                                errors.push(Error::new(
+                                    attr.meta.span(),
+                                    format!(
+                                        "`{}` may not be used together with `dive`",
+                                        rule.name()
+                                    ),
+                                ));
+                                continue;
+                            }
+
                             if rules.contains(&rule) {
                                 errors.push(Error::new(
                                     attr.meta.span(),
@@ -350,49 +403,67 @@ fn parse_fields<'a>(
 
                             rules.insert(rule);
                         }
-                        RuleOrAlias::Alias(v) => {
-                            if alias.is_some() {
-                                errors.push(Error::new(
-                                    attr.meta.span(),
-                                    "duplicate attribute `rename`",
-                                ));
-                                continue;
+                        RuleOrAttr::Attr(span, v) => match v {
+                            // TODO: not allowed on tuple structs
+                            Attr::Alias(v) => {
+                                if alias.is_some() {
+                                    errors.push(Error::new(
+                                        attr.meta.span(),
+                                        "duplicate attribute `rename`",
+                                    ));
+                                    continue;
+                                }
+                                alias = Some(v);
                             }
-                            alias = Some(v);
-                        }
+                            Attr::Dive => {
+                                if dive {
+                                    errors.push(Error::new(
+                                        attr.meta.span(),
+                                        "duplicate attribute `dive`",
+                                    ));
+                                    continue;
+                                }
+                                dive = true;
+                            }
+                        },
                     }
                 }
             }
         }
 
-        out.push(Field {
-            ident,
-            ty,
-            alias,
-            rules,
-        })
+        out.push((ident, Field { ty, dive, rules }))
     }
 
     out
 }
 
-enum RuleOrAlias {
-    Rule(Rule),
-    Alias(Ident),
+enum RuleOrAttr {
+    Rule(Span, Rule),
+    Attr(Span, Attr),
 }
 
-impl Parse for RuleOrAlias {
+enum Attr {
+    Alias(Ident),
+    Dive,
+}
+
+impl Parse for RuleOrAttr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let ident = Ident::parse_any(input)?;
+        let span = ident.span();
         if ident == "rename" {
             <Token![=]>::parse(input)?;
             let value = <syn::LitStr as Parse>::parse(input)?.parse_with(Ident::parse_any)?;
-            Ok(RuleOrAlias::Alias(value))
+            Ok(RuleOrAttr::Attr(span, Attr::Alias(value)))
+        } else if ident == "dive" {
+            Ok(RuleOrAttr::Attr(span, Attr::Dive))
         } else {
-            Rule::parse_with_ident(input, ident).map(RuleOrAlias::Rule)
+            Rule::parse_with_ident(input, ident).map(|rule| RuleOrAttr::Rule(span, rule))
         }
     }
 }
+
+// TODO: macro to generate this boilerplate
 
 #[repr(u8)]
 enum Rule {
@@ -420,53 +491,42 @@ enum Rule {
     Custom(Expr),
 }
 
+struct RuleEmit {
+    rule: TokenStream2,
+    args: TokenStream2,
+}
+
 impl Rule {
-    fn emit(&self, field: &Field, alias: &Option<Ident>, use_self: bool) -> TokenStream2 {
-        let field_name = alias
-            .as_ref()
-            .map(|v| v.to_token_stream())
-            .unwrap_or_else(|| field.ident.emit_ident());
-        let field_access = if use_self {
-            field.ident.emit_access()
-        } else {
-            field.ident.emit_ident()
-        };
-        let self_token = if use_self { Some(quote!(&self.)) } else { None };
-        let check = match self {
-            Rule::Ascii => {
-                quote! {::garde::rules::ascii::apply(stringify!(#field_name), #self_token #field_access)}
-            }
-            Rule::Alphanumeric => {
-                quote! {::garde::rules::alphanumeric::apply(stringify!(#field_name), #self_token #field_access)}
-            }
-            Rule::Email => {
-                quote! {::garde::rules::email::apply(stringify!(#field_name), #self_token #field_access)}
-            }
-            Rule::Url => {
-                quote! {::garde::rules::url::apply(stringify!(#field_name), #self_token #field_access)}
-            }
-            Rule::Ip => {
-                quote! {::garde::rules::ip::apply(stringify!(#field_name), #self_token #field_access, ::garde::rules::ip::IpKind::Any)}
-            }
-            Rule::IpV4 => {
-                quote! {::garde::rules::ip::apply(stringify!(#field_name), #self_token #field_access, ::garde::rules::ip::IpKind::V4)}
-            }
-            Rule::IpV6 => {
-                quote! {::garde::rules::ip::apply(stringify!(#field_name), #self_token #field_access, ::garde::rules::ip::IpKind::V6)}
-            }
-            Rule::CreditCard => {
-                quote! {::garde::rules::credit_card::apply(stringify!(#field_name), #self_token #field_access)}
-            }
-            Rule::PhoneNumber => {
-                quote! {::garde::rules::phone_number::apply(stringify!(#field_name), #self_token #field_access)}
-            }
+    fn emit(&self, field: &Field) -> RuleEmit {
+        let (rule, args) = match self {
+            Rule::Ascii => (quote! {::garde::rules::ascii::apply}, quote! {()}),
+            Rule::Alphanumeric => (quote! {::garde::rules::alphanumeric::apply}, quote! {()}),
+            Rule::Email => (quote! {::garde::rules::email::apply}, quote! {()}),
+            Rule::Url => (quote! {::garde::rules::url::apply}, quote! {()}),
+            Rule::Ip => (
+                quote! {::garde::rules::ip::apply},
+                quote! {(::garde::rules::ip::IpKind::Any,)},
+            ),
+            Rule::IpV4 => (
+                quote! {::garde::rules::ip::apply},
+                quote! {(::garde::rules::ip::IpKind::V4,)},
+            ),
+            Rule::IpV6 => (
+                quote! {::garde::rules::ip::apply},
+                quote! {(::garde::rules::ip::IpKind::V6,)},
+            ),
+            Rule::CreditCard => (quote! {::garde::rules::credit_card::apply}, quote! {()}),
+            Rule::PhoneNumber => (quote! {::garde::rules::phone_number::apply}, quote! {()}),
             Rule::Length { min, max } => {
                 let (min, max) = (
                     min.unwrap_or(0),
                     max.map(|v| quote!(#v))
                         .unwrap_or_else(|| quote!(usize::MAX)),
                 );
-                quote! {::garde::rules::length::apply(stringify!(#field_name), #self_token #field_access, #min, #max)}
+                (
+                    quote! {::garde::rules::length::apply},
+                    quote! {(#min, #max,)},
+                )
             }
             Rule::Range { min, max } => {
                 let ty = &field.ty;
@@ -478,30 +538,24 @@ impl Rule {
                         .map(|v| v.to_token_stream())
                         .unwrap_or_else(|| quote!(<#ty as ::garde::rules::range::Bounds>::MAX)),
                 );
-                quote! {::garde::rules::range::apply(stringify!(#field_name), #self_token #field_access, &#min, &#max)}
+                (
+                    quote! {::garde::rules::range::apply},
+                    quote! {(&#min, &#max,)},
+                )
             }
-            Rule::Contains(s) => {
-                quote! {::garde::rules::contains::apply(stringify!(#field_name), #self_token #field_access, #s)}
-            }
-            Rule::Prefix(s) => {
-                quote! {::garde::rules::prefix::apply(stringify!(#field_name), #self_token #field_access, #s)}
-            }
-            Rule::Suffix(s) => {
-                quote! {::garde::rules::suffix::apply(stringify!(#field_name), #self_token #field_access, #s)}
-            }
-            Rule::Pattern(s) => quote! {{
-                static PATTERN: ::garde::rules::pattern::StaticPattern = ::garde::rules::pattern::init_pattern!(#s);
-                ::garde::rules::pattern::apply(stringify!(#field_name), #self_token #field_access, &PATTERN)
-            }},
-            Rule::Custom(e) => quote! {{
-                (#e)(stringify!(#field_name), #self_token #field_access, &ctx)
-            }},
+            Rule::Contains(s) => (quote! {::garde::rules::contains::apply}, quote! {(#s,)}),
+            Rule::Prefix(s) => (quote! {::garde::rules::prefix::apply}, quote! {(#s,)}),
+            Rule::Suffix(s) => (quote! {::garde::rules::suffix::apply}, quote! {(#s,)}),
+            Rule::Pattern(s) => (
+                quote! {::garde::rules::pattern::apply},
+                quote! {{
+                    static PATTERN: ::garde::rules::pattern::StaticPattern = ::garde::rules::pattern::init_pattern!(#s);
+                    (&PATTERN,)
+                }},
+            ),
+            Rule::Custom(e) => (quote! {#e}, quote! {&ctx}),
         };
-        quote! {
-            if let Err(e) = #check {
-                errors.insert(stringify!(#field_name), e);
-            }
-        }
+        RuleEmit { rule, args }
     }
 }
 
@@ -593,13 +647,13 @@ impl Rule {
     }
 }
 
-impl Parse for Rule {
+/* impl Parse for Rule {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let ident = Ident::parse_any(input)?;
         Self::parse_with_ident(input, ident)
     }
 }
-
+ */
 fn parse_rule_length(content: ParseStream) -> syn::Result<Rule> {
     let parts = content.parse_terminated(MetaNameValue::parse, Token![,])?;
     let mut min = None::<usize>;

@@ -5,11 +5,11 @@ expression: snapshot
 Test {
     field: "zduhefljsdfKJKJZHUI",
 }
-`field` is not a valid credit card number: invalid format
+value.field: not a valid credit card number: invalid format
 
 Test {
     field: "5236313877109141",
 }
-`field` is not a valid credit card number: invalid luhn
+value.field: not a valid credit card number: invalid luhn
 
 

@@ -6,6 +6,7 @@ Test {
     a: "asdf",
     b: "asdf",
 }
-`a` is not equal to test`b` is not equal to test
+value.a: not equal to test
+value.b: `b` is not equal to test
 
 

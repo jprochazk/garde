@@ -2,11 +2,9 @@ use std::fmt::Display;
 
 use crate::error::Error;
 
-pub fn apply<T: CreditCard>(field_name: &str, v: &T) -> Result<(), Error> {
+pub fn apply<T: CreditCard>(v: &T, _: ()) -> Result<(), Error> {
     if let Err(e) = v.try_parse_credit_card() {
-        return Err(Error::new(
-            format!("`{field_name}` is not a valid credit card number: {e}").into(),
-        ));
+        return Err(Error::new(format!("not a valid credit card number: {e}")));
     }
     Ok(())
 }
