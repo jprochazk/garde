@@ -107,7 +107,7 @@ dependencies = [
 
 [[package]]
 name = "garde"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "card-validate",
  "garde_derive",
