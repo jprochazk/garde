@@ -7,7 +7,7 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-garde = { version = "0.4.0", path = "../garde" }
+garde = { version = "0.5.0", path = "../garde" }
 
 [dev-dependencies]
 trybuild = { version = "1.0" }
