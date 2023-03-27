@@ -69,3 +69,196 @@ impl<T: Debug> Debug for Unvalidated<T> {
         Debug::fmt(&self.0, f)
     }
 }
+
+impl<'a, T: ?Sized + Validate> Validate for &'a T {
+    type Context = T::Context;
+
+    fn validate(&self, ctx: &Self::Context) -> Result<(), Errors> {
+        <T as Validate>::validate(self, ctx)
+    }
+}
+
+impl<'a, T: ?Sized + Validate> Validate for &'a mut T {
+    type Context = T::Context;
+
+    fn validate(&self, ctx: &Self::Context) -> Result<(), Errors> {
+        <T as Validate>::validate(self, ctx)
+    }
+}
+
+impl<T: Validate> Validate for std::boxed::Box<T> {
+    type Context = T::Context;
+
+    fn validate(&self, ctx: &Self::Context) -> Result<(), Errors> {
+        <T as Validate>::validate(self, ctx)
+    }
+}
+
+impl<T: Validate> Validate for std::rc::Rc<T> {
+    type Context = T::Context;
+
+    fn validate(&self, ctx: &Self::Context) -> Result<(), Errors> {
+        <T as Validate>::validate(self, ctx)
+    }
+}
+
+impl<T: Validate> Validate for std::sync::Arc<T> {
+    type Context = T::Context;
+
+    fn validate(&self, ctx: &Self::Context) -> Result<(), Errors> {
+        <T as Validate>::validate(self, ctx)
+    }
+}
+
+macro_rules! impl_validate_list {
+    (<$T:ident $(, $Other:ident)*> $Container:ty) => {
+        impl<$T, $($Other),*> Validate for $Container
+        where
+            $T: Validate
+        {
+            type Context = T::Context;
+            fn validate(&self, ctx: &Self::Context) -> Result<(), Errors> {
+                let errors = Errors::list(|errors| {
+                    for item in self.iter() {
+                        errors.push(
+                            <T as Validate>::validate(item, ctx)
+                                .err()
+                                .unwrap_or_else(Errors::empty),
+                        )
+                    }
+                });
+                if !errors.is_empty() {
+                    return Err(errors);
+                }
+                Ok(())
+            }
+        }
+    };
+}
+
+impl_validate_list!(<T, S> std::collections::HashSet<T, S>);
+impl_validate_list!(<T> std::collections::BTreeSet<T>);
+impl_validate_list!(<T> std::collections::BinaryHeap<T>);
+impl_validate_list!(<T> std::collections::LinkedList<T>);
+impl_validate_list!(<T> std::collections::VecDeque<T>);
+impl_validate_list!(<T> std::vec::Vec<T>);
+impl_validate_list!(<T> [T]);
+
+impl<T: Validate, const N: usize> Validate for [T; N] {
+    type Context = T::Context;
+    fn validate(&self, ctx: &Self::Context) -> Result<(), Errors> {
+        let errors = Errors::list(|errors| {
+            for item in self.iter() {
+                errors.push(
+                    <T as Validate>::validate(item, ctx)
+                        .err()
+                        .unwrap_or_else(Errors::empty),
+                )
+            }
+        });
+        if !errors.is_empty() {
+            return Err(errors);
+        }
+        Ok(())
+    }
+}
+
+macro_rules! impl_validate_tuple {
+    ($A:ident, $($T:ident),*) => {
+        impl<$A, $($T),*> Validate for ($A, $($T,)*)
+        where
+            $A : Validate,
+            $($T : Validate<Context=$A::Context>,)*
+        {
+            type Context = $A::Context;
+
+            #[allow(non_snake_case)]
+            fn validate(&self, ctx: &Self::Context) -> Result<(), Errors> {
+                let errors = Errors::list(|errors| {
+                    let ($A, $($T,)*) = self;
+                    errors.push(
+                        <$A as Validate>::validate($A, ctx)
+                            .err()
+                            .unwrap_or_else(|| Errors::empty())
+                    );
+                    $(
+                        errors.push(
+                            <$T as Validate>::validate($T, ctx)
+                                .err()
+                                .unwrap_or_else(|| Errors::empty())
+                        );
+                    )*
+                });
+                if !errors.is_empty() {
+                    return Err(errors);
+                }
+                Ok(())
+            }
+        }
+    }
+}
+
+impl_validate_tuple!(A,);
+impl_validate_tuple!(A, B);
+impl_validate_tuple!(A, B, C);
+impl_validate_tuple!(A, B, C, D);
+impl_validate_tuple!(A, B, C, D, E);
+impl_validate_tuple!(A, B, C, D, E, F);
+impl_validate_tuple!(A, B, C, D, E, F, G);
+impl_validate_tuple!(A, B, C, D, E, F, G, H);
+impl_validate_tuple!(A, B, C, D, E, F, G, H, I);
+impl_validate_tuple!(A, B, C, D, E, F, G, H, I, J);
+impl_validate_tuple!(A, B, C, D, E, F, G, H, I, J, K);
+impl_validate_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
+
+impl<K, V, S> Validate for std::collections::HashMap<K, V, S>
+where
+    std::borrow::Cow<'static, str>: From<K>,
+    K: Clone,
+    V: Validate,
+{
+    type Context = V::Context;
+
+    fn validate(&self, ctx: &Self::Context) -> Result<(), Errors> {
+        let errors = Errors::fields(|errors| {
+            for (key, value) in self.iter() {
+                errors.insert(
+                    std::borrow::Cow::from(key.clone()),
+                    <V as Validate>::validate(value, ctx)
+                        .err()
+                        .unwrap_or_else(Errors::empty),
+                )
+            }
+        });
+        if !errors.is_empty() {
+            return Err(errors);
+        }
+        Ok(())
+    }
+}
+
+impl<K, V> Validate for std::collections::BTreeMap<K, V>
+where
+    std::borrow::Cow<'static, str>: From<K>,
+    K: Clone,
+    V: Validate,
+{
+    type Context = V::Context;
+
+    fn validate(&self, ctx: &Self::Context) -> Result<(), Errors> {
+        let errors = Errors::fields(|errors| {
+            for (key, value) in self.iter() {
+                errors.insert(
+                    std::borrow::Cow::from(key.clone()),
+                    <V as Validate>::validate(value, ctx)
+                        .err()
+                        .unwrap_or_else(Errors::empty),
+                )
+            }
+        });
+        if !errors.is_empty() {
+            return Err(errors);
+        }
+        Ok(())
+    }
+}

@@ -28,7 +28,7 @@ impl std::error::Error for Error {}
 pub enum Errors {
     Simple(Vec<Error>),
     List(Vec<Errors>),
-    Fields(BTreeMap<&'static str, Errors>),
+    Fields(BTreeMap<Cow<'static, str>, Errors>),
 }
 
 impl Errors {
@@ -140,7 +140,7 @@ impl ListErrorBuilder {
 
 #[doc(hidden)]
 pub struct FieldsErrorBuilder {
-    inner: BTreeMap<&'static str, Errors>,
+    inner: BTreeMap<Cow<'static, str>, Errors>,
 }
 
 impl FieldsErrorBuilder {
@@ -155,12 +155,12 @@ impl FieldsErrorBuilder {
         Errors::Fields(builder.inner)
     }
 
-    pub fn insert(&mut self, field: &'static str, entry: Errors) {
+    pub fn insert(&mut self, field: impl Into<Cow<'static, str>>, entry: Errors) {
         if entry.is_empty() {
             return;
         }
 
-        let existing = self.inner.insert(field, entry);
+        let existing = self.inner.insert(field.into(), entry);
         assert!(
             existing.is_none(),
             "each field should only be dived into once"
