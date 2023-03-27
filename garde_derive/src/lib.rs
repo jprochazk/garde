@@ -211,29 +211,46 @@ impl ToTokens for VariantKind {
         match self {
             VariantKind::Unit => quote! {=> {}}.to_tokens(tokens),
             VariantKind::Struct(fields) => {
-                let field_names = fields.iter().map(|(key, _)| key);
-                let fields = fields
-                    .iter()
-                    .map(|(key, field)| EmitField::FieldEnum(key, field));
+                let mut bindings = Vec::with_capacity(fields.len());
+                let mut checks = Vec::with_capacity(fields.len());
+                for (key, field) in fields.iter() {
+                    if field.skip {
+                        continue;
+                    }
+                    bindings.push(key);
+                    checks.push(EmitField::FieldEnum(key, field));
+                }
+                let rest = if bindings.len() != fields.len() {
+                    Some(quote!(..))
+                } else {
+                    None
+                };
                 quote! {
-                    {#(#field_names),*} => ::garde::error::Errors::fields(|errors| {
-                        #(#fields)*
+                    {#(#bindings,)* #rest} => ::garde::error::Errors::fields(|errors| {
+                        #(#checks)*
                     }),
                 }
                 .to_tokens(tokens)
             }
             VariantKind::Tuple(fields) => {
-                let field_names = fields
-                    .iter()
-                    .enumerate()
-                    .map(|(i, _)| format_ident!("_{i}"));
-                let fields = fields
-                    .iter()
-                    .enumerate()
-                    .map(|(i, field)| EmitField::TupleEnum(format_ident!("_{i}"), field));
+                let mut bindings = Vec::with_capacity(fields.len());
+                let mut checks = Vec::with_capacity(fields.len());
+                for (i, field) in fields.iter().enumerate() {
+                    if field.skip {
+                        continue;
+                    }
+                    let field_name = format_ident!("_{i}");
+                    bindings.push(field_name.clone());
+                    checks.push(EmitField::TupleEnum(field_name, field))
+                }
+                let rest = if bindings.len() != fields.len() {
+                    Some(quote!(..))
+                } else {
+                    None
+                };
                 quote! {
-                    (#(#field_names),*) => ::garde::error::Errors::list(|errors| {
-                        #(#fields)*
+                    (#(#bindings,)* #rest) => ::garde::error::Errors::list(|errors| {
+                        #(#checks)*
                     }),
                 }
                 .to_tokens(tokens)
@@ -303,6 +320,7 @@ fn parse_variants<'a>(
 struct Field {
     ty: Type,
     dive: bool,
+    skip: bool,
     rules: BTreeSet<Rule>,
 }
 
@@ -315,6 +333,10 @@ enum FieldEmitKind<'a> {
 
 impl Field {
     fn emit(&self, kind: FieldEmitKind, tokens: &mut TokenStream2) {
+        if self.skip {
+            return;
+        }
+
         let (access, key, add_fn) = match &kind {
             FieldEmitKind::FieldStruct(key) => {
                 (quote!(&self.#key), Some(key.to_string()), quote!(insert))
@@ -372,14 +394,6 @@ fn parse_fields<'a>(
 
         for attr in field.attrs.iter() {
             if attr.path().is_ident("garde") {
-                /* let meta_list = match attr.meta.require_list() {
-                    Ok(meta_list) => meta_list,
-                    Err(e) => {
-                        errors.push(e);
-                        continue;
-                    }
-                };
-                syn::parse2() */
                 let meta_list = match attr
                     .parse_args_with(Punctuated::<RuleOrAttr, Token![,]>::parse_terminated)
                 {
@@ -449,15 +463,25 @@ fn parse_fields<'a>(
 
         if !dive && rules.is_empty() && !skip {
             errors.push(Error::new(
-                field.ident.span().join(field.ty.span()).unwrap(),
-                "field has no validation, use `#[garde(skip)] if this is intentional",
+                field
+                    .ident
+                    .as_ref()
+                    .map(|ident| ident.span().join(field.ty.span()).unwrap())
+                    .unwrap_or_else(|| field.ty.span()),
+                "field has no validation, use `#[garde(skip)]` if this is intentional",
             ));
             continue;
         }
 
-        if !skip {
-            out.push((ident, Field { ty, dive, rules }));
-        }
+        out.push((
+            ident,
+            Field {
+                ty,
+                dive,
+                skip,
+                rules,
+            },
+        ));
     }
 
     out
