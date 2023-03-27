@@ -362,13 +362,24 @@ fn parse_fields<'a>(
     for field in fields {
         let ident = field.ident.clone();
         let ty = field.ty.clone();
+
+        // TODO: refactor this to not be so deeply nested
+
+        let mut skip = false;
         let mut dive = false;
         let mut alias = None;
         let mut rules = BTreeSet::new();
 
-        // TODO: refactor this to not be so deeply nested
         for attr in field.attrs.iter() {
             if attr.path().is_ident("garde") {
+                /* let meta_list = match attr.meta.require_list() {
+                    Ok(meta_list) => meta_list,
+                    Err(e) => {
+                        errors.push(e);
+                        continue;
+                    }
+                };
+                syn::parse2() */
                 let meta_list = match attr
                     .parse_args_with(Punctuated::<RuleOrAttr, Token![,]>::parse_terminated)
                 {
@@ -419,13 +430,34 @@ fn parse_fields<'a>(
                                 }
                                 dive = true;
                             }
+                            Attr::Skip => {
+                                if skip {
+                                    errors.push(Error::new(span, "duplicate attribute `skip`"));
+                                    continue;
+                                }
+                                skip = true;
+                            }
                         },
+                        RuleOrAttr::Unknown(span) => {
+                            errors.push(Error::new(span, "unrecognized rule"));
+                            continue;
+                        }
                     }
                 }
             }
         }
 
-        out.push((ident, Field { ty, dive, rules }))
+        if !dive && rules.is_empty() && !skip {
+            errors.push(Error::new(
+                field.ident.span().join(field.ty.span()).unwrap(),
+                "field has no validation, use `#[garde(skip)] if this is intentional",
+            ));
+            continue;
+        }
+
+        if !skip {
+            out.push((ident, Field { ty, dive, rules }));
+        }
     }
 
     out
@@ -434,11 +466,13 @@ fn parse_fields<'a>(
 enum RuleOrAttr {
     Rule(Span, Rule),
     Attr(Span, Attr),
+    Unknown(Span),
 }
 
 enum Attr {
     Alias(Ident),
     Dive,
+    Skip,
 }
 
 impl Parse for RuleOrAttr {
@@ -451,8 +485,12 @@ impl Parse for RuleOrAttr {
             Ok(RuleOrAttr::Attr(span, Attr::Alias(value)))
         } else if ident == "dive" {
             Ok(RuleOrAttr::Attr(span, Attr::Dive))
+        } else if ident == "skip" {
+            Ok(RuleOrAttr::Attr(span, Attr::Skip))
         } else {
-            Rule::parse_with_ident(input, ident).map(|rule| RuleOrAttr::Rule(span, rule))
+            Ok(Rule::parse_with_ident(input, ident)
+                .map(|rule| RuleOrAttr::Rule(span, rule))
+                .unwrap_or_else(|_| RuleOrAttr::Unknown(span)))
         }
     }
 }

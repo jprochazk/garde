@@ -1,6 +1,6 @@
 #[derive(garde::Validate)]
 struct Test<'a> {
-    #[garde(ascii, unknown_rule)]
+    #[garde(skip)]
     field: &'a str,
 }
 

@@ -1,0 +1,5 @@
+error: field has no validation, use `#[garde(skip)] if this is intentional
+ --> tests/compile-fail/no_validation.rs:3:5
+  |
+3 |     field: &'a str,
+  |     ^^^^^^^^^^^^^^

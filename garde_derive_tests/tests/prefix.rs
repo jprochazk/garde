@@ -16,3 +16,9 @@ fn prefix_valid() {
 fn prefix_invalid() {
     util::check_fail!(&[Test { field: "a" }, Test { field: "_test" }], &())
 }
+
+/* #[derive(garde::Validate)]
+struct Other<'a> {
+    #[garde(unknown_rule)]
+    field: &'a str,
+} */
