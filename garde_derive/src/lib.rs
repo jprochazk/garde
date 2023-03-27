@@ -216,7 +216,7 @@ impl ToTokens for VariantKind {
                     .iter()
                     .map(|(key, field)| EmitField::FieldEnum(key, field));
                 quote! {
-                    {#(#field_names)*} => ::garde::error::Errors::fields(|errors| {
+                    {#(#field_names),*} => ::garde::error::Errors::fields(|errors| {
                         #(#fields)*
                     }),
                 }
@@ -232,7 +232,7 @@ impl ToTokens for VariantKind {
                     .enumerate()
                     .map(|(i, field)| EmitField::TupleEnum(format_ident!("_{i}"), field));
                 quote! {
-                    (#(#field_names)*) => ::garde::error::Errors::list(|errors| {
+                    (#(#field_names),*) => ::garde::error::Errors::list(|errors| {
                         #(#fields)*
                     }),
                 }

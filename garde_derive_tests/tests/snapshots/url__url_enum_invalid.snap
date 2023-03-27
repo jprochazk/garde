@@ -4,8 +4,12 @@ expression: snapshot
 ---
 Struct {
     field: "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    v: Struct {
+        field: "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    },
 }
 value.field: not a valid url: relative URL without a base
+value.v.field: not a valid url: relative URL without a base
 
 Tuple(
     "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",

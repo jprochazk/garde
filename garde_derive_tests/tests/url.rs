@@ -18,6 +18,8 @@ enum Enum<'a> {
     Struct {
         #[garde(url)]
         field: &'a str,
+        #[garde(dive)]
+        v: Struct<'a>,
     },
     Tuple(#[garde(url)] &'a str),
 }
@@ -48,6 +50,9 @@ fn url_enum_valid() {
         &[
             Enum::Struct {
                 field: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                v: Struct {
+                    field: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                },
             },
             Enum::Tuple("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
         ],
@@ -74,6 +79,9 @@ fn url_enum_invalid() {
         &[
             Enum::Struct {
                 field: "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                v: Struct {
+                    field: "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                },
             },
             Enum::Tuple("htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ"),
         ],
