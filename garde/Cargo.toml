@@ -33,5 +33,3 @@ regex = { version = "1", optional = true }
 once_cell = { version = "1", optional = true }
 idna = { version = "0.3", optional = true }
 
-[dev-dependencies]
-serde_json = { version = "1" }

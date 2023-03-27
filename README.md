@@ -7,11 +7,26 @@
 
 A Rust validation library
 
+- [Basic usage example](#basic-usage-example)
+- [Validation rules](#available-validation-rules)
+- [Custom validation](#custom-validation)
+- [Implementing rules](#implementing-rules)
+- [Implementing `Validate`](#implementing-validate)
+- [Feature flags](#feature-flags)
+- [Why `garde`?](#why-garde)
+
+### Basic usage example
+
+To get started, use the `Validate` derive macro and add some validation rules to your type.
+This generates an implementation of the `Validate` trait for you.
+To use it, call the `validate` method on an instance of the type.
+
+Here's what that looks like in full:
+
 ```rust
 use garde::{Validate, Valid};
-use serde::Deserialize;
 
-#[derive(Deserialize, Validate)]
+#[derive(Validate)]
 struct User<'a> {
     #[garde(ascii, length(min=3, max=25))]
     username: &'a str,
@@ -19,44 +34,36 @@ struct User<'a> {
     password: &'a str,
 }
 
-let user = serde_json::from_str::<User>(r#"
-{
-    "username": "lolcode",
-    "password": "hunter2"
-}
-"#).unwrap();
+let user = User {
+    username: "test",
+    password: "not_a_very_good_password",
+};
 
-println!("{}", user.validate(&()).unwrap_err());
+if let Err(e) = user.validate(&()) {
+    println!("invalid user: {e}");
+}
 ```
 
 Garde can also validate enums:
 
 ```rust
 use garde::{Validate, Valid};
-use serde::Deserialize;
 
-#[derive(Deserialize, Validate)]
-#[serde(rename_all="lowercase")]
+#[derive(Validate)]
 enum Data {
     Struct {
         #[garde(range(min=-10, max=10))]
         field: i32,
     },
     Tuple(
-        #[garde(rename="important", ascii)]
+        #[garde(ascii)]
         String
     ),
 }
 
-let data = serde_json::from_str::<Vec<Data>>(r#"
-[
-    { "struct": { "field": 100 } },
-    { "tuple": "test" }
-]
-"#).unwrap();
-
-for item in &data {
-    println!("{}", item.validate(&()).unwrap_err());
+let data = Data::Struct { field: 100 };
+if let Err(e) = data.validate(&()) {
+    println!("invalid data: {e}");
 }
 ```
 
@@ -80,6 +87,7 @@ for item in &data {
 | suffix       | `#[garde(suffix(<string>))]`                | a string-like value suffixed by some string                  | -              |
 | pattern      | `#[garde(pattern(<regex>))]`                | a string-like value matching some regular expression         | `pattern`      |
 | dive         | `#[garde(dive)]`                            | nested validation, calls `validate` on the value             | -              |
+| skip         | `#[garde(skip)]`                            | skip validation                                              | -              |
 | custom       | `#[garde(custom(<function or closure>))]`   | a custom validator                                           | -              |
 
 
@@ -89,6 +97,110 @@ Additional notes:
 - `length` uses `.chars().count()` for UTF-8 strings instead of `.len()`.
 - For `contains`, `prefix`, and `suffix`, the pattern must be a string literal, because the `Pattern` API [is currently unstable](https://github.com/rust-lang/rust/issues/27721).
 - Nested validation using `dive` may not be combined with any other rule.
+
+### Custom validation
+
+Validation may be customized via the `custom` rule, and the `context` attribute.
+
+The context may be any type without generic parameters. By default, the context is `()`.
+
+```rust
+#[derive(garde::Validate)]
+#[garde(context(PasswordContext))]
+struct User {
+    #[garde(custom(is_strong_password))]
+    password: String,
+}
+
+struct PasswordContext {
+    min_entropy: f32,
+    entropy: cracken::password_entropy::EntropyEstimator,
+}
+
+fn is_strong_password(value: &str, context: &PasswordContext) -> garde::Result {
+    let bits = context.entropy.estimate_password_entropy(value.as_bytes())
+        .map(|e| e.mask_entropy)
+        .unwrap_or(0.0);
+    if bits < context.min_entropy {
+        return Err(garde::Error::new("password is not strong enough"));
+    }
+    Ok(())
+}
+
+let ctx = PasswordContext { /* ... */ };
+let user = User { /* ... */ };
+user.validate(&ctx)?;
+```
+
+The validator function may accept the value as a reference to any type which it derefs to.
+In the above example, it is possible to use `&str`, because `password` is a `String`, and `String` derefs to `&str`.
+
+### Implementing rules
+
+Say you want to implement length checking for a custom string-like type.
+To do this, you would implement the `garde::rules::length::Size` trait for it.
+
+```rust
+#[repr(transparent)]
+pub struct MyString(pub String);
+
+impl garde::rules::length::Size for MyString {
+    fn size(&self) -> usize {
+        self.0.chars().count()
+    }
+}
+#[derive(garde::Validate)]
+struct Foo {
+    // Now the `length` check may be used with `MyString`
+    #[garde(length(min = 1, max = 1000))]
+    field: MyString,
+}
+```
+
+Each rule comes with its own trait that may be implemented by custom types in your code.
+They are all available under `garde::rules`.
+
+### Implementing `Validate`
+
+In case you have a container type for which you'd like to support nested validation (using the `#[garde(dive)]` rule),
+you may implement `Validate` for it:
+
+```rust
+#[repr(transparent)]
+struct MyVec<T>(Vec<T>);
+
+impl<T: garde::Validate> garde::Validate for MyVec<T> {
+    type Context = T::Context;
+
+    fn validate(&self, ctx: &Self::Context) -> Result<(), garde::Errors> {
+        garde::Errors::list(|errors| {
+            for item in self.0.iter() {
+                errors.push(item.validate(ctx));
+            }
+        })
+        .finish()
+    }
+}
+
+#[derive(garde::Validate)]
+struct Foo {
+  #[garde(dive)]
+  field: MyVec<Bar>,
+}
+
+#[derive(garde::Validate)]
+struct Bar {
+  #[garde(range(min = 1, max = 10))]
+  value: u32,
+}
+```
+
+To make implementing the trait easier, the `Errors` type supports a nesting builders.
+- For list-like or tuple-like data structures, use `Errors::list`, and its `.push` method to attach nested `Errors`.
+- For map-like data structures, use `Errors::fields`, and its `.insert` method to attach nested `Errors`.
+- For a "flat" error list, use `Errors::simple`, and its `.push` method to attach individual errors.
+
+The `ListErrorBuilder::push` and `ListErrorBuilder::insert` methods will ignore any errors which are empty (via `Errors::is_empty`).
 
 ### Feature flags
 
@@ -105,7 +217,7 @@ Additional notes:
 | `nightly-error-messages` | Enables usage of `rustc_on_unimplemented` for better error messages. This is an unstable feature and requires a nightly compiler. | -                                                                                            |
 
 
-### Why `Garde`?
+### Why `garde`?
 
 Garde means guard in French. I am not French, nor do I speak the language, but `guard` was taken, and this is close enough :).
 
