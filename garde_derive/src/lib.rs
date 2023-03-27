@@ -211,29 +211,46 @@ impl ToTokens for VariantKind {
         match self {
             VariantKind::Unit => quote! {=> {}}.to_tokens(tokens),
             VariantKind::Struct(fields) => {
-                let field_names = fields.iter().map(|(key, _)| key);
-                let fields = fields
-                    .iter()
-                    .map(|(key, field)| EmitField::FieldEnum(key, field));
+                let mut bindings = Vec::with_capacity(fields.len());
+                let mut checks = Vec::with_capacity(fields.len());
+                for (key, field) in fields.iter() {
+                    if field.skip {
+                        continue;
+                    }
+                    bindings.push(key);
+                    checks.push(EmitField::FieldEnum(key, field));
+                }
+                let rest = if bindings.len() != fields.len() {
+                    Some(quote!(..))
+                } else {
+                    None
+                };
                 quote! {
-                    {#(#field_names),*} => ::garde::error::Errors::fields(|errors| {
-                        #(#fields)*
+                    {#(#bindings,)* #rest} => ::garde::error::Errors::fields(|errors| {
+                        #(#checks)*
                     }),
                 }
                 .to_tokens(tokens)
             }
             VariantKind::Tuple(fields) => {
-                let field_names = fields
-                    .iter()
-                    .enumerate()
-                    .map(|(i, _)| format_ident!("_{i}"));
-                let fields = fields
-                    .iter()
-                    .enumerate()
-                    .map(|(i, field)| EmitField::TupleEnum(format_ident!("_{i}"), field));
+                let mut bindings = Vec::with_capacity(fields.len());
+                let mut checks = Vec::with_capacity(fields.len());
+                for (i, field) in fields.iter().enumerate() {
+                    if field.skip {
+                        continue;
+                    }
+                    let field_name = format_ident!("_{i}");
+                    bindings.push(field_name.clone());
+                    checks.push(EmitField::TupleEnum(field_name, field))
+                }
+                let rest = if bindings.len() != fields.len() {
+                    Some(quote!(..))
+                } else {
+                    None
+                };
                 quote! {
-                    (#(#field_names),*) => ::garde::error::Errors::list(|errors| {
-                        #(#fields)*
+                    (#(#bindings,)* #rest) => ::garde::error::Errors::list(|errors| {
+                        #(#checks)*
                     }),
                 }
                 .to_tokens(tokens)
@@ -303,6 +320,7 @@ fn parse_variants<'a>(
 struct Field {
     ty: Type,
     dive: bool,
+    skip: bool,
     rules: BTreeSet<Rule>,
 }
 
@@ -315,6 +333,10 @@ enum FieldEmitKind<'a> {
 
 impl Field {
     fn emit(&self, kind: FieldEmitKind, tokens: &mut TokenStream2) {
+        if self.skip {
+            return;
+        }
+
         let (access, key, add_fn) = match &kind {
             FieldEmitKind::FieldStruct(key) => {
                 (quote!(&self.#key), Some(key.to_string()), quote!(insert))
@@ -362,11 +384,14 @@ fn parse_fields<'a>(
     for field in fields {
         let ident = field.ident.clone();
         let ty = field.ty.clone();
+
+        // TODO: refactor this to not be so deeply nested
+
+        let mut skip = false;
         let mut dive = false;
         let mut alias = None;
         let mut rules = BTreeSet::new();
 
-        // TODO: refactor this to not be so deeply nested
         for attr in field.attrs.iter() {
             if attr.path().is_ident("garde") {
                 let meta_list = match attr
@@ -419,13 +444,44 @@ fn parse_fields<'a>(
                                 }
                                 dive = true;
                             }
+                            Attr::Skip => {
+                                if skip {
+                                    errors.push(Error::new(span, "duplicate attribute `skip`"));
+                                    continue;
+                                }
+                                skip = true;
+                            }
                         },
+                        RuleOrAttr::Unknown(span) => {
+                            errors.push(Error::new(span, "unrecognized rule"));
+                            continue;
+                        }
                     }
                 }
             }
         }
 
-        out.push((ident, Field { ty, dive, rules }))
+        if !dive && rules.is_empty() && !skip {
+            errors.push(Error::new(
+                field
+                    .ident
+                    .as_ref()
+                    .map(|ident| ident.span().join(field.ty.span()).unwrap())
+                    .unwrap_or_else(|| field.ty.span()),
+                "field has no validation, use `#[garde(skip)]` if this is intentional",
+            ));
+            continue;
+        }
+
+        out.push((
+            ident,
+            Field {
+                ty,
+                dive,
+                skip,
+                rules,
+            },
+        ));
     }
 
     out
@@ -434,11 +490,13 @@ fn parse_fields<'a>(
 enum RuleOrAttr {
     Rule(Span, Rule),
     Attr(Span, Attr),
+    Unknown(Span),
 }
 
 enum Attr {
     Alias(Ident),
     Dive,
+    Skip,
 }
 
 impl Parse for RuleOrAttr {
@@ -451,8 +509,12 @@ impl Parse for RuleOrAttr {
             Ok(RuleOrAttr::Attr(span, Attr::Alias(value)))
         } else if ident == "dive" {
             Ok(RuleOrAttr::Attr(span, Attr::Dive))
+        } else if ident == "skip" {
+            Ok(RuleOrAttr::Attr(span, Attr::Skip))
         } else {
-            Rule::parse_with_ident(input, ident).map(|rule| RuleOrAttr::Rule(span, rule))
+            Ok(Rule::parse_with_ident(input, ident)
+                .map(|rule| RuleOrAttr::Rule(span, rule))
+                .unwrap_or_else(|_| RuleOrAttr::Unknown(span)))
         }
     }
 }
