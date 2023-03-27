@@ -7,7 +7,9 @@ use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{Attribute, Data, DeriveInput, Error, Expr, Generics, MetaNameValue, Token, Type};
+use syn::{
+    Attribute, Data, DeriveInput, Error, Expr, GenericParam, Generics, MetaNameValue, Token, Type,
+};
 
 #[proc_macro_derive(Validate, attributes(garde))]
 pub fn derive_validate(input: TokenStream) -> TokenStream {
@@ -64,8 +66,15 @@ struct Validation {
 impl ToTokens for Validation {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let ident = &self.ident;
-        let context = &self.context;
+        let (context_ty, _ /* context_generics */) = self.context.split_for_impl();
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
+        /* let mut impl_generics = self.generics.clone();
+        if let Some(context_generics) = context_generics {
+            for param in context_generics.iter().cloned() {
+                impl_generics.params.push(param);
+            }
+        }
+        let (impl_generics, _, _) = impl_generics.split_for_impl(); */
 
         let inner = match &self.inner {
             InputKind::FieldStruct(inner) => {
@@ -104,7 +113,7 @@ impl ToTokens for Validation {
 
         quote! {
             impl #impl_generics ::garde::Validate for #ident #ty_generics #where_clause {
-                type Context = #context;
+                type Context = #context_ty;
 
                 fn validate(&self, ctx: &Self::Context) -> Result<(), ::garde::Errors> {
                     let errors = #inner ;
@@ -122,15 +131,12 @@ impl ToTokens for Validation {
 }
 
 struct Context {
-    inner: Option<Type>,
+    inner: ContextMeta,
 }
 
-impl ToTokens for Context {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        match &self.inner {
-            Some(ty) => ty.to_tokens(tokens),
-            None => quote!(()).to_tokens(tokens),
-        }
+impl Context {
+    fn split_for_impl(&self) -> (&Type, Option<&Punctuated<GenericParam, Token![,]>>) {
+        (&self.inner.ty, self.inner.params.as_ref())
     }
 }
 
@@ -145,20 +151,53 @@ fn parse_context(attrs: &[Attribute], errors: &mut Vec<Error>) -> Context {
                     continue;
                 }
             };
+            if inner.is_some() {
+                errors.push(Error::new(
+                    attr.path().span(),
+                    "duplicate attribute `context`",
+                ));
+                continue;
+            }
             inner = Some(ty);
         }
     }
+    let inner = match inner {
+        Some(inner) => inner,
+        None => ContextMeta {
+            ty: syn::parse_quote!(()),
+            params: None,
+        },
+    };
     Context { inner }
 }
 
-fn parse_context_meta(input: ParseStream) -> syn::Result<Type> {
+struct ContextMeta {
+    params: Option<Punctuated<GenericParam, Token![,]>>,
+    ty: Type,
+}
+
+fn parse_context_meta(input: ParseStream) -> syn::Result<ContextMeta> {
     let name = Ident::parse_any(input)?;
     if name != "context" {
         return Err(Error::new(name.span(), "unrecognized attribute"));
     }
     let content;
     syn::parenthesized!(content in input);
-    content.parse::<Type>()
+
+    let params = None;
+    /* let params = if content.peek(Token![for]) {
+        <Token![for]>::parse(&content)?;
+        <Token![<]>::parse(&content)?;
+        let params = Punctuated::parse_separated_nonempty(&content)?;
+        <Token![>]>::parse(&content)?;
+        Some(params)
+    } else {
+        None
+    }; */
+
+    let ty = content.parse::<Type>()?;
+
+    Ok(ContextMeta { params, ty })
 }
 
 enum InputKind {
