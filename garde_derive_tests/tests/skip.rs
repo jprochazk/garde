@@ -26,4 +26,5 @@ enum Enum {
 fn skip_valid() {
     util::check_ok(&[Struct { field: 50 }], &());
     util::check_ok(&[Tuple(50)], &());
+    util::check_ok(&[Enum::Struct { field: 50 }, Enum::Tuple(50)], &());
 }
