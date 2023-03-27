@@ -31,7 +31,24 @@ pub enum Errors {
     Fields(BTreeMap<Cow<'static, str>, Errors>),
 }
 
+impl From<Result<(), Errors>> for Errors {
+    fn from(value: Result<(), Errors>) -> Self {
+        match value {
+            Ok(()) => Errors::empty(),
+            Err(errors) => errors,
+        }
+    }
+}
+
 impl Errors {
+    pub fn finish(self) -> Result<(), Errors> {
+        if !self.is_empty() {
+            Err(self)
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn is_empty(&self) -> bool {
         match self {
             Errors::Simple(v) => v.is_empty(),
@@ -129,7 +146,9 @@ impl ListErrorBuilder {
         Errors::List(builder.inner)
     }
 
-    pub fn push(&mut self, entry: Errors) {
+    pub fn push(&mut self, entry: impl Into<Errors>) {
+        let entry = entry.into();
+
         if entry.is_empty() {
             return;
         }
@@ -155,7 +174,9 @@ impl FieldsErrorBuilder {
         Errors::Fields(builder.inner)
     }
 
-    pub fn insert(&mut self, field: impl Into<Cow<'static, str>>, entry: Errors) {
+    pub fn insert(&mut self, field: impl Into<Cow<'static, str>>, entry: impl Into<Errors>) {
+        let entry = entry.into();
+
         if entry.is_empty() {
             return;
         }
