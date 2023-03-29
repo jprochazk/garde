@@ -107,7 +107,7 @@ dependencies = [
 
 [[package]]
 name = "garde"
-version = "0.8.1"
+version = "0.9.0"
 dependencies = [
  "card-validate",
  "garde_derive",
@@ -121,7 +121,7 @@ dependencies = [
 
 [[package]]
 name = "garde_derive"
-version = "0.8.1"
+version = "0.9.0"
 dependencies = [
  "proc-macro2",
  "quote",
