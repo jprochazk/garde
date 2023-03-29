@@ -1,0 +1,12 @@
+---
+source: garde_derive_tests/tests/./rules/custom.rs
+expression: snapshot
+---
+Test {
+    a: "asdf",
+    b: "asdf",
+}
+value.a: not equal to test
+value.b: `b` is not equal to test
+
+

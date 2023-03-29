@@ -1,0 +1,10 @@
+---
+source: garde_derive_tests/tests/./rules/url.rs
+expression: snapshot
+---
+Struct {
+    field: "asdf",
+}
+value.field: not a valid url: relative URL without a base
+
+

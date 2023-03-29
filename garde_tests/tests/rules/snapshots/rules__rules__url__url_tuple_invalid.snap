@@ -1,0 +1,10 @@
+---
+source: garde_derive_tests/tests/./rules/url.rs
+expression: snapshot
+---
+Tuple(
+    "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
+)
+value[0]: not a valid url: relative URL without a base
+
+

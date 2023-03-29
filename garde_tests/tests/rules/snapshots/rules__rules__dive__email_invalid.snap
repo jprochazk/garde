@@ -1,0 +1,56 @@
+---
+source: garde_derive_tests/tests/./rules/dive.rs
+expression: snapshot
+---
+Test {
+    field: Inner {
+        field: "",
+    },
+    by_ref: Inner {
+        field: "",
+    },
+    tuples: (
+        Inner {
+            field: "",
+        },
+        Inner {
+            field: "",
+        },
+    ),
+    slice: [
+        Inner {
+            field: "",
+        },
+    ],
+    array: [
+        Inner {
+            field: "",
+        },
+    ],
+    array_ref: [
+        Inner {
+            field: "",
+        },
+    ],
+    boxed: Inner {
+        field: "",
+    },
+    rc: Inner {
+        field: "",
+    },
+    arc: Inner {
+        field: "",
+    },
+}
+value.arc.field: length is lower than 1
+value.array[0].field: length is lower than 1
+value.array_ref[0].field: length is lower than 1
+value.boxed.field: length is lower than 1
+value.by_ref.field: length is lower than 1
+value.field.field: length is lower than 1
+value.rc.field: length is lower than 1
+value.slice[0].field: length is lower than 1
+value.tuples[0].field: length is lower than 1
+value.tuples[1].field: length is lower than 1
+
+

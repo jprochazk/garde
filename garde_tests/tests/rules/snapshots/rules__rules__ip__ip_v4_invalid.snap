@@ -1,0 +1,35 @@
+---
+source: garde_derive_tests/tests/./rules/ip.rs
+expression: snapshot
+---
+TestIpV4 {
+    field: "256.1.1.1",
+}
+value.field: not a valid IPv4 address
+
+TestIpV4 {
+    field: "25.1.1.",
+}
+value.field: not a valid IPv4 address
+
+TestIpV4 {
+    field: "25,1,1,1",
+}
+value.field: not a valid IPv4 address
+
+TestIpV4 {
+    field: "25.1 .1.1",
+}
+value.field: not a valid IPv4 address
+
+TestIpV4 {
+    field: "1.1.1.1\n",
+}
+value.field: not a valid IPv4 address
+
+TestIpV4 {
+    field: "٧.2٥.3٣.243",
+}
+value.field: not a valid IPv4 address
+
+
