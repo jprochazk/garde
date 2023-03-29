@@ -1,0 +1,19 @@
+[package]
+name = "garde_derive_tests"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+garde = { version = "0.8.0", path = "../garde" }
+
+[dev-dependencies]
+trybuild = { version = "1.0" }
+ansi_term = { version = "0.12" }
+insta = { version = "1.29" }
+
+[profile.dev.package]
+insta = { opt-level = 3 }
+trybuild = { opt-level = 3 }

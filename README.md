@@ -221,6 +221,15 @@ The `ListErrorBuilder::push` and `ListErrorBuilder::insert` methods will ignore 
 
 Garde means guard in French. I am not French, nor do I speak the language, but `guard` was taken, and this is close enough :).
 
+### Development
+
+Contributing to `garde` only requires a somewhat recent version of [`Rust`](https://www.rust-lang.org/learn/get-started).
+
+This repository also makes use of the following tools, but they are optional:
+- [`insta`](https://insta.rs/) for snapshot testing ([tests/rules](./garde_derive_tests/tests/rules/)).
+- [`just`](https://just.systems/) for running recipes defined in the [`justfile`](./justfile).
+  Run `just -l` to see what recipes are available.
+
 ### License
 
 Licensed under either of

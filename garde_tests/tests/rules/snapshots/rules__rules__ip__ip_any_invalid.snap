@@ -1,0 +1,25 @@
+---
+source: garde_derive_tests/tests/./rules/ip.rs
+expression: snapshot
+---
+TestIpAny {
+    field: "256.1.1.1",
+}
+value.field: not a valid IP address
+
+TestIpAny {
+    field: "25.1.1.",
+}
+value.field: not a valid IP address
+
+TestIpAny {
+    field: "25,1,1,1",
+}
+value.field: not a valid IP address
+
+TestIpAny {
+    field: "2a02::223:6cff :fe8a:2e8a",
+}
+value.field: not a valid IP address
+
+

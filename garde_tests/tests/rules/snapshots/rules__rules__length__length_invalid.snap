@@ -1,0 +1,15 @@
+---
+source: garde_derive_tests/tests/./rules/length.rs
+expression: snapshot
+---
+Test {
+    field: "aaaaaaaaa",
+}
+value.field: length is lower than 10
+
+Test {
+    field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+}
+value.field: length is greater than 100
+
+

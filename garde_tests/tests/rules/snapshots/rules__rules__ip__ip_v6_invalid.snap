@@ -1,0 +1,55 @@
+---
+source: garde_derive_tests/tests/./rules/ip.rs
+expression: snapshot
+---
+TestIpV6 {
+    field: "foo",
+}
+value.field: not a valid IPv6 address
+
+TestIpV6 {
+    field: "127.0.0.1",
+}
+value.field: not a valid IPv6 address
+
+TestIpV6 {
+    field: "12345::",
+}
+value.field: not a valid IPv6 address
+
+TestIpV6 {
+    field: "1::2::3::4",
+}
+value.field: not a valid IPv6 address
+
+TestIpV6 {
+    field: "1::zzz",
+}
+value.field: not a valid IPv6 address
+
+TestIpV6 {
+    field: "1:2",
+}
+value.field: not a valid IPv6 address
+
+TestIpV6 {
+    field: "fe80::223: 6cff:fe8a:2e8a",
+}
+value.field: not a valid IPv6 address
+
+TestIpV6 {
+    field: "2a02::223:6cff :fe8a:2e8a",
+}
+value.field: not a valid IPv6 address
+
+TestIpV6 {
+    field: "::ffff:999.42.16.14",
+}
+value.field: not a valid IPv6 address
+
+TestIpV6 {
+    field: "::ffff:zzzz:0a0a",
+}
+value.field: not a valid IPv6 address
+
+

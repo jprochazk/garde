@@ -1,5 +1,0 @@
-error: unrecognized rule
- --> tests/compile-fail/unknown_rule.rs:3:20
-  |
-3 |     #[garde(ascii, unknown_rule)]
-  |                    ^^^^^^^^^^^^

@@ -1,0 +1,10 @@
+---
+source: garde_derive_tests/tests/./rules/ascii.rs
+expression: snapshot
+---
+Test {
+    field: "😂",
+}
+value.field: not ascii
+
+

@@ -1,5 +1,0 @@
-error: unrecognized attribute
- --> tests/compile-fail/unknown_attr.rs:2:9
-  |
-2 | #[garde(unknown_attr)]
-  |         ^^^^^^^^^^^^
