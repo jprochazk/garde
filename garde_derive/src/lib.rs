@@ -1,4 +1,6 @@
 use std::collections::BTreeSet;
+use std::fmt::Display;
+use std::str::FromStr;
 
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Literal, Span, TokenStream as TokenStream2};
@@ -83,7 +85,7 @@ impl ToTokens for Validation {
                     .map(|(key, field)| EmitField::FieldStruct(key, field));
 
                 quote! {
-                    ::garde::error::Errors::fields(|errors| {
+                    ::garde::error::Errors::fields(|__garde_errors| {
                         #(#fields)*
                     })
                 }
@@ -95,7 +97,7 @@ impl ToTokens for Validation {
                     .map(|(i, field)| EmitField::TupleStruct(i, field));
 
                 quote! {
-                    ::garde::error::Errors::list(|errors| {
+                    ::garde::error::Errors::list(|__garde_errors| {
                         #(#fields)*
                     })
                 }
@@ -115,11 +117,11 @@ impl ToTokens for Validation {
             impl #impl_generics ::garde::Validate for #ident #ty_generics #where_clause {
                 type Context = #context_ty;
 
-                fn validate(&self, ctx: &Self::Context) -> Result<(), ::garde::Errors> {
-                    let errors = #inner ;
+                fn validate(&self, __garde_user_ctx: &Self::Context) -> Result<(), ::garde::Errors> {
+                    let __garde_errors = #inner ;
 
-                    if !errors.is_empty() {
-                        return Err(errors);
+                    if !__garde_errors.is_empty() {
+                        return Err(__garde_errors);
                     }
 
                     Ok(())
@@ -265,7 +267,7 @@ impl ToTokens for VariantKind {
                     None
                 };
                 quote! {
-                    {#(#bindings,)* #rest} => ::garde::error::Errors::fields(|errors| {
+                    {#(#bindings,)* #rest} => ::garde::error::Errors::fields(|__garde_errors| {
                         #(#checks)*
                     }),
                 }
@@ -288,7 +290,7 @@ impl ToTokens for VariantKind {
                     None
                 };
                 quote! {
-                    (#(#bindings,)* #rest) => ::garde::error::Errors::list(|errors| {
+                    (#(#bindings,)* #rest) => ::garde::error::Errors::list(|__garde_errors| {
                         #(#checks)*
                     }),
                 }
@@ -388,7 +390,7 @@ impl Field {
         let error =
             match self.dive {
                 true => quote!(
-                    ::garde::validate::Validate::validate(#access, ctx)
+                    ::garde::validate::Validate::validate(#access, __garde_user_ctx)
                         .err()
                         .unwrap_or_else(|| ::garde::error::Errors::empty())
                 ),
@@ -396,19 +398,19 @@ impl Field {
                     let rules = self.rules.iter().map(|rule| rule.emit(self)).map(
                         |RuleEmit { rule, args }| {
                             quote! {
-                                if let Err(error) = (#rule)(#access, #args) {
-                                    errors.push(error)
+                                if let Err(__garde_error) = (#rule)(#access, #args) {
+                                    __garde_errors.push(__garde_error)
                                 }
                             }
                         },
                     );
-                    quote!(::garde::error::Errors::simple(|errors| {#(#rules)*}))
+                    quote!(::garde::error::Errors::simple(|__garde_errors| {#(#rules)*}))
                 }
             };
 
         let key = key.map(|key| quote!(#key,));
         quote! {
-            errors.#add_fn(#key #error);
+            __garde_errors.#add_fn(#key #error);
         }
         .to_tokens(tokens)
     }
@@ -491,8 +493,8 @@ fn parse_fields<'a>(
                                 skip = true;
                             }
                         },
-                        RuleOrAttr::Unknown(span) => {
-                            errors.push(Error::new(span, "unrecognized rule"));
+                        RuleOrAttr::Error(error) => {
+                            errors.push(error);
                             continue;
                         }
                     }
@@ -529,7 +531,7 @@ fn parse_fields<'a>(
 enum RuleOrAttr {
     Rule(Span, Rule),
     Attr(Span, Attr),
-    Unknown(Span),
+    Error(syn::Error),
 }
 
 enum Attr {
@@ -553,7 +555,7 @@ impl Parse for RuleOrAttr {
         } else {
             Ok(Rule::parse_with_ident(input, ident)
                 .map(|rule| RuleOrAttr::Rule(span, rule))
-                .unwrap_or_else(|_| RuleOrAttr::Unknown(span)))
+                .unwrap_or_else(RuleOrAttr::Error))
         }
     }
 }
@@ -648,7 +650,7 @@ impl Rule {
                     (&PATTERN,)
                 }},
             ),
-            Rule::Custom(e) => (quote! {#e}, quote! {&ctx}),
+            Rule::Custom(e) => (quote! {#e}, quote! {&__garde_user_ctx}),
         };
         RuleEmit { rule, args }
     }
@@ -758,35 +760,13 @@ fn parse_rule_length(content: ParseStream) -> syn::Result<Rule> {
             if min.is_some() {
                 return Err(Error::new(part.span(), "duplicate attribute"));
             }
-            let value = match &part.value {
-                Expr::Lit(syn::ExprLit {
-                    lit: syn::Lit::Int(int),
-                    ..
-                }) => int.base10_parse::<usize>()?,
-                _ => {
-                    return Err(Error::new(
-                        part.value.span(),
-                        "value must be a valid `usize`",
-                    ))
-                }
-            };
+            let value = parse_number_from_expr(&part.value)?;
             min = Some(value)
         } else if part.path.is_ident("max") {
             if max.is_some() {
                 return Err(Error::new(part.span(), "duplicate attribute"));
             }
-            let value = match &part.value {
-                Expr::Lit(syn::ExprLit {
-                    lit: syn::Lit::Int(int),
-                    ..
-                }) => int.base10_parse::<usize>()?,
-                _ => {
-                    return Err(Error::new(
-                        part.value.span(),
-                        "value must be a valid `usize`",
-                    ))
-                }
-            };
+            let value = parse_number_from_expr(&part.value)?;
             max = Some(value)
         } else {
             return Err(Error::new(
@@ -809,6 +789,39 @@ fn parse_rule_length(content: ParseStream) -> syn::Result<Rule> {
     }
     Ok(Rule::Length { min, max })
 }
+
+fn parse_number_from_expr<T>(expr: &Expr) -> syn::Result<T>
+where
+    T: FromStr,
+    <T as FromStr>::Err: Display,
+{
+    let inner = match expr {
+        Expr::Lit(syn::ExprLit {
+            lit: syn::Lit::Int(int),
+            ..
+        }) => int,
+        _ => {
+            return Err(Error::new(
+                expr.span(),
+                format!("value must be a valid `{}`", std::any::type_name::<T>()),
+            ))
+        }
+    };
+    let value = match inner.base10_parse::<T>() {
+        Ok(value) => value,
+        Err(error) => {
+            return Err(Error::new(
+                expr.span(),
+                format!(
+                    "value must be a valid `{}`: {error}",
+                    std::any::type_name::<T>()
+                ),
+            ))
+        }
+    };
+    Ok(value)
+}
+
 fn parse_rule_range(content: ParseStream) -> syn::Result<Rule> {
     let parts = content.parse_terminated(MetaNameValue::parse, Token![,])?;
     let mut min = None;
