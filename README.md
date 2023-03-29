@@ -69,26 +69,27 @@ if let Err(e) = data.validate(&()) {
 
 ### Available validation rules
 
-| name         | format                                      | validation                                                   | feature flag   |
-|--------------|---------------------------------------------|--------------------------------------------------------------|----------------|
-| ascii        | `#[garde(ascii)]`                           | only contains ASCII                                          | -              |
-| alphanumeric | `#[garde(alphanumeric)]`                    | only letters and digits                                      | -              |
-| email        | `#[garde(email)]`                           | an email according to the HTML5 spec[^1]                     | `email`        |
-| url          | `#[garde(url)]`                             | a URL                                                        | `url`          |
-| ip           | `#[garde(ip)]`                              | an IP address (either IPv4 or IPv6)                          | -              |
-| ipv4         | `#[garde(ipv4)]`                            | an IPv4 address                                              | -              |
-| ipv6         | `#[garde(ipv6)]`                            | an IPv6 address                                              | -              |
-| credit card  | `#[garde(credit_card)]`                     | a credit card number                                         | `credit-card`  |
-| phone number | `#[garde(phone_number)]`                    | a phone number                                               | `phone-number` |
-| length       | `#[garde(length(min=<usize>, max=<usize>)]` | a dynamically-sized value with size in the range `min..=max` | -              |
-| range        | `#[garde(range(min=<expr>, max=<expr>))]`   | a number in the range `min..=max`                            | -              |
-| contains     | `#[garde(contains(<string>))]`              | a string-like value containing a substring                   | -              |
-| prefix       | `#[garde(prefix(<string>))]`                | a string-like value prefixed by some string                  | -              |
-| suffix       | `#[garde(suffix(<string>))]`                | a string-like value suffixed by some string                  | -              |
-| pattern      | `#[garde(pattern(<regex>))]`                | a string-like value matching some regular expression         | `pattern`      |
-| dive         | `#[garde(dive)]`                            | nested validation, calls `validate` on the value             | -              |
-| skip         | `#[garde(skip)]`                            | skip validation                                              | -              |
-| custom       | `#[garde(custom(<function or closure>))]`   | a custom validator                                           | -              |
+| name         | format                                           | validation                                           | feature flag   |
+|--------------|--------------------------------------------------|------------------------------------------------------|----------------|
+| ascii        | `#[garde(ascii)]`                                | only contains ASCII                                  | -              |
+| alphanumeric | `#[garde(alphanumeric)]`                         | only letters and digits                              | -              |
+| email        | `#[garde(email)]`                                | an email according to the HTML5 spec[^1]             | `email`        |
+| url          | `#[garde(url)]`                                  | a URL                                                | `url`          |
+| ip           | `#[garde(ip)]`                                   | an IP address (either IPv4 or IPv6)                  | -              |
+| ipv4         | `#[garde(ipv4)]`                                 | an IPv4 address                                      | -              |
+| ipv6         | `#[garde(ipv6)]`                                 | an IPv6 address                                      | -              |
+| credit card  | `#[garde(credit_card)]`                          | a credit card number                                 | `credit-card`  |
+| phone number | `#[garde(phone_number)]`                         | a phone number                                       | `phone-number` |
+| length       | `#[garde(length(min=<usize>, max=<usize>)]`      | a container with length in `min..=max`               | -              |
+| byte_length  | `#[garde(byte_length(min=<usize>, max=<usize>)]` | a byte sequence with length in `min..=max`           | -              |
+| range        | `#[garde(range(min=<expr>, max=<expr>))]`        | a number in the range `min..=max`                    | -              |
+| contains     | `#[garde(contains(<string>))]`                   | a string-like value containing a substring           | -              |
+| prefix       | `#[garde(prefix(<string>))]`                     | a string-like value prefixed by some string          | -              |
+| suffix       | `#[garde(suffix(<string>))]`                     | a string-like value suffixed by some string          | -              |
+| pattern      | `#[garde(pattern(<regex>))]`                     | a string-like value matching some regular expression | `pattern`      |
+| dive         | `#[garde(dive)]`                                 | nested validation, calls `validate` on the value     | -              |
+| skip         | `#[garde(skip)]`                                 | skip validation                                      | -              |
+| custom       | `#[garde(custom(<function or closure>))]`        | a custom validator                                   | -              |
 
 
 Additional notes:
