@@ -1,7 +1,21 @@
+//! Substring validation.
+//!
+//! ```rust
+//! #[derive(garde::Validate)]
+//! struct Test {
+//!     #[garde(contains("test"))]
+//!     v: String,
+//! }
+//! ```
+//!
+//! The entrypoint is the [`Contains`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(contains)]` rule.
+//!
+//! This trait has a blanket implementation for all `T: AsRef<str>`.
+
 use crate::error::Error;
 
 pub fn apply<T: Contains>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
-    if !v.check_contains(pat) {
+    if !v.validate_contains(pat) {
         return Err(Error::new(format!("does not contain \"{pat}\"")));
     }
     Ok(())
@@ -15,21 +29,11 @@ pub fn apply<T: Contains>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
     )
 )]
 pub trait Contains {
-    fn check_contains(&self, pat: &str) -> bool;
+    fn validate_contains(&self, pat: &str) -> bool;
 }
 
-impl Contains for String {
-    fn check_contains(&self, pat: &str) -> bool {
-        self.contains(pat)
-    }
-}
-impl<'a> Contains for &'a str {
-    fn check_contains(&self, pat: &str) -> bool {
-        self.contains(pat)
-    }
-}
-impl<'a> Contains for std::borrow::Cow<'a, str> {
-    fn check_contains(&self, pat: &str) -> bool {
-        self.contains(pat)
+impl<T: AsRef<str>> Contains for T {
+    fn validate_contains(&self, pat: &str) -> bool {
+        self.as_ref().contains(pat)
     }
 }

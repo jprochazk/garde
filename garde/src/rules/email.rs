@@ -1,3 +1,17 @@
+//! Email validation.
+//!
+//! ```rust
+//! #[derive(garde::Validate)]
+//! struct Test {
+//!     #[garde(email)]
+//!     v: String,
+//! }
+//! ```
+//!
+//! The entrypoint is the [`Email`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(email)]` rule.
+//!
+//! This trait has a blanket implementation for all `T: AsRef<str>`.
+
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -7,7 +21,7 @@ use regex::Regex;
 use crate::error::Error;
 
 pub fn apply<T: Email>(v: &T, _: ()) -> Result<(), Error> {
-    if let Err(e) = v.try_parse_email() {
+    if let Err(e) = v.validate_email() {
         return Err(Error::new(format!("not a valid email: {e}")));
     }
     Ok(())
@@ -23,27 +37,13 @@ pub fn apply<T: Email>(v: &T, _: ()) -> Result<(), Error> {
 pub trait Email {
     type Error: Display;
 
-    fn try_parse_email(&self) -> Result<(), Self::Error>;
+    fn validate_email(&self) -> Result<(), Self::Error>;
 }
 
-impl Email for String {
+impl<T: AsRef<str>> Email for T {
     type Error = InvalidEmail;
 
-    fn try_parse_email(&self) -> Result<(), Self::Error> {
-        parse_email(self.as_str())
-    }
-}
-impl<'a> Email for &'a str {
-    type Error = InvalidEmail;
-
-    fn try_parse_email(&self) -> Result<(), Self::Error> {
-        parse_email(self)
-    }
-}
-impl<'a> Email for std::borrow::Cow<'a, str> {
-    type Error = InvalidEmail;
-
-    fn try_parse_email(&self) -> Result<(), Self::Error> {
+    fn validate_email(&self) -> Result<(), Self::Error> {
         parse_email(self.as_ref())
     }
 }

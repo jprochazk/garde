@@ -1,9 +1,23 @@
+//! Range validation.
+//!
+//! ```rust
+//! #[derive(garde::Validate)]
+//! struct Test {
+//!     #[garde(range(min=10,max=100))]
+//!     v: u64,
+//! }
+//! ```
+//!
+//! The entrypoint is the [`Bounds`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(range(...))]` rule.
+//!
+//! This trait is implemented for all primitive integer types.
+
 use std::fmt::Display;
 
 use crate::error::Error;
 
 pub fn apply<T: Bounds>(v: &T, (min, max): (&T, &T)) -> Result<(), Error> {
-    if let Err(e) = v.check_bounds(min, max) {
+    if let Err(e) = v.validate_bounds(min, max) {
         match e {
             OutOfBounds::Lower => return Err(Error::new(format!("lower than {min}"))),
             OutOfBounds::Upper => return Err(Error::new(format!("greater than {max}"))),
@@ -23,7 +37,8 @@ pub fn apply<T: Bounds>(v: &T, (min, max): (&T, &T)) -> Result<(), Error> {
 pub trait Bounds: PartialOrd + Display {
     const MIN: Self;
     const MAX: Self;
-    fn check_bounds(&self, lower_bound: &Self, upper_bound: &Self) -> Result<(), OutOfBounds>;
+
+    fn validate_bounds(&self, lower_bound: &Self, upper_bound: &Self) -> Result<(), OutOfBounds>;
 }
 
 pub enum OutOfBounds {
@@ -38,7 +53,7 @@ macro_rules! impl_for_int {
                 const MIN: Self = $T::MIN;
                 const MAX: Self = $T::MAX;
 
-                fn check_bounds(
+                fn validate_bounds(
                     &self,
                     lower_bound: &Self,
                     upper_bound: &Self,

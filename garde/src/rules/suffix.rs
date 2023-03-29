@@ -1,4 +1,25 @@
+//! Suffix validation.
+//!
+//! ```rust
+//! #[derive(garde::Validate)]
+//! struct Test {
+//!     #[garde(suffix("_test"))]
+//!     v: String,
+//! }
+//! ```
+//!
+//! The entrypoint is the [`Suffix`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(suffix)]` rule.
+//!
+//! This trait has a blanket implementation for all `T: AsRef<str>`.
+
 use crate::error::Error;
+
+pub fn apply<T: Suffix>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
+    if !v.validate_suffix(pat) {
+        return Err(Error::new(format!("does not end with \"{pat}\"")));
+    }
+    Ok(())
+}
 
 #[cfg_attr(
     feature = "nightly-error-messages",
@@ -8,28 +29,11 @@ use crate::error::Error;
     )
 )]
 pub trait Suffix {
-    fn has_suffix(&self, pat: &str) -> bool;
+    fn validate_suffix(&self, pat: &str) -> bool;
 }
 
-pub fn apply<T: Suffix>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
-    if !v.has_suffix(pat) {
-        return Err(Error::new(format!("does not end with \"{pat}\"")));
-    }
-    Ok(())
-}
-
-impl Suffix for String {
-    fn has_suffix(&self, pat: &str) -> bool {
-        self.ends_with(pat)
-    }
-}
-impl<'a> Suffix for &'a str {
-    fn has_suffix(&self, pat: &str) -> bool {
-        self.ends_with(pat)
-    }
-}
-impl<'a> Suffix for std::borrow::Cow<'a, str> {
-    fn has_suffix(&self, pat: &str) -> bool {
-        self.ends_with(pat)
+impl<T: AsRef<str>> Suffix for T {
+    fn validate_suffix(&self, pat: &str) -> bool {
+        self.as_ref().ends_with(pat)
     }
 }

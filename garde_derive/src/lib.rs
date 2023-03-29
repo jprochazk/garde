@@ -577,6 +577,10 @@ enum Rule {
         min: Option<usize>,
         max: Option<usize>,
     },
+    ByteLength {
+        min: Option<usize>,
+        max: Option<usize>,
+    },
     Range {
         min: Option<Expr>,
         max: Option<Expr>,
@@ -625,6 +629,17 @@ impl Rule {
                     quote! {(#min, #max,)},
                 )
             }
+            Rule::ByteLength { min, max } => {
+                let (min, max) = (
+                    min.unwrap_or(0),
+                    max.map(|v| quote!(#v))
+                        .unwrap_or_else(|| quote!(usize::MAX)),
+                );
+                (
+                    quote! {::garde::rules::byte_length::apply},
+                    quote! {(#min, #max,)},
+                )
+            }
             Rule::Range { min, max } => {
                 let ty = &field.ty;
                 let (min, max) = (
@@ -669,6 +684,7 @@ impl Rule {
             Rule::CreditCard => "credit_card",
             Rule::PhoneNumber => "phone_number",
             Rule::Length { .. } => "length",
+            Rule::ByteLength { .. } => "byte_length",
             Rule::Range { .. } => "bounds",
             Rule::Contains(_) => "contains",
             Rule::Prefix(_) => "prefix",
@@ -720,6 +736,9 @@ impl Rule {
         parse_rule!(ident, input, "phone_number" { Rule::PhoneNumber });
         parse_rule!(ident, input, "length" (content) {
             parse_rule_length(&content)?
+        });
+        parse_rule!(ident, input, "byte_length" (content) {
+            parse_rule_byte_length(&content)?
         });
         parse_rule!(ident, input, "range" (content) {
             parse_rule_range(&content)?
@@ -788,6 +807,45 @@ fn parse_rule_length(content: ParseStream) -> syn::Result<Rule> {
         _ => {}
     }
     Ok(Rule::Length { min, max })
+}
+
+fn parse_rule_byte_length(content: ParseStream) -> syn::Result<Rule> {
+    let parts = content.parse_terminated(MetaNameValue::parse, Token![,])?;
+    let mut min = None::<usize>;
+    let mut max = None::<usize>;
+    for part in parts.iter() {
+        if part.path.is_ident("min") {
+            if min.is_some() {
+                return Err(Error::new(part.span(), "duplicate attribute"));
+            }
+            let value = parse_number_from_expr(&part.value)?;
+            min = Some(value)
+        } else if part.path.is_ident("max") {
+            if max.is_some() {
+                return Err(Error::new(part.span(), "duplicate attribute"));
+            }
+            let value = parse_number_from_expr(&part.value)?;
+            max = Some(value)
+        } else {
+            return Err(Error::new(
+                part.span(),
+                format!("unexpected `{}`", part.path.to_token_stream()),
+            ));
+        }
+    }
+    match (min, max) {
+        (Some(min), Some(max)) if min >= max => {
+            return Err(Error::new(parts.span(), "min must be smaller than max"));
+        }
+        (None, None) => {
+            return Err(Error::new(
+                parts.span(),
+                "please provide at least one of: `min`, `max`",
+            ));
+        }
+        _ => {}
+    }
+    Ok(Rule::ByteLength { min, max })
 }
 
 fn parse_number_from_expr<T>(expr: &Expr) -> syn::Result<T>

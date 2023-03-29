@@ -1,7 +1,21 @@
+//! Pattern validation using the [`regex`] crate.
+//!
+//! ```rust
+//! #[derive(garde::Validate)]
+//! struct Test {
+//!     #[garde(pattern(r"[a-zA-Z0-9][a-zA-Z0-9_]+"))]
+//!     v: String,
+//! }
+//! ```
+//!
+//! The entrypoint is the [`Pattern`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(pattern(...))]` rule.
+//!
+//! This trait has a blanket implementation for all `T: AsRef<str>`.
+
 use crate::error::Error;
 
 pub fn apply<T: Pattern>(v: &T, (pat,): (&regex::Regex,)) -> Result<(), Error> {
-    if !v.matches(pat) {
+    if !v.validate_pattern(pat) {
         return Err(Error::new(format!("does not match pattern /{pat}/")));
     }
     Ok(())
@@ -15,7 +29,7 @@ pub fn apply<T: Pattern>(v: &T, (pat,): (&regex::Regex,)) -> Result<(), Error> {
     )
 )]
 pub trait Pattern {
-    fn matches(&self, pat: &Regex) -> bool;
+    fn validate_pattern(&self, pat: &Regex) -> bool;
 }
 
 #[doc(hidden)]
@@ -36,24 +50,8 @@ macro_rules! __init_pattern {
 #[doc(hidden)]
 pub use crate::__init_pattern as init_pattern;
 
-fn check_str(v: &str, pat: &Regex) -> bool {
-    pat.is_match(v)
-}
-
-impl Pattern for String {
-    fn matches(&self, pat: &Regex) -> bool {
-        check_str(self.as_str(), pat)
-    }
-}
-
-impl<'a> Pattern for &'a str {
-    fn matches(&self, pat: &Regex) -> bool {
-        check_str(self, pat)
-    }
-}
-
-impl<'a> Pattern for std::borrow::Cow<'a, str> {
-    fn matches(&self, pat: &Regex) -> bool {
-        check_str(self.as_ref(), pat)
+impl<T: AsRef<str>> Pattern for T {
+    fn validate_pattern(&self, pat: &Regex) -> bool {
+        pat.is_match(self.as_ref())
     }
 }

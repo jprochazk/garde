@@ -1,0 +1,20 @@
+---
+source: garde_tests/tests/./rules/byte_length.rs
+expression: snapshot
+---
+Test {
+    field: "aaaaaaaaa",
+}
+value.field: byte length is lower than 10
+
+Test {
+    field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+}
+value.field: byte length is greater than 100
+
+Test {
+    field: "a😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂",
+}
+value.field: byte length is greater than 100
+
+

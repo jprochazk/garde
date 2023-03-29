@@ -131,14 +131,14 @@
 //! ### Implementing rules
 //!
 //! Say you want to implement length checking for a custom string-like type.
-//! To do this, you would implement the [`rules::length::Size`] trait for it.
+//! To do this, you would implement the [`rules::length::HasLength`] trait for it.
 //!
 //! ```rust
 //! #[repr(transparent)]
 //! pub struct MyString(pub String);
 //!
-//! impl garde::rules::length::Size for MyString {
-//!     fn size(&self) -> usize {
+//! impl garde::rules::length::HasLength for MyString {
+//!     fn length(&self) -> usize {
 //!         self.0.chars().count()
 //!     }
 //! }

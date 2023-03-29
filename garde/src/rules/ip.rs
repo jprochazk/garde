@@ -1,10 +1,23 @@
+//! IP validation.
+//!
+//! ```rust
+//! #[derive(garde::Validate)]
+//! struct Test {
+//!     #[garde(ip)]
+//!     v: String,
+//! }
+//! ```
+//!
+//! The entrypoint is the [`Ip`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(ip)]` rule.
+//!
+//! This trait has a blanket implementation for all `T: AsRef<str>`.
+
 use std::fmt::Display;
-use std::str::FromStr;
 
 use crate::error::Error;
 
 pub fn apply<T: Ip>(v: &T, (kind,): (IpKind,)) -> Result<(), Error> {
-    if v.try_parse_ip(kind).is_err() {
+    if v.validate_ip(kind).is_err() {
         return Err(Error::new(format!("not a valid {kind} address")));
     }
     Ok(())
@@ -20,7 +33,7 @@ pub fn apply<T: Ip>(v: &T, (kind,): (IpKind,)) -> Result<(), Error> {
 pub trait Ip {
     type Error: Display;
 
-    fn try_parse_ip(&self, kind: IpKind) -> Result<(), Self::Error>;
+    fn validate_ip(&self, kind: IpKind) -> Result<(), Self::Error>;
 }
 
 #[derive(Clone, Copy)]
@@ -40,33 +53,22 @@ impl Display for IpKind {
     }
 }
 
-fn check_str(s: &str, kind: IpKind) -> Result<(), std::net::AddrParseError> {
-    match kind {
-        IpKind::Any => std::net::IpAddr::from_str(s)?,
-        IpKind::V4 => std::net::Ipv4Addr::from_str(s)?.into(),
-        IpKind::V6 => std::net::Ipv6Addr::from_str(s)?.into(),
-    };
-    Ok(())
-}
-
-impl Ip for String {
+impl<T: AsRef<str>> Ip for T {
     type Error = std::net::AddrParseError;
 
-    fn try_parse_ip(&self, kind: IpKind) -> Result<(), Self::Error> {
-        check_str(self.as_str(), kind)
-    }
-}
-impl<'a> Ip for &'a str {
-    type Error = std::net::AddrParseError;
-
-    fn try_parse_ip(&self, kind: IpKind) -> Result<(), Self::Error> {
-        check_str(self, kind)
-    }
-}
-impl<'a> Ip for std::borrow::Cow<'a, str> {
-    type Error = std::net::AddrParseError;
-
-    fn try_parse_ip(&self, kind: IpKind) -> Result<(), Self::Error> {
-        check_str(self.as_ref(), kind)
+    fn validate_ip(&self, kind: IpKind) -> Result<(), Self::Error> {
+        let v = self.as_ref();
+        match kind {
+            IpKind::Any => {
+                let _ = v.parse::<std::net::IpAddr>()?;
+            }
+            IpKind::V4 => {
+                let _ = v.parse::<std::net::Ipv4Addr>()?;
+            }
+            IpKind::V6 => {
+                let _ = v.parse::<std::net::Ipv6Addr>()?;
+            }
+        };
+        Ok(())
     }
 }

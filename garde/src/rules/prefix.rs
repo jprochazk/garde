@@ -1,4 +1,25 @@
+//! Prefix validation.
+//!
+//! ```rust
+//! #[derive(garde::Validate)]
+//! struct Test {
+//!     #[garde(prefix("test_"))]
+//!     v: String,
+//! }
+//! ```
+//!
+//! The entrypoint is the [`Prefix`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(prefix)]` rule.
+//!
+//! This trait has a blanket implementation for all `T: AsRef<str>`.
+
 use crate::error::Error;
+
+pub fn apply<T: Prefix>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
+    if !v.validate_prefix(pat) {
+        return Err(Error::new(format!("value does not begin with \"{pat}\"")));
+    }
+    Ok(())
+}
 
 #[cfg_attr(
     feature = "nightly-error-messages",
@@ -8,28 +29,11 @@ use crate::error::Error;
     )
 )]
 pub trait Prefix {
-    fn has_prefix(&self, pat: &str) -> bool;
+    fn validate_prefix(&self, pat: &str) -> bool;
 }
 
-pub fn apply<T: Prefix>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
-    if !v.has_prefix(pat) {
-        return Err(Error::new(format!("value does not begin with \"{pat}\"")));
-    }
-    Ok(())
-}
-
-impl Prefix for String {
-    fn has_prefix(&self, pat: &str) -> bool {
-        self.starts_with(pat)
-    }
-}
-impl<'a> Prefix for &'a str {
-    fn has_prefix(&self, pat: &str) -> bool {
-        self.starts_with(pat)
-    }
-}
-impl<'a> Prefix for std::borrow::Cow<'a, str> {
-    fn has_prefix(&self, pat: &str) -> bool {
-        self.starts_with(pat)
+impl<T: AsRef<str>> Prefix for T {
+    fn validate_prefix(&self, pat: &str) -> bool {
+        self.as_ref().starts_with(pat)
     }
 }
