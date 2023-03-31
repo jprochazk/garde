@@ -504,11 +504,7 @@ fn parse_fields<'a>(
 
         if !dive && rules.is_empty() && !skip {
             errors.push(Error::new(
-                field
-                    .ident
-                    .as_ref()
-                    .map(|ident| ident.span().join(field.ty.span()).unwrap())
-                    .unwrap_or_else(|| field.ty.span()),
+                field.ty.span(),
                 "field has no validation, use `#[garde(skip)]` if this is intentional",
             ));
             continue;

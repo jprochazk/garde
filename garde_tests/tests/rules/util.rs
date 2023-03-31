@@ -2,8 +2,8 @@
 
 use std::fmt::{Debug, Write};
 
-use ansi_term::{Color, Style};
 use garde::Validate;
+use owo_colors::OwoColorize;
 
 pub fn check_ok<T: Validate + Debug>(cases: &[T], ctx: &T::Context) {
     let mut some_failed = false;
@@ -11,7 +11,7 @@ pub fn check_ok<T: Validate + Debug>(cases: &[T], ctx: &T::Context) {
         if let Err(error) = case.validate(ctx) {
             eprintln!(
                 "{} input: {case:?}, errors: [{}]",
-                Style::new().fg(Color::Red).paint("FAIL"),
+                "FAIL".red(),
                 error.to_string().split('\n').collect::<Vec<_>>().join("; ")
             );
             some_failed = true;
@@ -35,10 +35,7 @@ pub fn __check_fail<T: Validate + Debug>(cases: &[T], ctx: &T::Context) -> Strin
             }
             writeln!(&mut snapshot).unwrap();
         } else {
-            eprintln!(
-                "{} input: {case:?}",
-                Style::new().fg(Color::Red).paint("SUCCESS")
-            );
+            eprintln!("{} input: {case:?}", "SUCCESS".red());
             some_success = true;
         }
     }

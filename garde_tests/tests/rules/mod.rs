@@ -1,5 +1,6 @@
 mod alphanumeric;
 mod ascii;
+mod byte_length;
 mod contains;
 mod credit_card;
 mod custom;
@@ -16,5 +17,4 @@ mod skip;
 mod suffix;
 mod url;
 
-mod byte_length;
 mod util;
