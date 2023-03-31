@@ -1,8 +1,8 @@
 error: field has no validation, use `#[garde(skip)]` if this is intentional
- --> tests/ui/compile-fail/no_validation.rs:3:5
+ --> tests/ui/compile-fail/no_validation.rs:3:12
   |
 3 |     field: u64,
-  |     ^^^^^^^^^^
+  |            ^^^
 
 error: field has no validation, use `#[garde(skip)]` if this is intentional
  --> tests/ui/compile-fail/no_validation.rs:7:14
@@ -11,10 +11,10 @@ error: field has no validation, use `#[garde(skip)]` if this is intentional
   |              ^^^
 
 error: field has no validation, use `#[garde(skip)]` if this is intentional
-  --> tests/ui/compile-fail/no_validation.rs:11:14
+  --> tests/ui/compile-fail/no_validation.rs:11:21
    |
 11 |     Struct { field: u64 },
-   |              ^^^^^^^^^^
+   |                     ^^^
 
 error: field has no validation, use `#[garde(skip)]` if this is intentional
   --> tests/ui/compile-fail/no_validation.rs:12:11

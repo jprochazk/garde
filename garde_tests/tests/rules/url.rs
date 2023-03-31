@@ -95,3 +95,18 @@ fn url_valid_wrapper() {
     };
     println!("{}", value.validate(&()).unwrap_err());
 }
+
+/* #[derive(garde::Validate)]
+struct _Struct {
+    field: u64,
+}
+
+#[derive(garde::Validate)]
+struct _Tuple(u64);
+
+#[derive(garde::Validate)]
+enum _Enum {
+    Struct { field: u64 },
+    Tuple(u64),
+}
+ */
