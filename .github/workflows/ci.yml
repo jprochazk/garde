@@ -31,7 +31,7 @@ permissions:
 
 jobs:
   test:
-    name: Build + Test
+    name: Test
     runs-on: ${{ matrix.os }}
     env:
       CARGO_TERM_COLOR: always
