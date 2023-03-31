@@ -60,9 +60,6 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-      - name: Build crates
-        run: cargo build
-
       - name: Build docs
         run: cargo doc
 
