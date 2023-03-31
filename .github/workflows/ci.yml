@@ -86,12 +86,9 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install tools
-        run: |
-          cargo install --locked cargo-deny || true
-          cargo install --locked cargo-audit || true
-          cargo install --locked cargo-outdated || true
-          cargo install --locked cargo-udeps || true
-          cargo install --locked cargo-pants || true
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny,cargo-audit,cargo-outdated,cargo-udeps,cargo-pants
 
       - name: Run checks
         run: |
