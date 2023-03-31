@@ -103,12 +103,13 @@ pub fn parse_email(s: &str) -> Result<(), InvalidEmail> {
 
         #[cfg(feature = "email-idna")]
         {
-            let Ok(domain) = idna::domain_to_ascii(domain) else {
-                return Err(InvalidEmail::InvalidDomain);
-            };
-
-            if !is_valid_domain(&domain) {
-                return Err(InvalidEmail::InvalidDomain);
+            match idna::domain_to_ascii(domain) {
+                Ok(domain) => {
+                    if !is_valid_domain(&domain) {
+                        return Err(InvalidEmail::InvalidDomain);
+                    }
+                }
+                Err(_) => return Err(InvalidEmail::InvalidDomain),
             }
         }
     }
@@ -133,8 +134,14 @@ fn is_valid_domain(domain: &str) -> bool {
 }
 
 fn is_smtp_addr(domain: &str) -> bool {
-    let Some(domain) = domain.strip_prefix('[') else { return false };
-    let Some(domain) = domain.strip_suffix(']') else { return false };
+    let domain = match domain.strip_prefix('[') {
+        Some(domain) => domain,
+        None => return false,
+    };
+    let domain = match domain.strip_suffix(']') {
+        Some(domain) => domain,
+        None => return false,
+    };
     std::net::IpAddr::from_str(domain).is_ok()
 }
 
