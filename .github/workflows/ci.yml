@@ -61,7 +61,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
 
       - name: Build crates
-        run: cargo build --workspace --verbose
+        run: cargo build --verbose
 
       - name: Build docs
         run: cargo doc --verbose
