@@ -1,0 +1,104 @@
+# Based on https://github.com/rust-lang/regex/blob/9582040009820380a16819ca0d1ae262c7d454b0/.github/workflows/ci.yml
+# and https://github.com/Keats/validator/blob/09efa7e78e6fbc853a6a56af6904a00e2e6632b8/.github/workflows/ci.yml
+
+name: ci
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# The section is needed to drop write-all permissions that are granted on
+# `schedule` event. By specifying any permission explicitly all others are set
+# to none. By using the principle of least privilege the damage a compromised
+# workflow can do (because of an injection or compromised third party tool or
+# action) is restricted. Currently the worklow doesn't need any additional
+# permission except for pulling the code. Adding labels to issues, commenting
+# on pull-requests, etc. may need additional permissions:
+#
+# Syntax for this section:
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+#
+# Reference for how to assign permissions on a job-by-job basis:
+# https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs
+#
+# Reference for available permissions that we can enable if needed:
+# https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
+permissions:
+  # to fetch code (actions/checkout)
+  contents: read
+
+jobs:
+  test:
+    name: Build + Test
+    runs-on: ${{ matrix.os }}
+    env:
+      CARGO_TERM_COLOR: always
+    strategy:
+      matrix:
+        build: [pinned, stable, nightly]
+        include:
+          - build: pinned
+            os: ubuntu-20.04
+            rust: 1.60
+          - build: stable
+            os: ubuntu-20.04
+            rust: stable
+          - build: nightly
+            os: ubuntu-20.04
+            rust: nightly
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - name: Build crates
+        run: cargo build --all --verbose
+
+      - name: Build docs
+        run: cargo doc --verbose
+
+      - name: Run tests
+        run: cargo test --verbose
+  checks:
+    name: Checks
+    runs-on: ubuntu-20.04
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Install tools
+        run: |
+          cargo install --locked cargo-deny || true
+          cargo install --locked cargo-audit || true
+          cargo install --locked cargo-outdated || true
+          cargo install --locked cargo-udeps || true
+          cargo install --locked cargo-pants || true
+
+      - name: Run checks
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy -- -D warnings
+          cargo deny check
+          cargo audit
+          cargo outdated --exit-code 1
+          cargo udeps
+          cargo pants --dev
+

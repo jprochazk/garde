@@ -2,8 +2,8 @@ use garde::Validate;
 
 #[derive(Validate)]
 struct Test {
-    #[garde(url)]
-    field: String,
+    #[garde(skip)]
+    _field: String,
 }
 
 fn main() {}
