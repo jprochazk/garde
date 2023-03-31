@@ -98,6 +98,7 @@ jobs:
           cargo fmt --all -- --check
           cargo clippy -- -D warnings
           cargo deny check
+          rm -rf ~/.cargo/advisory-db
           cargo audit
           cargo outdated --exit-code 1
           cargo udeps
