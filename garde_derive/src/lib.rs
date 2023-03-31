@@ -117,7 +117,7 @@ impl ToTokens for Validation {
             impl #impl_generics ::garde::Validate for #ident #ty_generics #where_clause {
                 type Context = #context_ty;
 
-                fn validate(&self, __garde_user_ctx: &Self::Context) -> Result<(), ::garde::Errors> {
+                fn validate(&self, __garde_user_ctx: &Self::Context) -> ::core::result::Result<(), ::garde::error::Errors> {
                     let __garde_errors = #inner ;
 
                     if !__garde_errors.is_empty() {
