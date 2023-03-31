@@ -42,7 +42,7 @@ jobs:
         include:
           - build: pinned
             os: ubuntu-20.04
-            rust: 1.66
+            rust: 1.63
           - build: stable
             os: ubuntu-20.04
             rust: stable
@@ -61,13 +61,13 @@ jobs:
           toolchain: ${{ matrix.rust }}
 
       - name: Build crates
-        run: cargo build --verbose
+        run: cargo build
 
       - name: Build docs
-        run: cargo doc --verbose
+        run: cargo doc
 
       - name: Run tests
-        run: cargo test --verbose
+        run: cargo test
   checks:
     name: Checks
     runs-on: ubuntu-20.04
@@ -82,7 +82,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           components: rustfmt, clippy
 
       - name: Install tools
