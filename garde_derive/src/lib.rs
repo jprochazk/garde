@@ -1,3 +1,8 @@
+mod check;
+mod emit;
+mod model;
+mod syntax;
+
 use std::collections::BTreeSet;
 use std::fmt::Display;
 use std::str::FromStr;
@@ -12,6 +17,32 @@ use syn::spanned::Spanned;
 use syn::{
     Attribute, Data, DeriveInput, Error, Expr, GenericParam, Generics, MetaNameValue, Token, Type,
 };
+
+/* #[doc(hidden)]
+fn derive_validate2(input: TokenStream) -> TokenStream {
+    let input = syn::parse_macro_input!(input as DeriveInput);
+
+    macro_rules! c {
+        ($expr) => {
+            match $expr {
+                Ok(v) => v,
+                Err(e) => return e.into_compile_error().into(),
+            }
+        }
+    }
+
+    let input = c!(syntax::parse(input));
+
+    let impl_ = match parse(&input) {
+        Ok(v) => v,
+        Err(e) => return e.into_compile_error().into(),
+    };
+
+    quote! {
+        impl_
+    }
+    .into()
+} */
 
 #[proc_macro_derive(Validate, attributes(garde))]
 pub fn derive_validate(input: TokenStream) -> TokenStream {
