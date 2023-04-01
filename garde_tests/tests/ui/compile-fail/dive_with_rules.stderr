@@ -1,5 +1,0 @@
-error: `length` may not be used together with `dive`
- --> tests/ui/compile-fail/dive_with_rules.rs:9:19
-  |
-9 |     #[garde(dive, length(min = 1))]
-  |                   ^^^^^^

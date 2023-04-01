@@ -1,3 +1,5 @@
+//! ## Core validation traits and types
+
 use std::fmt::Debug;
 
 use crate::error::Errors;
@@ -19,14 +21,15 @@ pub trait Validate {
 
 /// A struct which wraps a valid instance of some `T`.
 ///
-/// The only way to create an instance of this struct is through the
-/// [`Unvalidated`] type. This ensures that if you have a `Valid<T>`, it was
-/// definitely validated at some point. This is commonly referred to as the
+/// The only way to create an instance of this struct is through the `validate`
+/// function on the [`Unvalidated`] type. This ensures that if you have a `Valid<T>`,
+/// it was definitely validated at some point. This is commonly referred to as the
 /// typestate pattern.
 #[derive(Debug, Clone, Copy)]
 pub struct Valid<T>(T);
 
 impl<T: Validate> Valid<T> {
+    /// Returns the inner value.
     pub fn into_inner(self) -> T {
         self.0
     }
@@ -48,10 +51,13 @@ impl<T> std::ops::Deref for Valid<T> {
 pub struct Unvalidated<T>(T);
 
 impl<T: Validate> Unvalidated<T> {
+    /// Creates an `Unvalidated<T>`
     pub fn new(v: T) -> Self {
         Self(v)
     }
 
+    /// Validates `self`, transforming it into a `Valid<T>`.
+    /// This is the only way to create an instance of `Valid<T>`.
     pub fn validate(self, ctx: &<T as Validate>::Context) -> Result<Valid<T>, Errors> {
         self.0.validate(ctx)?;
         Ok(Valid(self.0))

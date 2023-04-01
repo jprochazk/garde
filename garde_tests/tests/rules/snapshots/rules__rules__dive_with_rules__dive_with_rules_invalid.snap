@@ -1,0 +1,19 @@
+---
+source: garde_tests/tests/./rules/dive_with_rules.rs
+expression: snapshot
+---
+Test {
+    field: [],
+}
+value.field: length is lower than 1
+
+Test {
+    field: [
+        Inner {
+            field: "",
+        },
+    ],
+}
+value.field[0].field: length is lower than 1
+
+

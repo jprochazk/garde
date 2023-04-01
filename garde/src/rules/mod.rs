@@ -1,3 +1,5 @@
+//! ## Validation rules
+
 pub mod alphanumeric;
 pub mod ascii;
 pub mod byte_length;

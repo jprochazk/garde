@@ -5,7 +5,7 @@ use super::util;
 #[derive(Debug, Validate)]
 struct Struct<'a> {
     #[garde(url)]
-    #[garde(rename = "field")]
+    #[garde(rename("field"))]
     field: &'a str,
 }
 

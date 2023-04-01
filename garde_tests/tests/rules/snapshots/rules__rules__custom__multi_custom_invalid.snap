@@ -1,0 +1,11 @@
+---
+source: garde_tests/tests/./rules/custom.rs
+expression: snapshot
+---
+Multi {
+    field: "asdf",
+}
+value.field: not equal to test
+value.field: not equal to test
+
+
