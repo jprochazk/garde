@@ -7,7 +7,7 @@ struct Inner<'a> {
 #[derive(Debug, garde::Validate)]
 struct Test<'a> {
     #[garde(dive, length(min = 1))]
-    field: Inner<'a>,
+    field: Vec<Inner<'a>>,
 }
 
 fn main() {}

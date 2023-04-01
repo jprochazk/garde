@@ -5,6 +5,7 @@ mod contains;
 mod credit_card;
 mod custom;
 mod dive;
+mod dive_with_rules;
 mod email;
 mod ip;
 mod length;
