@@ -1,6 +1,6 @@
 [package]
 name = "garde"
-version = "0.9.2"
+version = "0.10.0"
 edition = "2021"
 repository = "https://github.com/jprochazk/garde"
 license = "MIT OR Apache-2.0"
@@ -23,7 +23,7 @@ pattern = ["dep:regex", "dep:once_cell", "garde_derive?/regex"]
 nightly-error-messages = []
 
 [dependencies]
-garde_derive = { version = "0.9.0", path = "../garde_derive", optional = true, default-features = false }
+garde_derive = { version = "0.10.0", path = "../garde_derive", optional = true, default-features = false }
 
 serde = { version = "1", features = ["derive"], optional = true }
 url = { version = "2", optional = true }
