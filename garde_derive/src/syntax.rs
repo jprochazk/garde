@@ -10,8 +10,6 @@ use syn::{DeriveInput, Token, Type};
 use crate::model;
 use crate::util::MaybeFoldError;
 
-// TODO: use `syn::Error::combine` where possible
-
 pub fn parse(input: DeriveInput) -> syn::Result<model::Input> {
     let mut error = None;
 
