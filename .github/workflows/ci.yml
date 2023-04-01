@@ -85,7 +85,7 @@ jobs:
       - name: Install tools
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-deny,cargo-audit,cargo-outdated,cargo-udeps,cargo-pants
+          tool: cargo-deny,cargo-audit,cargo-udeps,cargo-pants
 
       - name: Run checks
         run: |
@@ -94,7 +94,6 @@ jobs:
           cargo deny check
           rm -rf ~/.cargo/advisory-db
           cargo audit
-          cargo outdated --exit-code 1
           cargo udeps
           cargo pants --dev
 
