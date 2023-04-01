@@ -51,3 +51,26 @@ fn custom_invalid() {
         &ctx
     )
 }
+
+#[derive(Debug, garde::Validate)]
+#[garde(context(Context))]
+struct Multi<'a> {
+    #[garde(custom(custom_validate_fn), custom(custom_validate_fn))]
+    field: &'a str,
+}
+
+#[test]
+fn multi_custom_valid() {
+    let ctx = Context {
+        needle: "test".into(),
+    };
+    util::check_ok(&[Multi { field: "test" }], &ctx)
+}
+
+#[test]
+fn multi_custom_invalid() {
+    let ctx = Context {
+        needle: "test".into(),
+    };
+    util::check_fail!(&[Multi { field: "asdf" }], &ctx)
+}
