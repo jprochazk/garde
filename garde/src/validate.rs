@@ -217,6 +217,14 @@ impl_validate_tuple!(A, B, C, D, E, F, G, H, I, J);
 impl_validate_tuple!(A, B, C, D, E, F, G, H, I, J, K);
 impl_validate_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
 
+impl Validate for () {
+    type Context = ();
+
+    fn validate(&self, _: &Self::Context) -> Result<(), Errors> {
+        Ok(())
+    }
+}
+
 impl<K, V, S> Validate for std::collections::HashMap<K, V, S>
 where
     std::borrow::Cow<'static, str>: From<K>,
