@@ -1,5 +1,9 @@
 [workspace]
-members = ["garde", "garde_*"]
+members = [
+  "garde_tests", 
+  "garde_derive", 
+  "garde",
+]
 
 [workspace.dependencies]
 # Workspace crates
