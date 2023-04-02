@@ -2,16 +2,13 @@
 
 use axum::extract::FromRef;
 use axum::http::StatusCode;
-use axum::routing::post;
-use axum::routing::IntoMakeService;
-use axum::Json;
-use axum::Router;
+use axum::routing::{post, IntoMakeService};
+use axum::{Json, Router};
 use axum_garde::WithValidation;
 use axum_test::TestServer;
 use garde::Validate;
 use rstest::*;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 macro_rules! gen_custom_test {

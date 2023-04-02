@@ -6,8 +6,7 @@ use axum_test::TestServer;
 use garde::Validate;
 use prost::Message;
 use rstest::*;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[derive(Serialize, Deserialize, Validate, Message, Clone)]

@@ -1,6 +1,5 @@
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::response::Response;
+use axum::response::{IntoResponse, Response};
 use garde::Errors;
 use thiserror::Error;
 

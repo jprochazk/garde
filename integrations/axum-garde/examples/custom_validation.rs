@@ -5,7 +5,9 @@
 //! ```sh
 //! cargo run --example custom_validation --features=json
 //! ```
-use axum::{response::IntoResponse, routing::post, Json, Router, Server};
+use axum::response::IntoResponse;
+use axum::routing::post;
+use axum::{Json, Router, Server};
 use axum_garde::WithValidation;
 use garde::Validate;
 use serde::{Deserialize, Serialize};

@@ -1,20 +1,15 @@
 #![cfg(feature = "json")]
 
-use axum::debug_handler;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::routing::post;
-use axum::routing::IntoMakeService;
-use axum::Json;
-use axum::Router;
+use axum::routing::{post, IntoMakeService};
+use axum::{debug_handler, Json, Router};
 use axum_garde::WithValidation;
 use axum_test::TestServer;
 use garde::Validate;
 use rstest::*;
-use serde::Deserialize;
-use serde::Serialize;
-use serde_json::json;
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 use speculoos::assert_that;
 
 #[derive(Debug, Serialize, Deserialize, Validate, PartialEq, Eq)]
