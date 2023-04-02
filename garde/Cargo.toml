@@ -11,7 +11,16 @@ readme = "../README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["derive", "serde", "url", "credit-card", "phone-number", "email", "email-idna", "pattern"]
+default = [
+    "derive",
+    "serde",
+    "url",
+    "credit-card",
+    "phone-number",
+    "email",
+    "email-idna",
+    "pattern",
+]
 serde = ["dep:serde"]
 derive = ["dep:garde_derive"]
 url = ["dep:url"]
@@ -23,13 +32,12 @@ pattern = ["dep:regex", "dep:once_cell", "garde_derive?/regex"]
 nightly-error-messages = []
 
 [dependencies]
-garde_derive = { version = "0.10.0", path = "../garde_derive", optional = true, default-features = false }
+garde_derive = { workspace = true, optional = true, default-features = false }
 
-serde = { version = "1", features = ["derive"], optional = true }
-url = { version = "2", optional = true }
-card-validate = { version = "2.2", optional = true }
-phonenumber = { version = "0.3", optional = true }
-regex = { version = "1", optional = true }
-once_cell = { version = "1", optional = true }
-idna = { version = "0.3", optional = true }
-
+serde = { workspace = true, features = ["derive"], optional = true }
+url = { workspace = true, optional = true }
+card-validate = { workspace = true, optional = true }
+phonenumber = { workspace = true, optional = true }
+regex = { workspace = true, optional = true }
+once_cell = { workspace = true, optional = true }
+idna = { workspace = true, optional = true }

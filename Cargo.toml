@@ -1,6 +1,26 @@
 [workspace]
-members = [
-    "garde_tests",
-    "garde_derive",
-    "garde",
-]
+members = ["garde", "garde_*"]
+
+[workspace.dependencies]
+# Workspace crates
+garde = { version = "0.10.0", path = "./garde" }
+garde_derive = { version = "0.10.0", path = "./garde_derive" }
+
+# Dependencies
+serde = "1"
+url = "2"
+card-validate = "2.2"
+phonenumber = "0.3"
+regex = "1"
+once_cell = "1"
+idna = "0.3"
+
+# Dev dependencies
+insta = "1.29"
+trybuild = "1.0"
+owo-colors = "3.5.0"
+
+# Proc macro
+syn = "2"
+quote = "1"
+proc-macro2 = "1"
