@@ -42,7 +42,7 @@ jobs:
         include:
           - build: pinned
             os: ubuntu-20.04
-            rust: 1.62
+            rust: 1.64
           - build: stable
             os: ubuntu-20.04
             rust: stable
@@ -96,4 +96,3 @@ jobs:
           cargo audit
           cargo udeps
           cargo pants --dev
-

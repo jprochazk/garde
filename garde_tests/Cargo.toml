@@ -11,9 +11,10 @@ publish = false
 garde = { version = "0.10.0", path = "../garde" }
 
 [dev-dependencies]
-trybuild = { version = "1.0" }
-insta = { version = "1.29" }
-owo-colors = { version = "3.5.0" }
+trybuild = { workspace = true }
+insta = { workspace = true }
+owo-colors = { workspace = true }
+
 
 [profile.dev.package]
 insta = { opt-level = 3 }
