@@ -4,6 +4,7 @@ members = [
   "garde_derive", 
   "garde",
 ]
+resolver = "2"
 
 [workspace.dependencies]
 # Workspace crates
