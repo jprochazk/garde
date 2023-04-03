@@ -63,8 +63,15 @@ jobs:
       - name: Build docs
         run: cargo doc
 
-      - name: Run tests
-        run: cargo test
+      - name: Run garde unit/doc tests
+        run: cargo test -p garde
+
+      - name: Run garde E2E tests
+        run: cargo test -p garde_tests
+
+      - name: Run axum-garde tests
+        run: cargo test -p axum_garde --all-features
+
   checks:
     name: Checks
     runs-on: ubuntu-20.04
@@ -96,3 +103,4 @@ jobs:
           cargo audit
           cargo udeps
           cargo pants --dev
+
