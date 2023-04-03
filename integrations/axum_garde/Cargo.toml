@@ -1,6 +1,6 @@
 [package]
 name = "axum_garde"
-version = "0.10.0"
+version = "0.11.0"
 edition = "2021"
 repository = "https://github.com/jprochazk/garde"
 license = "MIT OR Apache-2.0"
@@ -25,12 +25,12 @@ axum = { workspace = true, default-features = false }
 axum-extra = { workspace = true, default-features = false, optional = true }
 axum-yaml = { workspace = true, default-features = false, optional = true }
 axum-msgpack = { workspace = true, default-features = false, optional = true }
-garde = { version = "0.10.0", path = "../../garde", default-features = false }
+garde = { version = "0.11.0", path = "../../garde", default-features = false }
 thiserror = { workspace = true, default-features = false }
 
 [dev-dependencies]
 serde = { workspace = true, features = ["derive"] }
-garde = { version = "0.10.0", path = "../../garde", features = ["default", "derive"] }
+garde = { version = "0.11.0", path = "../../garde", features = ["default", "derive"] }
 axum = { workspace = true, features = ["default", "macros"] }
 tokio = { workspace = true, features = ["full"] }
 prost = { workspace = true }
