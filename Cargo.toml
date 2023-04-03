@@ -3,17 +3,12 @@ members = [
   "garde_tests", 
   "garde_derive", 
   "garde",
-  "integrations/axum-garde",
+  "integrations/axum_garde",
 ]
 resolver = "2"
 
 [workspace.dependencies]
-################################################################################
-# Workspace crates
-garde = { version = "0.10.0", path = "./garde" }
-garde_derive = { version = "0.10.0", path = "./garde_derive" }
-axum-garde = { version = "0.1.0", path = "./integrations/axum-garde" }
-################################################################################
+
 # Dependencies
 serde = "1"
 url = "2"
@@ -23,7 +18,7 @@ regex = "1"
 once_cell = "1"
 idna = "0.3"
 thiserror = "1.0.40"
-################################################################################
+
 # Dev dependencies
 insta = "1.29"
 trybuild = "1.0"
@@ -34,13 +29,13 @@ speculoos = "0.11.0"
 axum-test = "7.2.0"
 serde_json = "1.0.95"
 prost = "0.11.8"
-################################################################################
-# integrations/axum-garde
+
+# integrations/axum_garde
 axum = "0.6"
 axum-extra = "0.7.2"
 axum-yaml = "0.3.0"
 axum-msgpack = "0.3.0"
-################################################################################
+
 # Proc macro
 syn = "2"
 quote = "1"
