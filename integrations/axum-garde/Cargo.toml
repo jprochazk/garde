@@ -1,0 +1,49 @@
+[package]
+name = "axum-garde"
+version = "0.1.0"
+edition = "2021"
+repository = "https://github.com/jprochazk/garde"
+license = "MIT OR Apache-2.0"
+description = "Axum integration for garde"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = ["json", "query", "form"]
+# Axum
+json = ["axum/json"]
+query = ["axum/query"]
+form = ["axum/form"]
+# Axum extra
+axum-extra-protobuf = ["axum-extra/protobuf"]
+axum-extra-query = ["axum-extra/query"]
+
+[dependencies]
+axum = { workspace = true, default-features = false }
+axum-extra = { workspace = true, default-features = false, optional = true }
+axum-yaml = { workspace = true, default-features = false, optional = true }
+axum-msgpack = { workspace = true, default-features = false, optional = true }
+# garde = { workspace = true, default-features = false }
+garde = { version = "0.10.0", path = "../../garde", default-features = false }
+thiserror = { workspace = true, default-features = false }
+
+[dev-dependencies]
+serde = { workspace = true, features = ["derive"] }
+garde = { workspace = true, features = ["default", "derive"] }
+axum = { workspace = true, features = ["default", "macros"] }
+tokio = { workspace = true, features = ["full"] }
+prost = { workspace = true }
+rstest = { workspace = true }
+axum-test = { workspace = true }
+serde_json = { workspace = true }
+speculoos = { workspace = true }
+
+[[example]]
+name = "json"
+required-features = ["json"]
+
+[[example]]
+name = "custom_validation"
+required-features = ["json"]
