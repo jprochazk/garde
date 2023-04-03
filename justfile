@@ -24,4 +24,4 @@ test-axum-garde:
 
 # Release a new version of the crate.
 release: test
-  cargo ws publish --force 'garde*'
+  cargo ws publish --force '*'
