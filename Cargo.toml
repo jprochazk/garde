@@ -14,7 +14,7 @@ garde_derive = { version = "0.10.0", path = "./garde_derive" }
 serde = "1"
 url = "2"
 card-validate = "2.2"
-phonenumber = "0.3"
+phonenumber = "0.3.2+8.13.9"
 regex = "1"
 once_cell = "1"
 idna = "0.3"
