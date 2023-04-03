@@ -84,13 +84,11 @@
 //! | skip         | `#[garde(skip)]`                                 | skip validation                                      | -              |
 //! | custom       | `#[garde(custom(<function or closure>))]`        | a custom validator                                   | -              |
 //!
-//!
 //! Additional notes:
 //! - For `length` and `range`, either `min` or `max` may be omitted, but not both.
 //! - `length` and `range` use an *inclusive* upper bound (`min..=max`).
 //! - `length` uses `.chars().count()` for UTF-8 strings instead of `.len()`.
 //! - For `contains`, `prefix`, and `suffix`, the pattern must be a string literal, because the `Pattern` API [is currently unstable](https://github.com/rust-lang/rust/issues/27721).
-//! - Nested validation using `dive` may not be combined with any other rule.
 //!
 //! ### Custom validation
 //!
@@ -197,7 +195,6 @@
 //! The `ListErrorBuilder::push` and `ListErrorBuilder::insert` methods will ignore any errors which are empty (via `Errors::is_empty`).
 //!
 //! ### Feature flags
-//!
 //!
 //! | name                     | description                                                                                                                       | extra dependencies                                                                           |
 //! |--------------------------|-----------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
