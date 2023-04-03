@@ -5,6 +5,7 @@ members = [
   "garde",
   "integrations/axum-garde",
 ]
+resolver = "2"
 
 [workspace.dependencies]
 ################################################################################
