@@ -1,0 +1,20 @@
+---
+source: garde_tests/tests/./rules/byte_length.rs
+expression: snapshot
+---
+Exact {
+    field: "",
+}
+value.field: byte length is lower than 4
+
+Exact {
+    field: "a",
+}
+value.field: byte length is lower than 4
+
+Exact {
+    field: "😂😂",
+}
+value.field: byte length is greater than 4
+
+

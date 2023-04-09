@@ -42,3 +42,38 @@ fn byte_length_invalid() {
         },
     ], &())
 }
+
+#[derive(Debug, garde::Validate)]
+struct Exact<'a> {
+    #[garde(byte_length(min = 4, max = 4))]
+    field: &'a str,
+}
+
+#[test]
+fn exact_length_valid() {
+    util::check_ok(
+        &[Exact {
+            // '😂' = 4 bytes
+            field: "😂",
+        }],
+        &(),
+    )
+}
+
+#[test]
+fn exact_length_invalid() {
+    util::check_fail!(
+        &[
+            Exact { field: "" },
+            Exact {
+                // 'a' * 1
+                field: "a",
+            },
+            Exact {
+                // '😂' * 2 = 8
+                field: "😂😂",
+            },
+        ],
+        &()
+    )
+}
