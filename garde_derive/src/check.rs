@@ -331,10 +331,10 @@ where
     T: PartialOrd,
 {
     match (range.min, range.max) {
-        (Some(min), Some(max)) if min < max => Ok(model::ValidateRange::Between(min, max)),
+        (Some(min), Some(max)) if min <= max => Ok(model::ValidateRange::Between(min, max)),
         (Some(_), Some(_)) => Err(syn::Error::new(
             range.span,
-            "`min` must be lower than `max`",
+            "`min` must be lower than or equal to `max`",
         )),
         (Some(min), None) => Ok(model::ValidateRange::GreaterThan(min)),
         (None, Some(max)) => Ok(model::ValidateRange::LowerThan(max)),
