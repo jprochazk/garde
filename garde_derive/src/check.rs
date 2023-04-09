@@ -147,6 +147,13 @@ fn check_field(field: model::Field) -> syn::Result<model::ValidateField> {
         custom_rules: Vec::new(),
     };
 
+    if raw_rules.is_empty() {
+        error.maybe_fold(syn::Error::new(
+            field.ty.span(),
+            "field has no validation, use `#[garde(skip)]` if this is intentional",
+        ));
+    }
+
     for raw_rule in raw_rules {
         let span = raw_rule.span;
         match check_rule(&mut field, raw_rule, 0) {
@@ -163,13 +170,6 @@ fn check_field(field: model::Field) -> syn::Result<model::ValidateField> {
             Ok(None) => {}
             Err(e) => error.maybe_fold(e),
         }
-    }
-
-    if field.is_empty() && !field.skip.value {
-        error.maybe_fold(syn::Error::new(
-            field.ty.span(),
-            "field has no validation, use `#[garde(skip)]` if this is intentional",
-        ));
     }
 
     if field.skip.value && !field.is_empty() {
