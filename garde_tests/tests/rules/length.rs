@@ -1,4 +1,5 @@
 use super::util;
+
 #[derive(Debug, garde::Validate)]
 struct Test<'a> {
     #[garde(length(min = 10, max = 100))]
@@ -31,4 +32,39 @@ fn length_invalid() {
             field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         },
     ], &())
+}
+
+#[derive(Debug, garde::Validate)]
+struct Exact<'a> {
+    #[garde(length(min = 2, max = 2))]
+    field: &'a str,
+}
+
+#[test]
+fn exact_length_valid() {
+    util::check_ok(
+        &[Exact {
+            // 'a' * 2
+            field: "aa",
+        }],
+        &(),
+    )
+}
+
+#[test]
+fn exact_length_invalid() {
+    util::check_fail!(
+        &[
+            Exact { field: "" },
+            Exact {
+                // 'a' * 1
+                field: "a",
+            },
+            Exact {
+                // 'a' * 3
+                field: "aaa",
+            },
+        ],
+        &()
+    )
 }

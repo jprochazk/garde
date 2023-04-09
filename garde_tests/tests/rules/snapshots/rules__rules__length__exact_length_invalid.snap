@@ -1,0 +1,20 @@
+---
+source: garde_tests/tests/./rules/length.rs
+expression: snapshot
+---
+Exact {
+    field: "",
+}
+value.field: length is lower than 2
+
+Exact {
+    field: "a",
+}
+value.field: length is lower than 2
+
+Exact {
+    field: "aaa",
+}
+value.field: length is greater than 2
+
+
