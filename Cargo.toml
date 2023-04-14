@@ -6,3 +6,6 @@ members = [
 ]
 resolver = "2"
 
+[profile.dev.package]
+insta = { opt-level = 3 }
+trybuild = { opt-level = 3 }

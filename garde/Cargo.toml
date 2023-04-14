@@ -45,7 +45,3 @@ idna = { version = "0.3", optional = true }
 trybuild = { version = "1.0" }
 insta = { version = "1.29" }
 owo-colors = { version = "3.5.0" }
-
-[profile.dev.package]
-insta = { opt-level = 3 }
-trybuild = { opt-level = 3 }

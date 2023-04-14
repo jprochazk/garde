@@ -62,13 +62,10 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build docs
-        run: cargo doc
+        run: cargo doc --all-features
 
-      - name: Run garde tests
-        run: cargo test -p garde
-
-      - name: Run axum-garde tests
-        run: cargo test -p axum_garde --all-features
+      - name: Run tests
+        run: cargo test --all-features
 
   checks:
     name: Checks
