@@ -53,21 +53,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - uses: Swatinem/rust-cache@v2
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
 
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+
       - name: Build docs
         run: cargo doc
 
-      - name: Run garde unit/doc tests
+      - name: Run garde tests
         run: cargo test -p garde
-
-      - name: Run garde E2E tests
-        run: cargo test -p garde_tests
 
       - name: Run axum-garde tests
         run: cargo test -p axum_garde --all-features
@@ -81,13 +79,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - uses: Swatinem/rust-cache@v2
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
           components: rustfmt, clippy
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
 
       - name: Install tools
         uses: taiki-e/install-action@v2
