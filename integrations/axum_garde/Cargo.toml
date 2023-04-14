@@ -21,23 +21,23 @@ axum-extra-protobuf = ["axum-extra/protobuf"]
 axum-extra-query = ["axum-extra/query"]
 
 [dependencies]
-axum = { workspace = true, default-features = false }
-axum-extra = { workspace = true, default-features = false, optional = true }
-axum-yaml = { workspace = true, default-features = false, optional = true }
-axum-msgpack = { workspace = true, default-features = false, optional = true }
-garde = { version = "0.11.0", path = "../../garde", default-features = false }
-thiserror = { workspace = true, default-features = false }
+axum = { version = "0.6", default-features = false }
+axum-extra = { version = "0.7.2", default-features = false, optional = true }
+axum-yaml = { version = "0.3.0", default-features = false, optional = true }
+axum-msgpack = { version = "0.3.0", default-features = false, optional = true }
+garde = { version = "0.11.2", path = "../../garde", default-features = false }
+thiserror = { version = "1.0.40", default-features = false }
 
 [dev-dependencies]
-serde = { workspace = true, features = ["derive"] }
-garde = { version = "0.11.0", path = "../../garde", features = ["default", "derive"] }
-axum = { workspace = true, features = ["default", "macros"] }
-tokio = { workspace = true, features = ["full"] }
-prost = { workspace = true }
-rstest = { workspace = true }
-axum-test = { workspace = true }
-serde_json = { workspace = true }
-speculoos = { workspace = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1.0.95" }
+garde = { version = "0.11.2", path = "../../garde", features = ["default", "derive"] }
+axum = { version = "0.6", features = ["default", "macros"] }
+axum-test = { version = "7.2.0" }
+tokio = { version = "1.27.0", features = ["full"] }
+prost = { version = "0.11.8" }
+rstest = { version = "0.17.0" }
+speculoos = { version = "0.11.0" }
 
 [[example]]
 name = "json"

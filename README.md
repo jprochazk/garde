@@ -218,7 +218,6 @@ The `ListErrorBuilder::push` and `ListErrorBuilder::insert` methods will ignore 
 | `pattern`                | Validation using regular expressions via the `regex` crate                                                                        | [`regex`](https://crates.io/crates/regex), [`once_cell`](https://crates.io/crates/once_cell) |
 | `credit-card`            | Validation of credit card numbers via the `card-validate` crate                                                                   | [`card-validate`](https://crates.io/crates/card-validate)                                    |
 | `phone-number`           | Validation of phone numbers via the `phonenumber` crate                                                                           | [`phonenumber`](https://crates.io/crates/phonenumber)                                        |
-| `nightly-error-messages` | Enables usage of `rustc_on_unimplemented` for better error messages. This is an unstable feature and requires a nightly compiler. | -                                                                                            |
 
 
 ### Why `garde`?

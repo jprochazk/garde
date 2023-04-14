@@ -29,23 +29,22 @@ phone-number = ["dep:phonenumber"]
 email = ["dep:regex", "dep:once_cell"]
 email-idna = ["dep:idna"]
 pattern = ["dep:regex", "dep:once_cell", "garde_derive?/regex"]
-nightly-error-messages = []
 
 [dependencies]
-garde_derive = { version = "0.11.0", path = "../garde_derive", optional = true, default-features = false }
+garde_derive = { version = "0.11.2", path = "../garde_derive", optional = true, default-features = false }
 
-serde = { workspace = true, features = ["derive"], optional = true }
-url = { workspace = true, optional = true }
-card-validate = { workspace = true, optional = true }
-phonenumber = { workspace = true, optional = true }
-regex = { workspace = true, optional = true }
-once_cell = { workspace = true, optional = true }
-idna = { workspace = true, optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
+url = { version = "2", optional = true }
+card-validate = { version = "2.2", optional = true }
+phonenumber = { version = "0.3.2+8.13.9", optional = true }
+regex = { version = "1", optional = true }
+once_cell = { version = "1", optional = true }
+idna = { version = "0.3", optional = true }
 
 [dev-dependencies]
-trybuild = { workspace = true }
-insta = { workspace = true }
-owo-colors = { workspace = true }
+trybuild = { version = "1.0" }
+insta = { version = "1.29" }
+owo-colors = { version = "3.5.0" }
 
 [profile.dev.package]
 insta = { opt-level = 3 }
