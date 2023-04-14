@@ -21,13 +21,6 @@ pub fn apply<T: Alphanumeric>(v: &T, _: ()) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support alphanumeric validation",
-        label = "This type does not support alphanumeric validation",
-    )
-)]
 pub trait Alphanumeric {
     fn validate_alphanumeric(&self) -> bool;
 }

@@ -44,14 +44,6 @@ pub fn apply<T: ByteLength>(v: &T, (min, max): (usize, usize)) -> Result<(), Err
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support byte length validation",
-        label = "This type does not support byte length validation",
-        note = "try implementing `garde::rules::length::HasByteLength` for `{Self}`"
-    )
-)]
 pub trait ByteLength {
     fn validate_byte_length(&self, min: usize, max: usize) -> Result<(), InvalidLength>;
 }

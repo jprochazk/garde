@@ -27,13 +27,6 @@ pub fn apply<T: Email>(v: &T, _: ()) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support email validation",
-        label = "This type does not support email validation",
-    )
-)]
 pub trait Email {
     type Error: Display;
 

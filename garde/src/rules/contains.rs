@@ -21,13 +21,6 @@ pub fn apply<T: Contains>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support substring validation",
-        label = "This type does not support substring validation",
-    )
-)]
 pub trait Contains {
     fn validate_contains(&self, pat: &str) -> bool;
 }

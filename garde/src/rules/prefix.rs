@@ -21,13 +21,6 @@ pub fn apply<T: Prefix>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support prefix validation",
-        label = "This type does not support prefix validation",
-    )
-)]
 pub trait Prefix {
     fn validate_prefix(&self, pat: &str) -> bool;
 }

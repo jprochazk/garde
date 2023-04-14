@@ -26,14 +26,6 @@ pub fn apply<T: Bounds>(v: &T, (min, max): (&T, &T)) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support bounds validation",
-        label = "This type does not support bounds validation",
-        note = "try implementing `garde::rules::range::Bounds` for `{Self}`"
-    )
-)]
 pub trait Bounds: PartialOrd + Display {
     const MIN: Self;
     const MAX: Self;

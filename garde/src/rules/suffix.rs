@@ -21,13 +21,6 @@ pub fn apply<T: Suffix>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support suffix validation",
-        label = "This type does not support suffix validation",
-    )
-)]
 pub trait Suffix {
     fn validate_suffix(&self, pat: &str) -> bool;
 }

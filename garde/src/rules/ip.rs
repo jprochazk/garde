@@ -23,13 +23,6 @@ pub fn apply<T: Ip>(v: &T, (kind,): (IpKind,)) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support IP validation",
-        label = "This type does not support IP validation",
-    )
-)]
 pub trait Ip {
     type Error: Display;
 

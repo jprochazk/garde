@@ -23,13 +23,6 @@ pub fn apply<T: CreditCard>(v: &T, _: ()) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support credit card validation",
-        label = "This type does not support credit card validation",
-    )
-)]
 pub trait CreditCard {
     type Error: Display;
 

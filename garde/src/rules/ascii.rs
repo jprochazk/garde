@@ -21,13 +21,6 @@ pub fn apply<T: Ascii>(v: &T, _: ()) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support ascii validation",
-        label = "This type does not support ascii validation",
-    )
-)]
 pub trait Ascii {
     fn validate_ascii(&self) -> bool;
 }

@@ -24,13 +24,6 @@ pub fn apply<T: PhoneNumber>(v: &T, _: ()) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support phone number validation",
-        label = "This type does not support phone number validation",
-    )
-)]
 pub trait PhoneNumber {
     type Error: Display;
 

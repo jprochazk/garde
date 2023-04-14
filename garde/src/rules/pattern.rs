@@ -21,13 +21,6 @@ pub fn apply<T: Pattern>(v: &T, (pat,): (&regex::Regex,)) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support pattern validation",
-        label = "This type does not support pattern validation",
-    )
-)]
 pub trait Pattern {
     fn validate_pattern(&self, pat: &Regex) -> bool;
 }

@@ -41,14 +41,6 @@ pub fn apply<T: Length>(v: &T, (min, max): (usize, usize)) -> Result<(), Error> 
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support length validation",
-        label = "This type does not support length validation",
-        note = "try implementing `garde::rules::length::HasLength` for `{Self}`"
-    )
-)]
 pub trait Length {
     fn validate_length(&self, min: usize, max: usize) -> Result<(), InvalidLength>;
 }

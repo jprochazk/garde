@@ -26,13 +26,6 @@ pub fn apply<T: Url>(v: &T, _: ()) -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(
-    feature = "nightly-error-messages",
-    rustc_on_unimplemented(
-        message = "`{Self}` does not support URL validation",
-        label = "This type does not support URL validation",
-    )
-)]
 pub trait Url {
     type Error: Display;
 
