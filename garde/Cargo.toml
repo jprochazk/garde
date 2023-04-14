@@ -41,3 +41,12 @@ phonenumber = { workspace = true, optional = true }
 regex = { workspace = true, optional = true }
 once_cell = { workspace = true, optional = true }
 idna = { workspace = true, optional = true }
+
+[dev-dependencies]
+trybuild = { workspace = true }
+insta = { workspace = true }
+owo-colors = { workspace = true }
+
+[profile.dev.package]
+insta = { opt-level = 3 }
+trybuild = { opt-level = 3 }
