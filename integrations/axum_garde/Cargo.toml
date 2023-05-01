@@ -21,8 +21,8 @@ axum-extra-protobuf = ["axum-extra/protobuf"]
 axum-extra-query = ["axum-extra/query"]
 
 [dependencies]
-axum = { version = "0.6.12", default-features = false }
-axum-extra = { version = "0.7.3", default-features = false, optional = true }
+axum = { version = "0.6.17", default-features = false }
+axum-extra = { version = "0.7.4", default-features = false, optional = true }
 axum-yaml = { version = "0.3.0", default-features = false, optional = true }
 axum-msgpack = { version = "0.3.0", default-features = false, optional = true }
 garde = { version = "0.11.2", path = "../../garde", default-features = false }
@@ -32,9 +32,9 @@ thiserror = { version = "1.0.40", default-features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1.0.96" }
 garde = { version = "0.11.2", path = "../../garde", features = ["default", "derive"] }
-axum = { version = "0.6.12", features = ["default", "macros"] }
-axum-test = { version = "7.2.0" }
-tokio = { version = "1.27.0", features = ["full"] }
+axum = { version = "0.6.17", features = ["default", "macros"] }
+axum-test = { version = "7.3.0" }
+tokio = { version = "1.28.0", features = ["full"] }
 prost = { version = "0.11.9" }
 rstest = { version = "0.17.0" }
 speculoos = { version = "0.11.0" }

@@ -35,7 +35,7 @@ garde_derive = { version = "0.11.2", path = "../garde_derive", optional = true, 
 
 serde = { version = "1", features = ["derive"], optional = true }
 url = { version = "2", optional = true }
-card-validate = { version = "2.2", optional = true }
+card-validate = { version = "2.3", optional = true }
 phonenumber = { version = "0.3.2+8.13.9", optional = true }
 regex = { version = "1", optional = true }
 once_cell = { version = "1", optional = true }
