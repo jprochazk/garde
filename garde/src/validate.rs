@@ -17,6 +17,43 @@ pub trait Validate {
     /// Validates `Self`, returning an `Err` with an aggregate of all errors if
     /// the validation failed.
     fn validate(&self, ctx: &Self::Context) -> Result<(), Errors>;
+
+    /// Consumes and validates `self`, returning it un-touched if it
+    /// passes validation or the provided `other` version on failure.
+    fn validate_or(self, other: Self, ctx: &Self::Context) -> Self
+    where
+        Self: Sized,
+    {
+        match self.validate(ctx) {
+            Ok(_) => self,
+            Err(_) => other,
+        }
+    }
+
+    /// Consumes and validates `self`, returning it un-touched if it
+    /// passes validation or computes a new `Self` from closure `f` on failure.
+    fn validate_or_else<F>(self, f: F, ctx: &Self::Context) -> Self
+    where
+        Self: Sized,
+        F: FnOnce() -> Self,
+    {
+        match self.validate(ctx) {
+            Ok(_) => self,
+            Err(_) => f(),
+        }
+    }
+
+    /// Consumes and validates `self`, returning it un-touched if it
+    /// passes validation or a [`Default`] version on failure.
+    fn validate_or_default(self, ctx: &Self::Context) -> Self
+    where
+        Self: Default,
+    {
+        match self.validate(ctx) {
+            Ok(_) => self,
+            Err(_) => Default::default(),
+        }
+    }
 }
 
 /// A struct which wraps a valid instance of some `T`.
@@ -61,6 +98,43 @@ impl<T: Validate> Unvalidated<T> {
     pub fn validate(self, ctx: &<T as Validate>::Context) -> Result<Valid<T>, Errors> {
         self.0.validate(ctx)?;
         Ok(Valid(self.0))
+    }
+
+    /// Validates `self`, wrapped in [`Valid`].
+    ///
+    /// - `self` is returned if it passes validation
+    /// - the provided `other` is returned on failure
+    pub fn validate_or(self, other: T, ctx: &<T as Validate>::Context) -> Valid<T> {
+        match self.0.validate(ctx) {
+            Ok(_) => Valid(self.0),
+            Err(_) => Valid(other),
+        }
+    }
+
+    /// Validates `self`, wrapped in [`Valid`].
+    ///
+    /// - `self` is returned if it passes validation
+    /// - the output of closure `f` is returned on failure
+    pub fn validate_or_else<F>(self, f: F, ctx: &<T as Validate>::Context) -> Valid<T>
+    where
+        F: FnOnce() -> T,
+    {
+        match self.0.validate(ctx) {
+            Ok(_) => Valid(self.0),
+            Err(_) => Valid(f()),
+        }
+    }
+
+    /// Validates `self`, transforming it into a `Valid<T>` on sucesss
+    /// or a `Valid<T>` with [`Default`] on failure.
+    pub fn validate_or_default(self, ctx: &<T as Validate>::Context) -> Valid<T>
+    where
+        T: Default,
+    {
+        match self.0.validate(ctx) {
+            Ok(_) => Valid(self.0),
+            Err(_) => Valid(Default::default()),
+        }
     }
 }
 
