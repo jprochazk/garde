@@ -1,0 +1,5 @@
+project: garde
+target: validate_email
+duration: 600
+cmds:
+    - cmd: /fuzzers/fuzz_validate_email

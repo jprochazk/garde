@@ -1,0 +1,53 @@
+[package]
+name = "fuzz_garde"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+garde = { path = "..", features = [ "derive", "url", "email", "pattern", "credit-card", "phone-number" ] }
+libfuzzer-sys = "0.4.0"
+arbitrary = { features = [ "derive" ], version = "1.3.0" }
+
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "fuzz_validate_general"
+path = "fuzz_targets/validate_general.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_validate_url"
+path = "fuzz_targets/validate_url.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_validate_email"
+path = "fuzz_targets/validate_email.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_validate_pattern"
+path = "fuzz_targets/validate_pattern.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_validate_credit_card"
+path = "fuzz_targets/validate_credit_card.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_validate_phone_number"
+path = "fuzz_targets/validate_phone_number.rs"
+test = false
+doc = false
