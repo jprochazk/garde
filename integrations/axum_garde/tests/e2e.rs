@@ -64,9 +64,8 @@ async fn assert_that_valid_requests_are_transparent(
 
     assert_that!(obtained.headers()).is_equal_to(expected.headers());
 
-    obtained
-        .assert_status(expected.status_code())
-        .assert_json(&expected.json::<Person>());
+    obtained.assert_status(expected.status_code());
+    obtained.assert_json(&expected.json::<Person>());
 }
 
 #[rstest]
