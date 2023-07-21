@@ -48,6 +48,8 @@ impl<T> std::ops::Deref for Valid<T> {
 /// Use the `validate` method to turn this type into a `Valid<T>`.
 #[derive(Clone, Copy, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
+#[repr(transparent)]
 pub struct Unvalidated<T>(T);
 
 impl<T: Validate> Unvalidated<T> {
