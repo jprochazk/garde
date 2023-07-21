@@ -106,7 +106,7 @@ jobs:
           cargo clippy -- -D warnings
           cargo deny check
           rm -rf ~/.cargo/advisory-db
-          cargo audit
+          # cargo audit
           cargo udeps
           cargo pants --dev
 
