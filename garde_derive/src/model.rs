@@ -225,6 +225,10 @@ impl ValidateRuleKind {
     }
 }
 
+// `ValidateRuleKind` is intentionally only compared by the discriminant,
+// because we want there to only be one of each kind, without caring about
+// the value.
+#[allow(clippy::incorrect_partial_ord_impl_on_ord_type)]
 impl PartialOrd for ValidateRuleKind {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.discriminant().partial_cmp(&other.discriminant())
