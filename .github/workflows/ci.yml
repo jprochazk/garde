@@ -9,6 +9,12 @@ on:
       - main
   workflow_dispatch:
 
+# When a new run is triggered by a commit while a run is already in progress,
+# we want to cancel the in-progress run so as to not waste CI resources.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 # The section is needed to drop write-all permissions that are granted on
 # `schedule` event. By specifying any permission explicitly all others are set
 # to none. By using the principle of least privilege the damage a compromised
