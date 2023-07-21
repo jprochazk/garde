@@ -66,6 +66,8 @@ jobs:
 
       - name: Cache
         uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "rust-${{ matrix.build }}-test"
 
       - name: Build docs
         run: cargo doc --all-features
@@ -88,13 +90,15 @@ jobs:
           toolchain: nightly
           components: rustfmt, clippy
 
-      - name: Cache
-        uses: Swatinem/rust-cache@v2
-
       - name: Install tools
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-deny,cargo-audit,cargo-udeps,cargo-pants
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "rust-checks"
 
       - name: Run checks
         run: |
