@@ -40,6 +40,17 @@ impl<T> Inner<T> for Vec<T> {
     }
 }
 
+impl<const N: usize, T> Inner<T> for [T; N] {
+    type ErrorBuilder = ListErrorBuilder;
+
+    fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
+    where
+        F: Fn(&T, &C) -> Errors,
+    {
+        self.as_slice().validate_inner(ctx, f)
+    }
+}
+
 impl<'a, T> Inner<T> for &'a [T] {
     type ErrorBuilder = ListErrorBuilder;
 

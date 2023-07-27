@@ -11,6 +11,7 @@ mod inner;
 mod ip;
 mod length;
 mod multi_rule;
+mod option;
 mod pattern;
 mod phone_number;
 mod prefix;

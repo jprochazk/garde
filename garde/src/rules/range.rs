@@ -16,7 +16,7 @@ use std::fmt::Display;
 
 use crate::error::Error;
 
-pub fn apply<T: Bounds>(v: &T, (min, max): (&T, &T)) -> Result<(), Error> {
+pub fn apply<T: Bounds + Display>(v: &T, (min, max): (&T::Size, &T::Size)) -> Result<(), Error> {
     if let Err(e) = v.validate_bounds(min, max) {
         match e {
             OutOfBounds::Lower => return Err(Error::new(format!("lower than {min}"))),
@@ -26,11 +26,17 @@ pub fn apply<T: Bounds>(v: &T, (min, max): (&T, &T)) -> Result<(), Error> {
     Ok(())
 }
 
-pub trait Bounds: PartialOrd + Display {
-    const MIN: Self;
-    const MAX: Self;
+pub trait Bounds: PartialOrd {
+    type Size: Sized + Display;
 
-    fn validate_bounds(&self, lower_bound: &Self, upper_bound: &Self) -> Result<(), OutOfBounds>;
+    const MIN: Self::Size;
+    const MAX: Self::Size;
+
+    fn validate_bounds(
+        &self,
+        lower_bound: &Self::Size,
+        upper_bound: &Self::Size,
+    ) -> Result<(), OutOfBounds>;
 }
 
 pub enum OutOfBounds {
@@ -42,13 +48,15 @@ macro_rules! impl_for_int {
     ($($T:ident),*) => {
         $(
             impl Bounds for $T {
-                const MIN: Self = $T::MIN;
-                const MAX: Self = $T::MAX;
+                type Size = $T;
+
+                const MIN: Self::Size = $T::MIN;
+                const MAX: Self::Size = $T::MAX;
 
                 fn validate_bounds(
                     &self,
-                    lower_bound: &Self,
-                    upper_bound: &Self,
+                    lower_bound: &Self::Size,
+                    upper_bound: &Self::Size,
                 ) -> Result<(), OutOfBounds> {
                     if self < lower_bound {
                         Err(OutOfBounds::Lower)
@@ -64,3 +72,21 @@ macro_rules! impl_for_int {
 }
 
 impl_for_int!(u8, u16, u32, u64, usize, u128, i8, i16, i32, i64, isize, i128);
+
+impl<T: Bounds> Bounds for Option<T> {
+    type Size = T::Size;
+
+    const MIN: Self::Size = T::MIN;
+    const MAX: Self::Size = T::MAX;
+
+    fn validate_bounds(
+        &self,
+        lower_bound: &Self::Size,
+        upper_bound: &Self::Size,
+    ) -> Result<(), OutOfBounds> {
+        match self {
+            Some(value) => value.validate_bounds(lower_bound, upper_bound),
+            None => Ok(()),
+        }
+    }
+}

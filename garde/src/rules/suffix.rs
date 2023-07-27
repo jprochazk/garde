@@ -10,8 +10,9 @@
 //!
 //! The entrypoint is the [`Suffix`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(suffix)]` rule.
 //!
-//! This trait has a blanket implementation for all `T: AsRef<str>`.
+//! This trait has a blanket implementation for all `T: garde::rules::AsStr`.
 
+use super::AsStr;
 use crate::error::Error;
 
 pub fn apply<T: Suffix>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
@@ -25,8 +26,17 @@ pub trait Suffix {
     fn validate_suffix(&self, pat: &str) -> bool;
 }
 
-impl<T: AsRef<str>> Suffix for T {
+impl<T: AsStr> Suffix for T {
     fn validate_suffix(&self, pat: &str) -> bool {
-        self.as_ref().ends_with(pat)
+        self.as_str().ends_with(pat)
+    }
+}
+
+impl<T: Suffix> Suffix for Option<T> {
+    fn validate_suffix(&self, pat: &str) -> bool {
+        match self {
+            Some(value) => value.validate_suffix(pat),
+            None => true,
+        }
     }
 }

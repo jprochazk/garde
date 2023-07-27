@@ -28,6 +28,7 @@
 //! }
 //! ```
 
+use super::AsStr;
 use crate::error::Error;
 
 pub fn apply<T: ByteLength>(v: &T, (min, max): (usize, usize)) -> Result<(), Error> {
@@ -71,8 +72,45 @@ impl<T: HasByteLength> ByteLength for T {
     }
 }
 
-impl<T: AsRef<[u8]>> HasByteLength for T {
+impl<T: ByteLength> ByteLength for Option<T> {
+    fn validate_byte_length(&self, min: usize, max: usize) -> Result<(), InvalidLength> {
+        match self {
+            Some(value) => value.validate_byte_length(min, max),
+            None => Ok(()),
+        }
+    }
+}
+
+impl<T: AsByteSlice> HasByteLength for T {
     fn byte_length(&self) -> usize {
-        self.as_ref().len()
+        self.as_byte_slice().len()
+    }
+}
+
+pub trait AsByteSlice {
+    fn as_byte_slice(&self) -> &[u8];
+}
+
+impl<'a> AsByteSlice for &'a [u8] {
+    fn as_byte_slice(&self) -> &[u8] {
+        self
+    }
+}
+
+impl AsByteSlice for Vec<u8> {
+    fn as_byte_slice(&self) -> &[u8] {
+        self.as_slice()
+    }
+}
+
+impl<const N: usize> AsByteSlice for [u8; N] {
+    fn as_byte_slice(&self) -> &[u8] {
+        self
+    }
+}
+
+impl<T: AsStr> AsByteSlice for T {
+    fn as_byte_slice(&self) -> &[u8] {
+        self.as_str().as_bytes()
     }
 }

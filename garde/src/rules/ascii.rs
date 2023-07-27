@@ -10,8 +10,9 @@
 //!
 //! The entrypoint is the [`Ascii`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(ascii)]` rule.
 //!
-//! This trait has a blanket implementation for all `T: AsRef<str>`.
+//! This trait has a blanket implementation for all `T: garde::rules::AsStr`.
 
+use super::AsStr;
 use crate::error::Error;
 
 pub fn apply<T: Ascii>(v: &T, _: ()) -> Result<(), Error> {
@@ -25,8 +26,17 @@ pub trait Ascii {
     fn validate_ascii(&self) -> bool;
 }
 
-impl<T: AsRef<str>> Ascii for T {
+impl<T: AsStr> Ascii for T {
     fn validate_ascii(&self) -> bool {
-        self.as_ref().is_ascii()
+        self.as_str().is_ascii()
+    }
+}
+
+impl<T: Ascii> Ascii for Option<T> {
+    fn validate_ascii(&self) -> bool {
+        match self {
+            Some(value) => value.validate_ascii(),
+            None => true,
+        }
     }
 }

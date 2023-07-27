@@ -278,3 +278,14 @@ where
         Ok(())
     }
 }
+
+impl<T: Validate> Validate for Option<T> {
+    type Context = T::Context;
+
+    fn validate(&self, ctx: &Self::Context) -> Result<(), Errors> {
+        match self {
+            Some(value) => value.validate(ctx),
+            None => Ok(()),
+        }
+    }
+}

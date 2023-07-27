@@ -10,7 +10,7 @@
 //!
 //! The entrypoint is the [`Pattern`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(pattern(...))]` rule.
 //!
-//! This trait has a blanket implementation for all `T: AsRef<str>`.
+//! This trait has a blanket implementation for all `T: garde::rules::AsStr`.
 
 use crate::error::Error;
 
@@ -40,11 +40,21 @@ macro_rules! __init_pattern {
         })
     };
 }
+use super::AsStr;
 #[doc(hidden)]
 pub use crate::__init_pattern as init_pattern;
 
-impl<T: AsRef<str>> Pattern for T {
+impl<T: AsStr> Pattern for T {
     fn validate_pattern(&self, pat: &Regex) -> bool {
-        pat.is_match(self.as_ref())
+        pat.is_match(self.as_str())
+    }
+}
+
+impl<T: Pattern> Pattern for Option<T> {
+    fn validate_pattern(&self, pat: &Regex) -> bool {
+        match self {
+            Some(value) => value.validate_pattern(pat),
+            None => true,
+        }
     }
 }

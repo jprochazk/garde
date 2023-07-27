@@ -10,10 +10,11 @@
 //!
 //! The entrypoint is the [`CreditCard`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(credit_card)]` rule.
 //!
-//! This trait has a blanket implementation for all `T: AsRef<str>`.
+//! This trait has a blanket implementation for all `T: garde::rules::AsStr`.
 
 use std::fmt::Display;
 
+use super::AsStr;
 use crate::error::Error;
 
 pub fn apply<T: CreditCard>(v: &T, _: ()) -> Result<(), Error> {
@@ -29,12 +30,23 @@ pub trait CreditCard {
     fn validate_credit_card(&self) -> Result<(), Self::Error>;
 }
 
-impl<T: AsRef<str>> CreditCard for T {
+impl<T: AsStr> CreditCard for T {
     type Error = InvalidCard;
 
     fn validate_credit_card(&self) -> Result<(), Self::Error> {
-        let _ = card_validate::Validate::from(self.as_ref())?;
+        let _ = card_validate::Validate::from(self.as_str())?;
         Ok(())
+    }
+}
+
+impl<T: CreditCard> CreditCard for Option<T> {
+    type Error = T::Error;
+
+    fn validate_credit_card(&self) -> Result<(), Self::Error> {
+        match self {
+            Some(value) => value.validate_credit_card(),
+            None => Ok(()),
+        }
     }
 }
 

@@ -68,6 +68,15 @@ impl<T: HasLength> Length for T {
     }
 }
 
+impl<T: Length> Length for Option<T> {
+    fn validate_length(&self, min: usize, max: usize) -> Result<(), InvalidLength> {
+        match self {
+            Some(value) => value.validate_length(min, max),
+            None => Ok(()),
+        }
+    }
+}
+
 impl HasLength for String {
     fn length(&self) -> usize {
         self.chars().count()

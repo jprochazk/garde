@@ -10,7 +10,7 @@
 //!
 //! The entrypoint is the [`Email`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(email)]` rule.
 //!
-//! This trait has a blanket implementation for all `T: AsRef<str>`.
+//! This trait has a blanket implementation for all `T: garde::rules::AsStr`.
 
 use std::fmt::Display;
 use std::str::FromStr;
@@ -18,6 +18,7 @@ use std::str::FromStr;
 use once_cell::sync::Lazy;
 use regex::Regex;
 
+use super::AsStr;
 use crate::error::Error;
 
 pub fn apply<T: Email>(v: &T, _: ()) -> Result<(), Error> {
@@ -33,11 +34,22 @@ pub trait Email {
     fn validate_email(&self) -> Result<(), Self::Error>;
 }
 
-impl<T: AsRef<str>> Email for T {
+impl<T: AsStr> Email for T {
     type Error = InvalidEmail;
 
     fn validate_email(&self) -> Result<(), Self::Error> {
-        parse_email(self.as_ref())
+        parse_email(self.as_str())
+    }
+}
+
+impl<T: Email> Email for Option<T> {
+    type Error = T::Error;
+
+    fn validate_email(&self) -> Result<(), Self::Error> {
+        match self {
+            Some(value) => value.validate_email(),
+            None => Ok(()),
+        }
     }
 }
 
