@@ -1,0 +1,5 @@
+error: `dive` may not be combined with `inner`
+ --> tests/ui/compile-fail/dive_and_inner.rs:3:13
+  |
+3 |     #[garde(dive, inner(length(min = 1)))]
+  |             ^^^^

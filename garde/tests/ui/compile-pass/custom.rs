@@ -4,6 +4,10 @@ struct Test<'a> {
     a: &'a str,
     #[garde(custom(|_, _| Ok(())))]
     b: &'a str,
+    #[garde(inner(custom(custom_validate_fn)))]
+    inner_a: &'a [&'a str],
+    #[garde(inner(custom(|_, _| Ok(()))))]
+    inner_b: &'a [&'a str],
 }
 
 fn custom_validate_fn(_: &str, _: &()) -> Result<(), garde::Error> {
