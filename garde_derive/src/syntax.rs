@@ -92,6 +92,7 @@ impl Parse for model::Attr {
                 let ty = content.parse::<Type>()?;
                 Ok(model::Attr::Context(Box::new(ty)))
             }
+            "allow_unvalidated" => Ok(model::Attr::AllowUnvalidated),
             _ => Err(syn::Error::new(ident.span(), "unrecognized attribute")),
         }
     }

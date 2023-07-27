@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use proc_macro2::Span;
 use syn::parse_quote;
 use syn::spanned::Spanned;
@@ -15,6 +17,10 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
 
     let mut error = None;
 
+    if let Err(e) = check_attrs(&attrs) {
+        error.maybe_fold(e);
+    }
+
     let context = match get_context(&attrs) {
         Ok(v) => v,
         Err(e) => {
@@ -23,9 +29,11 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         }
     };
 
+    let options = get_options(&attrs);
+
     let kind = match kind {
         model::InputKind::Struct(variant) => {
-            let variant = match check_variant(variant) {
+            let variant = match check_variant(variant, &options) {
                 Ok(v) => v,
                 Err(e) => {
                     error.maybe_fold(e);
@@ -38,7 +46,7 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
             let mut inner_error = None;
             let mut variants = Vec::new();
             for (ident, variant) in list {
-                match check_variant(variant) {
+                match check_variant(variant, &options) {
                     Ok(v) => variants.push((ident, v)),
                     Err(e) => inner_error.maybe_fold(e),
                 }
@@ -59,16 +67,41 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         generics,
         context,
         kind,
+        options,
     })
 }
 
+fn check_attrs(attrs: &[(Span, model::Attr)]) -> syn::Result<()> {
+    let mut error = None;
+
+    let mut set = BTreeSet::new();
+    for (span, attr) in attrs {
+        let d = attr.discriminant();
+        if set.contains(&d) {
+            error.maybe_fold(syn::Error::new(
+                *span,
+                format!("duplicate attribute `{}`", attr.name()),
+            ));
+        }
+        set.insert(d);
+    }
+
+    match error {
+        Some(error) => Err(error),
+        None => Ok(()),
+    }
+}
+
 fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<syn::Type> {
+    #![allow(clippy::single_match)]
+
     let error = None;
     let mut context = None;
 
     for (_, attr) in attrs {
         match attr {
             model::Attr::Context(ty) => context = Some(ty),
+            _ => {}
         }
     }
 
@@ -82,14 +115,32 @@ fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<syn::Type> {
     }
 }
 
-fn check_variant(variant: model::Variant) -> syn::Result<model::ValidateVariant> {
+fn get_options(attrs: &[(Span, model::Attr)]) -> model::Options {
+    let mut options = model::Options {
+        allow_unvalidated: false,
+    };
+
+    for (_, attr) in attrs {
+        match attr {
+            model::Attr::Context(_) => {}
+            model::Attr::AllowUnvalidated => options.allow_unvalidated = true,
+        }
+    }
+
+    options
+}
+
+fn check_variant(
+    variant: model::Variant,
+    options: &model::Options,
+) -> syn::Result<model::ValidateVariant> {
     let mut error = None;
 
     let variant = match variant {
         model::Variant::Struct(map) => {
             let mut fields = Vec::new();
             for (ident, field) in map {
-                let field = match check_field(field) {
+                let field = match check_field(field, options) {
                     Ok(v) => v,
                     Err(e) => {
                         error.maybe_fold(e);
@@ -103,7 +154,7 @@ fn check_variant(variant: model::Variant) -> syn::Result<model::ValidateVariant>
         model::Variant::Tuple(list) => {
             let mut fields = Vec::new();
             for field in list {
-                let field = match check_field(field) {
+                let field = match check_field(field, options) {
                     Ok(v) => v,
                     Err(e) => {
                         error.maybe_fold(e);
@@ -123,7 +174,7 @@ fn check_variant(variant: model::Variant) -> syn::Result<model::ValidateVariant>
     Ok(variant)
 }
 
-fn check_field(field: model::Field) -> syn::Result<model::ValidateField> {
+fn check_field(field: model::Field, options: &model::Options) -> syn::Result<model::ValidateField> {
     let mut error = None;
 
     let model::Field {
@@ -142,10 +193,14 @@ fn check_field(field: model::Field) -> syn::Result<model::ValidateField> {
     };
 
     if raw_rules.is_empty() {
-        error.maybe_fold(syn::Error::new(
-            field.ty.span(),
-            "field has no validation, use `#[garde(skip)]` if this is intentional",
-        ));
+        if options.allow_unvalidated {
+            field.skip = Some(Span::call_site());
+        } else {
+            error.maybe_fold(syn::Error::new(
+                field.ty.span(),
+                "field has no validation, use `#[garde(skip)]` if this is intentional",
+            ));
+        }
     }
 
     field.rule_set = match check_rules(&mut field, raw_rules) {
