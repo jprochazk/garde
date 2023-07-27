@@ -8,6 +8,7 @@ pub mod contains;
 pub mod credit_card;
 #[cfg(feature = "email")]
 pub mod email;
+pub mod inner;
 pub mod ip;
 pub mod length;
 #[cfg(feature = "pattern")]

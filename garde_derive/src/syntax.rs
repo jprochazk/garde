@@ -8,6 +8,7 @@ use syn::spanned::Spanned;
 use syn::{DeriveInput, Token, Type};
 
 use crate::model;
+use crate::model::List;
 use crate::util::MaybeFoldError;
 
 pub fn parse(input: DeriveInput) -> syn::Result<model::Input> {
@@ -279,14 +280,14 @@ impl Parse for model::RawRule {
                 "credit_card" => CreditCard,
                 "phone_number" => PhoneNumber,
                 "length" => Length(content),
-                "byte_length" => ByteLength(context),
-                "range" => Range(context),
-                "contains" => Contains(context),
-                "prefix" => Prefix(context),
-                "suffix" => Suffix(context),
-                "pattern" => Pattern(context),
-                "custom" => Custom(context),
-                "inner" => Inner(context),
+                "byte_length" => ByteLength(content),
+                "range" => Range(content),
+                "contains" => Contains(content),
+                "prefix" => Prefix(content),
+                "suffix" => Suffix(content),
+                "pattern" => Pattern(content),
+                "custom" => Custom(content),
+                "inner" => Inner(content),
             }
         }
     }
@@ -295,6 +296,7 @@ impl Parse for model::RawRule {
 impl Parse for model::Str {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         Ok(model::Str {
+            span: input.span(),
             value: <syn::LitStr as Parse>::parse(input)?.value(),
         })
     }
@@ -370,6 +372,19 @@ where
         }
 
         Ok(model::Range { span, min, max })
+    }
+}
+
+impl<T: Parse> Parse for List<T> {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let span = input.span();
+
+        type CommaSeparated<T> = Punctuated<T, Token![,]>;
+        let contents: Vec<_> = CommaSeparated::parse_terminated(input)?
+            .into_iter()
+            .collect();
+
+        Ok(Self { span, contents })
     }
 }
 

@@ -49,7 +49,10 @@ pub enum Errors {
     /// Errors which are attached both to a field and its inner value.
     ///
     /// For example, `#[garde(length(min=1, max=100), dive)]` on a `Vec<T: Validate>` field.
-    Nested(Vec<Error>, Box<Errors>),
+    Nested {
+        outer: Box<Errors>,
+        inner: Box<Errors>,
+    },
     /// A list of errors.
     ///
     /// For example,  `#[garde(dive)]` on a `Vec<T: Validate>` field.
@@ -94,7 +97,7 @@ impl Errors {
             Errors::Simple(v) => v.is_empty(),
             Errors::List(v) => v.is_empty(),
             Errors::Fields(v) => v.is_empty(),
-            Errors::Nested(outer, inner) => outer.is_empty() && inner.is_empty(),
+            Errors::Nested { outer, inner } => outer.is_empty() && inner.is_empty(),
         }
     }
 
@@ -138,11 +141,9 @@ impl Errors {
                         out.push((current_path.clone(), error.clone()));
                     }
                 }
-                Errors::Nested(outer, inner) => {
-                    for error in outer {
-                        out.push((current_path.clone(), error.clone()));
-                    }
-                    flatten_inner(out, current_path, inner);
+                Errors::Nested { outer, inner } => {
+                    flatten_inner(out, current_path.clone(), inner);
+                    flatten_inner(out, current_path, outer);
                 }
                 Errors::List(errors) => {
                     for (i, errors) in errors.iter().enumerate() {
@@ -178,14 +179,11 @@ impl Errors {
     }
 
     /// Creates a nested [`Errors`] from a list of simple errors constructed via `outer`, and an arbitrary `inner` error.
-    pub fn nested<F>(mut outer: F, inner: Errors) -> Errors
-    where
-        F: FnMut(&mut SimpleErrorBuilder),
-    {
-        let mut builder = SimpleErrorBuilder { inner: Vec::new() };
-        outer(&mut builder);
-        let inner = Box::new(inner);
-        Errors::Nested(builder.inner, inner)
+    pub fn nested(outer: Errors, inner: Errors) -> Errors {
+        Errors::Nested {
+            outer: Box::new(outer),
+            inner: Box::new(inner),
+        }
     }
 
     /// Creates a list of [`Errors`] constructed via `f`.

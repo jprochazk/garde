@@ -1,9 +1,12 @@
 ---
-source: garde_derive_tests/tests/./rules/alphanumeric.rs
+source: garde/tests/./rules/alphanumeric.rs
 expression: snapshot
 ---
 Test {
     field: "!!!!",
+    inner: [
+        "!!!!",
+    ],
 }
 value.field: not alphanumeric
 

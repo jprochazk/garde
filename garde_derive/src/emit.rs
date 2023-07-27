@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use proc_macro2::{Ident, TokenStream as TokenStream2};
 use quote::{format_ident, quote, ToTokens};
 
@@ -68,91 +70,15 @@ impl<'a> ToTokens for Validation<'a> {
         // TODO: deduplicate this a bit
         match &self.0 {
             model::ValidateVariant::Struct(fields) => {
-                let fields =
-                    fields
-                        .iter()
-                        .filter(|(_, field)| !field.skip.value)
-                        .map(|(ident, field)| {
-                            let key = ident.to_string();
-                            let binding = Binding::Ident(ident);
-                            let rules = Rules(binding, field);
-                            if field.dive {
-                                if field.has_top_level_rules() {
-                                    quote! {
-                                        __garde_errors.insert(
-                                            #key,
-                                            ::garde::error::Errors::nested(
-                                                |__garde_errors| {#rules},
-                                                ::garde::validate::Validate::validate(&#binding, __garde_user_ctx)
-                                                    .err()
-                                                    .unwrap_or_else(::garde::error::Errors::empty)
-                                            )
-                                        );
-                                    }
-                                } else {
-                                    quote! {
-                                        __garde_errors.insert(
-                                            #key,
-                                            ::garde::validate::Validate::validate(&#binding, __garde_user_ctx)
-                                                .err()
-                                                .unwrap_or_else(::garde::error::Errors::empty)
-                                        );
-                                    }
-                                }
-                            } else {
-                                quote! {
-                                    __garde_errors.insert(
-                                        #key,
-                                        ::garde::error::Errors::simple(|__garde_errors| {#rules})
-                                    );
-                                }
-                            }
-                        });
-
+                let fields = Struct(fields);
                 quote! {
-                    ::garde::error::Errors::fields(|__garde_errors| {#(#fields)*})
+                    ::garde::error::Errors::fields(|__garde_errors| {#fields})
                 }
             }
             model::ValidateVariant::Tuple(fields) => {
-                let fields = fields
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, field)| !field.skip.value)
-                    .map(|(i, field)| {
-                        let binding = Binding::Index(i);
-                        let rules = Rules(binding, field);
-                        if field.dive {
-                            if field.has_top_level_rules() {
-                                quote! {
-                                    __garde_errors.push(
-                                        ::garde::error::Errors::nested(
-                                            |__garde_errors| {#rules},
-                                            ::garde::validate::Validate::validate(&#binding, __garde_user_ctx)
-                                                .err()
-                                                .unwrap_or_else(::garde::error::Errors::empty)
-                                        )
-                                    );
-                                }
-                            } else {
-                                quote! {
-                                    __garde_errors.push(
-                                        ::garde::validate::Validate::validate(&#binding, __garde_user_ctx)
-                                            .err()
-                                            .unwrap_or_else(::garde::error::Errors::empty)
-                                    );
-                                }
-                            }
-                        } else {
-                            quote! {
-                                __garde_errors.push(
-                                    ::garde::error::Errors::simple(|__garde_errors| {#rules})
-                                );
-                            }
-                        }
-                    });
-
+                let fields = Tuple(fields);
                 quote! {
-                    ::garde::error::Errors::list(|__garde_errors| {#(#fields)*})
+                    ::garde::error::Errors::list(|__garde_errors| {#fields})
                 }
             }
         }
@@ -160,7 +86,71 @@ impl<'a> ToTokens for Validation<'a> {
     }
 }
 
-struct Rules<'a>(Binding<'a>, &'a model::ValidateField);
+struct Struct<'a>(&'a [(Ident, model::ValidateField)]);
+
+impl<'a> ToTokens for Struct<'a> {
+    fn to_tokens(&self, tokens: &mut TokenStream2) {
+        Fields::new(
+            self.0
+                .iter()
+                .map(|(key, field)| (Binding::Ident(key), field, key.to_string())),
+            |key, value| {
+                quote! {
+                    __garde_errors.insert(
+                        #key,
+                        #value,
+                    );
+                }
+            },
+        )
+        .to_tokens(tokens)
+    }
+}
+
+struct Tuple<'a>(&'a [model::ValidateField]);
+
+impl<'a> ToTokens for Tuple<'a> {
+    fn to_tokens(&self, tokens: &mut TokenStream2) {
+        Fields::new(
+            self.0
+                .iter()
+                .enumerate()
+                .map(|(index, field)| (Binding::Index(index), field, ())),
+            |(), value| {
+                quote! {
+                    __garde_errors.push(#value);
+                }
+            },
+        )
+        .to_tokens(tokens)
+    }
+}
+
+struct Inner<'a>(&'a model::RuleSet);
+
+impl<'a> ToTokens for Inner<'a> {
+    fn to_tokens(&self, tokens: &mut TokenStream2) {
+        let Inner(rule_set) = self;
+
+        if let Some(inner) = &rule_set.inner {
+            let rules = Rules(inner);
+            let inner = Inner(inner);
+            quote! {
+                ::garde::rules::inner::apply(
+                    &__garde_binding,
+                    __garde_user_ctx,
+                    |__garde_binding, __garde_user_ctx, __garde_errors| {
+                        #rules
+                        #inner
+                    }
+                )
+            }
+            .to_tokens(tokens)
+        }
+    }
+}
+
+struct Rules<'a>(&'a model::RuleSet);
 
 #[derive(Clone, Copy)]
 enum Binding<'a> {
@@ -179,70 +169,147 @@ impl<'a> ToTokens for Binding<'a> {
 
 impl<'a> ToTokens for Rules<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
-        let binding = &self.0;
-        let ty = &self.1.ty;
-        let custom_rules = self.1.custom_rules.iter().map(|func| {
+        let Rules(rule_set) = self;
+
+        for custom_rule in rule_set.custom_rules.iter() {
             quote! {
-                if let Err(__garde_error) = (#func)(&*#binding, &__garde_user_ctx) {
+                if let Err(__garde_error) = (#custom_rule)(&*__garde_binding, &__garde_user_ctx) {
                     __garde_errors.push(__garde_error)
                 }
             }
-        });
-        let rules = self.1.rules.iter().map(|rule| {
-            assert!(rule.depth == 0);
+            .to_tokens(tokens)
+        }
+
+        for rule in rule_set.rules.iter() {
             let name = format_ident!("{}", rule.name());
-            let args = match &rule.kind {
-                model::ValidateRuleKind::Ascii
-                | model::ValidateRuleKind::Alphanumeric
-                | model::ValidateRuleKind::Email
-                | model::ValidateRuleKind::Url
-                | model::ValidateRuleKind::CreditCard
-                | model::ValidateRuleKind::PhoneNumber => quote!(()),
-                model::ValidateRuleKind::Ip => {
+            use model::ValidateRule::*;
+            let args = match rule {
+                Ascii | Alphanumeric | Email | Url | CreditCard | PhoneNumber => quote!(()),
+                Ip => {
                     quote!((::garde::rules::ip::IpKind::Any,))
                 }
-                model::ValidateRuleKind::IpV4 => {
+                IpV4 => {
                     quote!((::garde::rules::ip::IpKind::V4,))
                 }
-                model::ValidateRuleKind::IpV6 => {
+                IpV6 => {
                     quote!((::garde::rules::ip::IpKind::V6,))
                 }
-                model::ValidateRuleKind::Length(range)
-                | model::ValidateRuleKind::ByteLength(range) => match range {
+                Length(range) | ByteLength(range) => match range {
                     model::ValidateRange::GreaterThan(min) => quote!((#min, usize::MAX)),
                     model::ValidateRange::LowerThan(max) => quote!((0, #max)),
                     model::ValidateRange::Between(min, max) => quote!((#min, #max)),
                 },
-                model::ValidateRuleKind::Range(range) => match range {
+                Range(range) => match range {
                     model::ValidateRange::GreaterThan(min) => {
-                        quote!((&#min, &(<#ty as ::garde::rules::range::Bounds>::MAX)))
+                        quote!((&#min, &(<_ as ::garde::rules::range::Bounds>::MAX)))
                     }
                     model::ValidateRange::LowerThan(max) => {
-                        quote!((&(<#ty as ::garde::rules::range::Bounds>::MIN), &#max))
+                        quote!((&(<_ as ::garde::rules::range::Bounds>::MIN), &#max))
                     }
                     model::ValidateRange::Between(min, max) => quote!((&#min, &#max)),
                 },
-                model::ValidateRuleKind::Contains(s)
-                | model::ValidateRuleKind::Prefix(s)
-                | model::ValidateRuleKind::Suffix(s) => quote!((#s,)),
-                model::ValidateRuleKind::Pattern(s) => quote!({
+                Contains(s) | Prefix(s) | Suffix(s) => quote!((#s,)),
+                Pattern(s) => quote!({
                     static PATTERN: ::garde::rules::pattern::StaticPattern =
                         ::garde::rules::pattern::init_pattern!(#s);
                     (&PATTERN,)
                 }),
             };
             quote! {
-                if let Err(__garde_error) = (::garde::rules::#name::apply)(&*#binding, #args) {
+                if let Err(__garde_error) = (::garde::rules::#name::apply)(&*__garde_binding, #args) {
                     __garde_errors.push(__garde_error)
                 }
             }
-        });
-
-        quote! {
-            #(#custom_rules)*
-            #(#rules)*
+            .to_tokens(tokens)
         }
-        .to_tokens(tokens)
+    }
+}
+
+struct Fields<I, F>(RefCell<Option<I>>, F);
+
+impl<I, F> Fields<I, F> {
+    fn new(iter: I, f: F) -> Self {
+        Self(RefCell::new(Some(iter)), f)
+    }
+}
+
+impl<'a, I, F, Extra> ToTokens for Fields<I, F>
+where
+    I: Iterator<Item = (Binding<'a>, &'a model::ValidateField, Extra)> + 'a,
+    F: Fn(Extra, TokenStream2) -> TokenStream2,
+{
+    fn to_tokens(&self, tokens: &mut TokenStream2) {
+        let fields = match self.0.borrow_mut().take() {
+            Some(v) => v,
+            None => return,
+        };
+        let fields = fields.filter(|(_, field, _)| field.skip.is_none());
+        for (binding, field, extra) in fields {
+            let rules = Rules(&field.rule_set);
+            let outer = match field.has_top_level_rules() {
+                true => Some(quote! {
+                    ::garde::error::Errors::simple(|__garde_errors| {#rules})
+                }),
+                false => None,
+            };
+            let inner = match (&field.dive, &field.rule_set.inner) {
+                (Some(..), None) => Some(quote! {
+                    ::garde::validate::Validate::validate(
+                        &*__garde_binding,
+                        __garde_user_ctx,
+                    )
+                        .err()
+                        .unwrap_or_else(::garde::error::Errors::empty)
+                }),
+                (None, Some(inner)) => {
+                    let inner = Inner(inner);
+                    Some(quote! {
+                        ::garde::rules::inner::apply(
+                            &*__garde_binding,
+                            __garde_user_ctx,
+                            |__garde_binding, __garde_user_ctx, __garde_errors| {
+                                #inner
+                            }
+                        )
+                    })
+                }
+                (None, None) => None,
+                // TODO: encode this via the type system instead?
+                _ => unreachable!("`dive` and `inner` are mutually exclusive"),
+            };
+
+            let value = match (outer, inner) {
+                (Some(outer), Some(inner)) => quote! {
+                    {
+                        let __garde_binding = &*#binding;
+                        ::garde::error::Errors::nested(
+                            #outer,
+                            #inner,
+                        )
+                    }
+                },
+                (None, Some(inner)) => quote! {
+                    {
+                        let __garde_binding = &*#binding;
+                        ::garde::error::Errors::nested(
+                            ::garde::error::Errors::empty(),
+                            #inner,
+                        )
+                    }
+                },
+                (Some(outer), None) => quote! {
+                    {
+                        let __garde_binding = &*#binding;
+                        #outer
+                    }
+                },
+                (None, None) => unreachable!("field should already be skipped"),
+            };
+
+            let add = &self.1;
+
+            add(extra, value).to_tokens(tokens)
+        }
     }
 }
 
@@ -254,7 +321,7 @@ impl<'a> ToTokens for Bindings<'a> {
             model::ValidateVariant::Struct(fields) => {
                 let names = fields
                     .iter()
-                    .filter(|field| !field.1.skip.value)
+                    .filter(|field| field.1.skip.is_none())
                     .map(|field| &field.0)
                     .collect::<Vec<_>>();
                 let rest = if names.len() != fields.len() {
@@ -269,7 +336,7 @@ impl<'a> ToTokens for Bindings<'a> {
                 let indices = fields
                     .iter()
                     .enumerate()
-                    .filter(|(_, field)| !field.skip.value)
+                    .filter(|(_, field)| field.skip.is_none())
                     .map(|(i, _)| IndexBinding(i))
                     .collect::<Vec<_>>();
                 let rest = if indices.len() != fields.len() {

@@ -1,5 +1,3 @@
-use std::collections::BTreeSet;
-
 use proc_macro2::Span;
 use syn::parse_quote;
 use syn::spanned::Spanned;
@@ -135,16 +133,12 @@ fn check_field(field: model::Field) -> syn::Result<model::ValidateField> {
 
     let mut field = model::ValidateField {
         ty,
-        skip: model::Skip {
-            span: Span::call_site(),
-            value: false,
-        },
+        skip: None,
         alias: None,
         message: None,
         code: None,
-        dive: false,
-        rules: BTreeSet::new(),
-        custom_rules: Vec::new(),
+        dive: None,
+        rule_set: model::RuleSet::empty(),
     };
 
     if raw_rules.is_empty() {
@@ -154,29 +148,30 @@ fn check_field(field: model::Field) -> syn::Result<model::ValidateField> {
         ));
     }
 
-    for raw_rule in raw_rules {
-        let span = raw_rule.span;
-        match check_rule(&mut field, raw_rule, 0) {
-            Ok(Some(v)) => {
-                if field.rules.contains(&v) {
-                    error.maybe_fold(syn::Error::new(
-                        span,
-                        format!("duplicate rule `{}`", v.name()),
-                    ));
-                    continue;
-                }
-                field.rules.insert(v);
-            }
-            Ok(None) => {}
-            Err(e) => error.maybe_fold(e),
+    field.rule_set = match check_rules(&mut field, raw_rules) {
+        Ok(v) => v,
+        Err(e) => {
+            error.maybe_fold(e);
+            model::RuleSet::empty()
+        }
+    };
+
+    if let Some(span) = field.skip {
+        if !field.is_empty() {
+            error.maybe_fold(syn::Error::new(
+                span,
+                "`skip` may not be combined with other rules",
+            ))
         }
     }
 
-    if field.skip.value && !field.is_empty() {
-        error.maybe_fold(syn::Error::new(
-            field.skip.span,
-            "`skip` may not be combined with other rules",
-        ))
+    if let Some(span) = field.dive {
+        if field.rule_set.inner.is_some() {
+            error.maybe_fold(syn::Error::new(
+                span,
+                "`dive` may not be combined with `inner`",
+            ))
+        }
     }
 
     if let Some(error) = error {
@@ -186,140 +181,102 @@ fn check_field(field: model::Field) -> syn::Result<model::ValidateField> {
     Ok(field)
 }
 
+fn check_rules(
+    field: &mut model::ValidateField,
+    raw_rules: Vec<model::RawRule>,
+) -> syn::Result<model::RuleSet> {
+    let mut error = None;
+    let mut rule_set = model::RuleSet::empty();
+    for raw_rule in raw_rules {
+        if let Err(e) = check_rule(field, raw_rule, &mut rule_set, false) {
+            error.maybe_fold(e);
+        };
+    }
+    if let Some(error) = error {
+        return Err(error);
+    }
+    Ok(rule_set)
+}
+
 fn check_rule(
     field: &mut model::ValidateField,
     raw_rule: model::RawRule,
-    depth: usize,
-) -> syn::Result<Option<model::ValidateRule>> {
+    rule_set: &mut model::RuleSet,
+    is_inner: bool,
+) -> syn::Result<()> {
     // TODO: can this be simplified via a macro? there's a ton of duplicated code
-    let rule = match raw_rule.kind {
-        model::RawRuleKind::Skip => {
-            if field.skip.value {
-                return Err(syn::Error::new(raw_rule.span, "duplicate rule `skip`"));
+    macro_rules! apply {
+        ($is_inner:expr, $field:ident, $name:ident, $value:expr, $span:expr) => {{
+            if $is_inner {
+                return Err(syn::Error::new(
+                    $span,
+                    concat!("rule `", stringify!($name), "` may not be used in `inner`")
+                ));
             }
-            field.skip = model::Skip {
-                span: raw_rule.span,
-                value: true,
-            };
-            None
-        }
-        model::RawRuleKind::Rename(alias) => {
-            if field.alias.is_some() {
-                return Err(syn::Error::new(raw_rule.span, "duplicate rule `rename`"));
-            }
-            field.alias = Some(alias.value);
-            None
-        }
-        model::RawRuleKind::Message(message) => {
-            if field.message.is_some() {
-                return Err(syn::Error::new(raw_rule.span, "duplicate rule `message`"));
-            }
-            field.message = Some(message);
-            None
-        }
-        model::RawRuleKind::Code(code) => {
-            if field.code.is_some() {
-                return Err(syn::Error::new(raw_rule.span, "duplicate rule `code`"));
-            }
-            field.code = Some(code.value);
-            None
-        }
-        model::RawRuleKind::Dive => {
-            if field.dive {
-                return Err(syn::Error::new(raw_rule.span, "duplicate rule `dive`"));
-            }
-            field.dive = true;
-            None
-        }
-        model::RawRuleKind::Custom(custom) => {
-            field.custom_rules.push(custom.expr());
-            None
-        }
-        model::RawRuleKind::Ascii => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::Ascii,
-        }),
-        model::RawRuleKind::Alphanumeric => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::Alphanumeric,
-        }),
-        model::RawRuleKind::Email => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::Email,
-        }),
-        model::RawRuleKind::Url => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::Url,
-        }),
-        model::RawRuleKind::Ip => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::Ip,
-        }),
-        model::RawRuleKind::IpV4 => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::IpV4,
-        }),
-        model::RawRuleKind::IpV6 => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::IpV6,
-        }),
-        model::RawRuleKind::CreditCard => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::CreditCard,
-        }),
-        model::RawRuleKind::PhoneNumber => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::PhoneNumber,
-        }),
-        model::RawRuleKind::Length(v) => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::Length(check_range(v)?),
-        }),
-        model::RawRuleKind::ByteLength(v) => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::ByteLength(check_range(v)?),
-        }),
-        model::RawRuleKind::Range(v) => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::Range(check_range_not_ord(v)?),
-        }),
-        model::RawRuleKind::Contains(v) => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::Contains(v.value),
-        }),
-        model::RawRuleKind::Prefix(v) => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::Prefix(v.value),
-        }),
-        model::RawRuleKind::Suffix(v) => Some(model::ValidateRule {
-            depth,
-            kind: model::ValidateRuleKind::Suffix(v.value),
-        }),
-        model::RawRuleKind::Pattern(v) => {
-            #[cfg(feature = "regex")]
-            {
-                if let Err(e) = regex::Regex::new(&v.value) {
+            match $field.$name {
+                Some(_) => {
                     return Err(syn::Error::new(
-                        raw_rule.span,
-                        format!("invalid regex: {e}"),
-                    ));
+                        $span,
+                        concat!("duplicate rule `", stringify!($name), "`"),
+                    ))
+                }
+                None => $field.$name = Some($value),
+            }
+        }};
+
+        ($rule_set:ident, $rule:ident($($inner:expr)?), $span:expr) => {{
+            let rule = model::ValidateRule::$rule$(($inner))?;
+            let name = rule.name();
+            if !$rule_set.rules.insert(rule) {
+                return Err(syn::Error::new($span, format!("duplicate rule `{name}`")));
+            }
+        }};
+    }
+
+    let span = raw_rule.span;
+    use model::RawRuleKind::*;
+    match raw_rule.kind {
+        Skip => apply!(is_inner, field, skip, span, span),
+        Rename(alias) => apply!(is_inner, field, alias, alias.value, span),
+        Message(message) => apply!(is_inner, field, message, message, span),
+        Code(code) => apply!(is_inner, field, code, code.value, span),
+        Dive => apply!(is_inner, field, dive, span, span),
+        Custom(custom) => rule_set.custom_rules.push(custom.expr()),
+        Ascii => apply!(rule_set, Ascii(), span),
+        Alphanumeric => apply!(rule_set, Alphanumeric(), span),
+        Email => apply!(rule_set, Email(), span),
+        Url => apply!(rule_set, Url(), span),
+        Ip => apply!(rule_set, Ip(), span),
+        IpV4 => apply!(rule_set, IpV4(), span),
+        IpV6 => apply!(rule_set, IpV6(), span),
+        CreditCard => apply!(rule_set, CreditCard(), span),
+        PhoneNumber => apply!(rule_set, PhoneNumber(), span),
+        Length(v) => apply!(rule_set, Length(check_range(v)?), span),
+        ByteLength(v) => apply!(rule_set, ByteLength(check_range(v)?), span),
+        Range(v) => apply!(rule_set, Range(check_range_not_ord(v)?), span),
+        Contains(v) => apply!(rule_set, Contains(v.value), span),
+        Prefix(v) => apply!(rule_set, Prefix(v.value), span),
+        Suffix(v) => apply!(rule_set, Suffix(v.value), span),
+        Pattern(v) => apply!(rule_set, Pattern(check_regex(v)?), span),
+        Inner(v) => {
+            if rule_set.inner.is_none() {
+                rule_set.inner = Some(Box::new(model::RuleSet::empty()));
+            }
+
+            let mut error = None;
+            for raw_rule in v.contents {
+                if let Err(e) = check_rule(field, raw_rule, rule_set.inner.as_mut().unwrap(), true)
+                {
+                    error.maybe_fold(e);
                 }
             }
-            Some(model::ValidateRule {
-                depth,
-                kind: model::ValidateRuleKind::Pattern(v.value),
-            })
-        }
-        model::RawRuleKind::Inner(v) => {
-            return Err(syn::Error::new(
-                v.span,
-                "`inner` rule is not yet implemented ",
-            ));
-            // check_rule(field, *v, depth + 1)?
+            if let Some(error) = error {
+                return Err(error);
+            }
         }
     };
 
-    Ok(rule)
+    Ok(())
 }
 
 trait CheckRange: Sized {
@@ -355,4 +312,14 @@ fn check_range_not_ord<T>(range: model::Range<T>) -> syn::Result<model::Validate
             "range must have at least one of `min`, `max`",
         )),
     }
+}
+
+fn check_regex(value: model::Str) -> syn::Result<String> {
+    #[cfg(feature = "regex")]
+    {
+        if let Err(e) = regex::Regex::new(&value.value) {
+            return Err(syn::Error::new(value.span, format!("invalid regex: {e}")));
+        }
+    }
+    Ok(value.value)
 }

@@ -88,10 +88,11 @@ pub enum RawRuleKind {
     Suffix(Str),
     Pattern(Str),
     Custom(Func),
-    Inner(Box<RawRule>),
+    Inner(List<RawRule>),
 }
 
 pub struct Str {
+    pub span: Span,
     pub value: String,
 }
 
@@ -99,6 +100,11 @@ pub struct Range<T> {
     pub span: Span,
     pub min: Option<T>,
     pub max: Option<T>,
+}
+
+pub struct List<T> {
+    pub span: Span,
+    pub contents: Vec<T>,
 }
 
 pub struct Validate {
@@ -116,24 +122,46 @@ pub enum ValidateKind {
 pub struct ValidateField {
     pub ty: Type,
 
-    pub skip: Skip,
+    pub skip: Option<Span>,
     pub alias: Option<String>,
     pub message: Option<Message>,
     pub code: Option<String>,
 
-    pub dive: bool,
-    pub rules: BTreeSet<ValidateRule>,
-    pub custom_rules: Vec<Expr>,
-}
-
-pub struct Skip {
-    pub span: Span,
-    pub value: bool,
+    pub dive: Option<Span>,
+    pub rule_set: RuleSet,
 }
 
 impl ValidateField {
     pub fn is_empty(&self) -> bool {
-        !self.dive && self.rules.is_empty() && self.custom_rules.is_empty()
+        self.dive.is_none() && self.rule_set.is_empty()
+    }
+
+    pub fn has_top_level_rules(&self) -> bool {
+        self.rule_set.has_top_level_rules()
+    }
+}
+
+pub struct RuleSet {
+    pub rules: BTreeSet<ValidateRule>,
+    pub custom_rules: Vec<Expr>,
+    pub inner: Option<Box<RuleSet>>,
+}
+
+impl RuleSet {
+    pub fn empty() -> Self {
+        Self {
+            rules: BTreeSet::new(),
+            custom_rules: Vec::new(),
+            inner: None,
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        let inner_empty = match &self.inner {
+            Some(inner) => inner.is_empty(),
+            None => true,
+        };
+        inner_empty && self.rules.is_empty() && self.custom_rules.is_empty()
     }
 
     pub fn has_top_level_rules(&self) -> bool {
@@ -141,14 +169,8 @@ impl ValidateField {
     }
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
-pub struct ValidateRule {
-    pub kind: ValidateRuleKind,
-    pub depth: usize,
-}
-
 #[repr(u8)]
-pub enum ValidateRuleKind {
+pub enum ValidateRule {
     Ascii,
     Alphanumeric,
     Email,
@@ -169,23 +191,23 @@ pub enum ValidateRuleKind {
 
 impl ValidateRule {
     pub fn name(&self) -> &'static str {
-        match &self.kind {
-            ValidateRuleKind::Ascii => "ascii",
-            ValidateRuleKind::Alphanumeric => "alphanumeric",
-            ValidateRuleKind::Email => "email",
-            ValidateRuleKind::Url => "url",
-            ValidateRuleKind::Ip => "ip",
-            ValidateRuleKind::IpV4 => "ip",
-            ValidateRuleKind::IpV6 => "ip",
-            ValidateRuleKind::CreditCard => "credit_card",
-            ValidateRuleKind::PhoneNumber => "phone_number",
-            ValidateRuleKind::Length { .. } => "length",
-            ValidateRuleKind::ByteLength { .. } => "byte_length",
-            ValidateRuleKind::Range { .. } => "range",
-            ValidateRuleKind::Contains(_) => "contains",
-            ValidateRuleKind::Prefix(_) => "prefix",
-            ValidateRuleKind::Suffix(_) => "suffix",
-            ValidateRuleKind::Pattern(_) => "pattern",
+        match self {
+            ValidateRule::Ascii => "ascii",
+            ValidateRule::Alphanumeric => "alphanumeric",
+            ValidateRule::Email => "email",
+            ValidateRule::Url => "url",
+            ValidateRule::Ip => "ip",
+            ValidateRule::IpV4 => "ip",
+            ValidateRule::IpV6 => "ip",
+            ValidateRule::CreditCard => "credit_card",
+            ValidateRule::PhoneNumber => "phone_number",
+            ValidateRule::Length { .. } => "length",
+            ValidateRule::ByteLength { .. } => "byte_length",
+            ValidateRule::Range { .. } => "range",
+            ValidateRule::Contains(_) => "contains",
+            ValidateRule::Prefix(_) => "prefix",
+            ValidateRule::Suffix(_) => "suffix",
+            ValidateRule::Pattern(_) => "pattern",
         }
     }
 }
@@ -207,15 +229,15 @@ impl ValidateVariant {
     }
 }
 
-impl PartialEq for ValidateRuleKind {
+impl PartialEq for ValidateRule {
     fn eq(&self, other: &Self) -> bool {
         core::mem::discriminant(self) == core::mem::discriminant(other)
     }
 }
 
-impl Eq for ValidateRuleKind {}
+impl Eq for ValidateRule {}
 
-impl ValidateRuleKind {
+impl ValidateRule {
     fn discriminant(&self) -> u8 {
         // SAFETY: Because `Self` is marked `repr(u8)`, its layout is a `repr(C)`
         // `union` between `repr(C)` structs, each of which has the `u8`
@@ -225,12 +247,12 @@ impl ValidateRuleKind {
     }
 }
 
-impl PartialOrd for ValidateRuleKind {
+impl PartialOrd for ValidateRule {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
-impl Ord for ValidateRuleKind {
+impl Ord for ValidateRule {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         // `ValidateRuleKind` is intentionally only compared by the discriminant,
         // because we want there to only be one of each kind, without caring about
