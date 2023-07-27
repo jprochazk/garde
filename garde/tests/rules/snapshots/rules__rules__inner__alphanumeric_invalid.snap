@@ -1,0 +1,14 @@
+---
+source: garde/tests/./rules/inner.rs
+expression: snapshot
+---
+Inner {
+    inner: [
+        [
+            "!!!!",
+        ],
+    ],
+}
+value.inner[0][0]: not alphanumeric
+
+
