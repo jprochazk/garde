@@ -9,6 +9,8 @@ A Rust validation library
 
 - [Basic usage example](#basic-usage-example)
 - [Validation rules](#available-validation-rules)
+- [Inner type validation](#inner-type-validation)
+- [Handling Option](#handling-option)
 - [Custom validation](#custom-validation)
 - [Implementing rules](#implementing-rules)
 - [Implementing `Validate`](#implementing-validate)
@@ -71,7 +73,8 @@ if let Err(e) = data.validate(&()) {
 ### Available validation rules
 
 | name         | format                                           | validation                                           | feature flag   |
-|--------------|--------------------------------------------------|------------------------------------------------------|----------------|
+| ------------ | ------------------------------------------------ | ---------------------------------------------------- | -------------- |
+| required     | `#[garde(required)]`                             | is value set                                         | -              |
 | ascii        | `#[garde(ascii)]`                                | only contains ASCII                                  | -              |
 | alphanumeric | `#[garde(alphanumeric)]`                         | only letters and digits                              | -              |
 | email        | `#[garde(email)]`                                | an email according to the HTML5 spec[^1]             | `email`        |
@@ -93,10 +96,71 @@ if let Err(e) = data.validate(&()) {
 | custom       | `#[garde(custom(<function or closure>))]`        | a custom validator                                   | -              |
 
 Additional notes:
+- `required` is only available for `Option` fields.
 - For `length` and `range`, either `min` or `max` may be omitted, but not both.
 - `length` and `range` use an *inclusive* upper bound (`min..=max`).
 - `length` uses `.chars().count()` for UTF-8 strings instead of `.len()`.
 - For `contains`, `prefix`, and `suffix`, the pattern must be a string literal, because the `Pattern` API [is currently unstable](https://github.com/rust-lang/rust/issues/27721).
+
+If most of the fields on your struct are annotated with `#[garde(skip)]`, you may use `#[garde(allow_unvalidated)]` instead:
+
+```rust
+#[derive(garde::Validate)]
+struct Foo<'a> {
+    #[garde(length(min = 1))]
+    a: &'a str,
+
+    #[garde(skip)]
+    b: &'a str, // this field will not be validated
+}
+
+#[derive(garde::Validate)]
+#[garde(allow_unvalidated)]
+struct Bar<'a> {
+    #[garde(length(min = 1))]
+    a: &'a str,
+
+    b: &'a str, // this field will not be validated
+                // note the lack of `#[garde(skip)]`
+}
+```
+
+### Inner type validation
+
+If you need to validate the "inner" type of a container, such as the `String` in `Vec<String>`, then use the `inner` modifier:
+
+```rust
+#[derive(garde::Validate)]
+struct Test {
+    #[garde(
+        length(min = 1),
+        inner(ascii, length(min = 1)), // wrap the rule in `inner`
+    )]
+    items: Vec<String>,
+}
+```
+
+The above type would fail validation if:
+- the `Vec` is empty
+- any of the inner `String` elements is empty
+- any of the inner `String` elements contains non-ASCII characters
+
+### Handling Option
+
+Every rule works on `Option<T>` fields. The field will only be validated if it is `Some`. If you additionally want to validate that the `Option<T>` field is `Some`, use the `required` rule:
+
+```rust
+#[derive(garde::Validate)]
+struct Test {
+    #[garde(required, ascii, length(min = 1))]
+    value: Option<String>,
+}
+```
+
+The above type would fail validation if:
+- `value` is `None`
+- the inner `value` is empty
+- the inner `value` contains non-ASCII characters
 
 ### Custom validation
 

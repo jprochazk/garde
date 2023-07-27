@@ -2,17 +2,20 @@
 //!
 //! - [Basic usage example](#basic-usage-example)
 //! - [Validation rules](#available-validation-rules)
+//! - [Inner type validation](#inner-type-validation)
+//! - [Handling Option](#handling-option)
 //! - [Custom validation](#custom-validation)
 //! - [Implementing rules](#implementing-rules)
 //! - [Implementing `Validate`](#implementing-validate)
+//! - [Integration with web frameworks](#integration-with-web-frameworks)
 //! - [Feature flags](#feature-flags)
 //! - [Why `garde`?](#why-garde)
 //!
 //! ### Basic usage example
 //!
-//! To get started, use the [`Validate`][`garde_derive::Validate`] derive macro and add some validation rules to your type.
-//! This generates an implementation of the [`Validate`][`validate::Validate`] trait for you.
-//! To use it, call the [`validate`][`validate::Validate::validate`] method on an instance of the type.
+//! To get started, use the [`Validate`][`crate::Validate`] derive macro and add some validation rules to your type.
+//! This generates an implementation of the [`Validate`][`crate::Validate`] trait for you.
+//! To use it, call the [`validate`][`crate::Validate::validate`] method on an instance of the type.
 //!
 //! Here's what that looks like in full:
 //!
@@ -63,7 +66,8 @@
 //! ### Available validation rules
 //!
 //! | name         | format                                           | validation                                           | feature flag   |
-//! |--------------|--------------------------------------------------|------------------------------------------------------|----------------|
+//! | ------------ | ------------------------------------------------ | ---------------------------------------------------- | -------------- |
+//! | required     | `#[garde(required)]`                             | is value set                                         | -              |
 //! | ascii        | `#[garde(ascii)]`                                | only contains ASCII                                  | -              |
 //! | alphanumeric | `#[garde(alphanumeric)]`                         | only letters and digits                              | -              |
 //! | email        | `#[garde(email)]`                                | an email according to the HTML5 spec[^1]             | `email`        |
@@ -85,14 +89,75 @@
 //! | custom       | `#[garde(custom(<function or closure>))]`        | a custom validator                                   | -              |
 //!
 //! Additional notes:
+//! - `required` is only available for `Option` fields.
 //! - For `length` and `range`, either `min` or `max` may be omitted, but not both.
 //! - `length` and `range` use an *inclusive* upper bound (`min..=max`).
 //! - `length` uses `.chars().count()` for UTF-8 strings instead of `.len()`.
 //! - For `contains`, `prefix`, and `suffix`, the pattern must be a string literal, because the `Pattern` API [is currently unstable](https://github.com/rust-lang/rust/issues/27721).
 //!
+//! If most of the fields on your struct are annotated with `#[garde(skip)]`, you may use `#[garde(allow_unvalidated)]` instead:
+//!
+//! ```rust
+//! #[derive(garde::Validate)]
+//! struct Foo<'a> {
+//!     #[garde(length(min = 1))]
+//!     a: &'a str,
+//!
+//!     #[garde(skip)]
+//!     b: &'a str, // this field will not be validated
+//! }
+//!
+//! #[derive(garde::Validate)]
+//! #[garde(allow_unvalidated)]
+//! struct Bar<'a> {
+//!     #[garde(length(min = 1))]
+//!     a: &'a str,
+//!
+//!     b: &'a str, // this field will not be validated
+//!                 // note the lack of `#[garde(skip)]`
+//! }
+//! ```
+//!
+//! ### Inner type validation
+//!
+//! If you need to validate the "inner" type of a container, such as the `String` in `Vec<String>`, then use the `inner` modifier:
+//!
+//! ```rust
+//! #[derive(garde::Validate)]
+//! struct Test {
+//!     #[garde(
+//!         length(min = 1),
+//!         inner(ascii, length(min = 1)), // wrap the rule in `inner`
+//!     )]
+//!     items: Vec<String>,
+//! }
+//! ```
+//!
+//! The above type would fail validation if:
+//! - the `Vec` is empty
+//! - any of the inner `String` elements is empty
+//! - any of the inner `String` elements contains non-ASCII characters
+//!
+//! ### Handling Option
+//!
+//! Every rule works on `Option<T>` fields. The field will only be validated if it is `Some`. If you additionally want to validate that the `Option<T>` field is `Some`, use the `required` rule:
+//!
+//! ```rust
+//! #[derive(garde::Validate)]
+//! struct Test {
+//!     #[garde(required, ascii, length(min = 1))]
+//!     value: Option<String>,
+//! }
+//! ```
+//!
+//! The above type would fail validation if:
+//! - `value` is `None`
+//! - the inner `value` is empty
+//! - the inner `value` contains non-ASCII characters
+//!
 //! ### Custom validation
 //!
-//! Validation may be customized via the `custom` rule and the `context` attribute.
+//! Validation may be customized via the `custom` rule, and the `context` attribute.
 //!
 //! The context may be any type without generic parameters. By default, the context is `()`.
 //!
@@ -130,7 +195,7 @@
 //! ### Implementing rules
 //!
 //! Say you want to implement length checking for a custom string-like type.
-//! To do this, you would implement the [`rules::length::HasLength`] trait for it.
+//! To do this, you would implement the [`HasLength`][`crate::rules::length::HasLength`] trait for it.
 //!
 //! ```rust
 //! #[repr(transparent)]
@@ -150,12 +215,12 @@
 //! ```
 //!
 //! Each rule comes with its own trait that may be implemented by custom types in your code.
-//! They are all available under [`rules`].
+//! They are all available under [`rules`][`crate::rules`].
 //!
 //! ### Implementing `Validate`
 //!
 //! In case you have a container type for which you'd like to support nested validation (using the `#[garde(dive)]` rule),
-//! you may manually implement [`Validate`][`validate::Validate`] for it:
+//! you may implement [`Validate`][`crate::Validate`] for it:
 //!
 //! ```rust
 //! #[repr(transparent)]
@@ -187,14 +252,24 @@
 //! }
 //! ```
 //!
-//! To make implementing the trait easier, the [`error::Errors`] type supports a nesting builders.
-//! - For list-like or tuple-like data structures, use `Errors::list`, and its `.push` method to attach nested `Errors`.
-//! - For map-like data structures, use `Errors::fields`, and its `.insert` method to attach nested `Errors`.
-//! - For a "flat" error list, use `Errors::simple`, and its `.push` method to attach individual errors.
+//! To make implementing the trait easier, the [`Errors`][`crate::error::Errors`] type supports a nesting builders.
+//! - For list-like or tuple-like data structures, use [`Errors::list`][`crate::error::Errors::list`],
+//!   and its `.push` method to attach nested [`Errors`][`crate::error::Errors`].
+//! - For map-like data structures, use [`Errors::fields`][`crate::error::Errors::fields`],
+//!   and its `.insert` method to attach nested [`Errors`][`crate::error::Errors`].
+//! - For a "flat" error list, use [`Errors::simple`][`crate::error::Errors::simple`],
+//!   and its `.push` method to attach individual errors.
 //!
-//! The `ListErrorBuilder::push` and `ListErrorBuilder::insert` methods will ignore any errors which are empty (via `Errors::is_empty`).
+//! The [`ListErrorBuilder::push`][`crate::error::ListErrorBuilder::push`] and
+//! [`FieldsErrorBuilder::insert`][`crate::error::FieldsErrorBuilder::insert`] methods
+//! will ignore any errors which are empty (via [`Errors::is_empty`][`crate::error::Errors::is_empty`]).
+//!
+//! ### Integration with web frameworks
+//!
+//! - [`axum`](https://crates.io/crates/axum): https://crates.io/crates/axum_garde
 //!
 //! ### Feature flags
+//!
 //!
 //! | name                     | description                                                                                                                       | extra dependencies                                                                           |
 //! |--------------------------|-----------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|

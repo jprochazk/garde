@@ -205,7 +205,6 @@ impl Errors {
 
 // TODO: remove rename, change rules to not require field_name
 
-#[doc(hidden)]
 pub struct SimpleErrorBuilder {
     inner: Vec<Error>,
 }
@@ -225,7 +224,6 @@ impl SimpleErrorBuilder {
     }
 }
 
-#[doc(hidden)]
 pub struct ListErrorBuilder {
     inner: Vec<Errors>,
 }
@@ -251,7 +249,6 @@ impl ListErrorBuilder {
     }
 }
 
-#[doc(hidden)]
 pub struct FieldsErrorBuilder {
     inner: BTreeMap<Cow<'static, str>, Errors>,
 }
