@@ -1,0 +1,11 @@
+---
+source: garde/tests/./rules/allow_unvalidated.rs
+expression: snapshot
+---
+Test {
+    field: "😂",
+    unvalidated: "",
+}
+value.field: not ascii
+
+

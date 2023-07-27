@@ -1,3 +1,4 @@
+mod allow_unvalidated;
 mod alphanumeric;
 mod ascii;
 mod byte_length;
