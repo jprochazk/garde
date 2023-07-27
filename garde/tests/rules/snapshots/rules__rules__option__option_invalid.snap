@@ -3,15 +3,20 @@ source: garde/tests/./rules/option.rs
 expression: snapshot
 ---
 Test {
-    v: Some(
+    a: Some(
+        "",
+    ),
+    b: Some(
         "",
     ),
 }
-value.v: length is lower than 1
+value.a: length is lower than 1
+value.b: length is lower than 1
 
 Test {
-    v: None,
+    a: None,
+    b: None,
 }
-value.v: not set
+value.a: not set
 
 
