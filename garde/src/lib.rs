@@ -94,6 +94,7 @@
 //! - `length` and `range` use an *inclusive* upper bound (`min..=max`).
 //! - `length` uses `.chars().count()` for UTF-8 strings instead of `.len()`.
 //! - For `contains`, `prefix`, and `suffix`, the pattern must be a string literal, because the `Pattern` API [is currently unstable](https://github.com/rust-lang/rust/issues/27721).
+//! - Garde does not enable the default features of the `regex` crate - if you need extra regex features (e.g. Unicode) or better performance, add a dependency on `regex = "1"` to your `Cargo.toml`.
 //!
 //! If most of the fields on your struct are annotated with `#[garde(skip)]`, you may use `#[garde(allow_unvalidated)]` instead:
 //!
