@@ -91,7 +91,7 @@ pub fn parse_email(s: &str) -> Result<(), InvalidEmail> {
         return Err(InvalidEmail::UserLengthExceeded);
     }
     static USER_RE: Lazy<Regex> =
-        Lazy::new(|| Regex::new(r"(?i)^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+\z").unwrap());
+        Lazy::new(|| Regex::new(r"(?i-u)^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+\z").unwrap());
     if !USER_RE.is_match(user) {
         return Err(InvalidEmail::InvalidUser);
     }
@@ -124,7 +124,7 @@ pub fn parse_email(s: &str) -> Result<(), InvalidEmail> {
 
 fn is_valid_domain(domain: &str) -> bool {
     static DOMAIN_NAME_RE: Lazy<Regex> = Lazy::new(|| {
-        Regex::new(r"(?i)^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$").unwrap()
+        Regex::new(r"(?i-u)^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$").unwrap()
     });
 
     if DOMAIN_NAME_RE.is_match(domain) {
