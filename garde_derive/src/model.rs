@@ -71,6 +71,7 @@ pub enum RawRuleKind {
     Message(Message),
     Code(Str),
     Dive,
+    Required,
     Ascii,
     Alphanumeric,
     Email,
@@ -171,6 +172,7 @@ impl RuleSet {
 
 #[repr(u8)]
 pub enum ValidateRule {
+    Required,
     Ascii,
     Alphanumeric,
     Email,
@@ -192,6 +194,7 @@ pub enum ValidateRule {
 impl ValidateRule {
     pub fn name(&self) -> &'static str {
         match self {
+            ValidateRule::Required => "required",
             ValidateRule::Ascii => "ascii",
             ValidateRule::Alphanumeric => "alphanumeric",
             ValidateRule::Email => "email",

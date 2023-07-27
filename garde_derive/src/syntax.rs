@@ -270,6 +270,7 @@ impl Parse for model::RawRule {
                 "message" => Message(content),
                 "code" => Code(content),
                 "dive" => Dive,
+                "required" => Required,
                 "ascii" => Ascii,
                 "alphanumeric" => Alphanumeric,
                 "email" => Email,

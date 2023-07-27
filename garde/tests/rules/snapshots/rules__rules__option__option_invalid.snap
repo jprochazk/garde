@@ -1,0 +1,17 @@
+---
+source: garde/tests/./rules/option.rs
+expression: snapshot
+---
+Test {
+    v: Some(
+        "",
+    ),
+}
+value.v: length is lower than 1
+
+Test {
+    v: None,
+}
+value.v: not set
+
+

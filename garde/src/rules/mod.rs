@@ -17,6 +17,7 @@ pub mod pattern;
 pub mod phone_number;
 pub mod prefix;
 pub mod range;
+pub mod required;
 pub mod suffix;
 #[cfg(feature = "url")]
 pub mod url;

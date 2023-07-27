@@ -211,7 +211,9 @@ impl<'a> ToTokens for Rules<'a> {
             let name = format_ident!("{}", rule.name());
             use model::ValidateRule::*;
             let args = match rule {
-                Ascii | Alphanumeric | Email | Url | CreditCard | PhoneNumber => quote!(()),
+                Ascii | Alphanumeric | Email | Url | CreditCard | PhoneNumber | Required => {
+                    quote!(())
+                }
                 Ip => {
                     quote!((::garde::rules::ip::IpKind::Any,))
                 }
