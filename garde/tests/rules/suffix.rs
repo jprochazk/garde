@@ -3,14 +3,40 @@ use super::util;
 struct Test<'a> {
     #[garde(suffix("test"))]
     field: &'a str,
+    #[garde(inner(suffix("test")))]
+    inner: &'a [&'a str],
 }
 
 #[test]
 fn suffix_valid() {
-    util::check_ok(&[Test { field: "test" }, Test { field: "asdf_test" }], &())
+    util::check_ok(
+        &[
+            Test {
+                field: "test",
+                inner: &["test"],
+            },
+            Test {
+                field: "asdf_test",
+                inner: &["asdf_test"],
+            },
+        ],
+        &(),
+    )
 }
 
 #[test]
 fn suffix_invalid() {
-    util::check_fail!(&[Test { field: "a" }, Test { field: "test_" }], &())
+    util::check_fail!(
+        &[
+            Test {
+                field: "a",
+                inner: &["a"]
+            },
+            Test {
+                field: "test_",
+                inner: &["test_"]
+            }
+        ],
+        &()
+    )
 }

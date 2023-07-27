@@ -1,11 +1,16 @@
 ---
-source: garde_tests/tests/./rules/custom.rs
+source: garde/tests/./rules/custom.rs
 expression: snapshot
 ---
 Multi {
     field: "asdf",
+    inner: [
+        "asdf",
+    ],
 }
 value.field: not equal to test
 value.field: not equal to test
+value.inner[0]: not equal to test
+value.inner[0]: not equal to test
 
 

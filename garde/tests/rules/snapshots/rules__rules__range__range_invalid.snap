@@ -1,15 +1,23 @@
 ---
-source: garde_derive_tests/tests/./rules/range.rs
+source: garde/tests/./rules/range.rs
 expression: snapshot
 ---
 Test {
     field: 9,
+    inner: [
+        9,
+    ],
 }
 value.field: lower than 10
+value.inner[0]: lower than 10
 
 Test {
     field: 101,
+    inner: [
+        101,
+    ],
 }
 value.field: greater than 100
+value.inner[0]: greater than 100
 
 

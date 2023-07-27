@@ -1,30 +1,50 @@
 ---
-source: garde_derive_tests/tests/./rules/phone_number.rs
+source: garde/tests/./rules/phone_number.rs
 expression: snapshot
 ---
 Test {
     field: "14152370800",
+    inner: [
+        "14152370800",
+    ],
 }
 value.field: not a valid phone number: invalid country code
+value.inner[0]: not a valid phone number: invalid country code
 
 Test {
     field: "0642926829",
+    inner: [
+        "0642926829",
+    ],
 }
 value.field: not a valid phone number: invalid country code
+value.inner[0]: not a valid phone number: invalid country code
 
 Test {
     field: "00642926829",
+    inner: [
+        "00642926829",
+    ],
 }
 value.field: not a valid phone number: invalid country code
+value.inner[0]: not a valid phone number: invalid country code
 
 Test {
     field: "A012",
+    inner: [
+        "A012",
+    ],
 }
 value.field: not a valid phone number: invalid country code
+value.inner[0]: not a valid phone number: invalid country code
 
 Test {
     field: "TEXT",
+    inner: [
+        "TEXT",
+    ],
 }
 value.field: not a valid phone number: not a number
+value.inner[0]: not a valid phone number: not a number
 
 

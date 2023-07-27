@@ -132,21 +132,48 @@ impl<'a> ToTokens for Inner<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let Inner(rule_set) = self;
 
-        if let Some(inner) = &rule_set.inner {
-            let rules = Rules(inner);
-            let inner = Inner(inner);
-            quote! {
-                ::garde::rules::inner::apply(
-                    &__garde_binding,
-                    __garde_user_ctx,
-                    |__garde_binding, __garde_user_ctx, __garde_errors| {
-                        #rules
-                        #inner
-                    }
-                )
+        let outer = match rule_set.has_top_level_rules() {
+            true => {
+                let rules = Rules(rule_set);
+                Some(quote! {
+                    ::garde::error::Errors::simple(
+                        |__garde_errors| {
+                            #rules
+                        }
+                    )
+                })
             }
-            .to_tokens(tokens)
+            false => None,
+        };
+        let inner = rule_set.inner.as_deref().map(Inner);
+
+        let value = match (outer, inner) {
+            (Some(outer), Some(inner)) => quote! {
+                    ::garde::error::Errors::nested(
+                        #outer,
+                        #inner,
+                    )
+            },
+            (None, Some(inner)) => quote! {
+                    ::garde::error::Errors::nested(
+                        ::garde::error::Errors::empty(),
+                        #inner,
+                    )
+            },
+            (Some(outer), None) => outer,
+            (None, None) => return,
+        };
+
+        quote! {
+            ::garde::rules::inner::apply(
+                &*__garde_binding,
+                __garde_user_ctx,
+                |__garde_binding, __garde_user_ctx| {
+                    #value
+                }
+            )
         }
+        .to_tokens(tokens)
     }
 }
 
@@ -263,15 +290,7 @@ where
                 }),
                 (None, Some(inner)) => {
                     let inner = Inner(inner);
-                    Some(quote! {
-                        ::garde::rules::inner::apply(
-                            &*__garde_binding,
-                            __garde_user_ctx,
-                            |__garde_binding, __garde_user_ctx, __garde_errors| {
-                                #inner
-                            }
-                        )
-                    })
+                    Some(inner.to_token_stream())
                 }
                 (None, None) => None,
                 // TODO: encode this via the type system instead?

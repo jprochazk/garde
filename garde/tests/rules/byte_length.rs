@@ -3,6 +3,9 @@ use super::util;
 struct Test<'a> {
     #[garde(byte_length(min = 10, max = 100))]
     field: &'a str,
+
+    #[garde(inner(length(min = 10, max = 100)))]
+    inner: &'a [&'a str],
 }
 
 #[test]
@@ -11,15 +14,18 @@ fn byte_length_valid() {
         Test {
             // 'a' * 10
             field: "aaaaaaaaaa",
+            inner: &["aaaaaaaaaa"],
         },
         Test {
             // 'a' * 100
             field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            inner: &["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
         },
         Test {
             // "😂" = 4 bytes
             // "😂" * 25 = 100 bytes
             field: "😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂",
+            inner: &["😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂"]
         },
     ], &())
 }
@@ -30,15 +36,18 @@ fn byte_length_invalid() {
         Test {
             // 'a' * 9
             field: "aaaaaaaaa",
+            inner: &["aaaaaaaaa"],
         },
         Test {
             // 'a' * 101
             field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            inner: &["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
         },
         Test {
             // "😂" = 4 bytes
             // 'a' * 1 + "😂" * 25 = 101 bytes
             field: "a😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂",
+            inner: &["a😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂"],
         },
     ], &())
 }
@@ -47,6 +56,8 @@ fn byte_length_invalid() {
 struct Exact<'a> {
     #[garde(byte_length(min = 4, max = 4))]
     field: &'a str,
+    #[garde(inner(byte_length(min = 4, max = 4)))]
+    inner: &'a [&'a str],
 }
 
 #[test]
@@ -55,6 +66,7 @@ fn exact_length_valid() {
         &[Exact {
             // '😂' = 4 bytes
             field: "😂",
+            inner: &["😂"],
         }],
         &(),
     )
@@ -64,14 +76,19 @@ fn exact_length_valid() {
 fn exact_length_invalid() {
     util::check_fail!(
         &[
-            Exact { field: "" },
+            Exact {
+                field: "",
+                inner: &[""]
+            },
             Exact {
                 // 'a' * 1
                 field: "a",
+                inner: &["a"],
             },
             Exact {
                 // '😂' * 2 = 8
                 field: "😂😂",
+                inner: &["😂😂"]
             },
         ],
         &()

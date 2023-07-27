@@ -1,20 +1,32 @@
 ---
-source: garde_tests/tests/./rules/length.rs
+source: garde/tests/./rules/length.rs
 expression: snapshot
 ---
 Exact {
     field: "",
+    inner: [
+        "",
+    ],
 }
 value.field: length is lower than 2
+value.inner[0]: length is lower than 2
 
 Exact {
     field: "a",
+    inner: [
+        "a",
+    ],
 }
 value.field: length is lower than 2
+value.inner[0]: length is lower than 2
 
 Exact {
     field: "aaa",
+    inner: [
+        "aaa",
+    ],
 }
 value.field: length is greater than 2
+value.inner[0]: length is greater than 2
 
 

@@ -1,15 +1,23 @@
 ---
-source: garde_derive_tests/tests/./rules/prefix.rs
+source: garde/tests/./rules/prefix.rs
 expression: snapshot
 ---
 Test {
     field: "a",
+    inner: [
+        "a",
+    ],
 }
 value.field: value does not begin with "test"
+value.inner[0]: value does not begin with "test"
 
 Test {
     field: "_test",
+    inner: [
+        "_test",
+    ],
 }
 value.field: value does not begin with "test"
+value.inner[0]: value does not begin with "test"
 
 

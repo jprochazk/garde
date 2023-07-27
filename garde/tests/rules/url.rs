@@ -5,8 +5,9 @@ use super::util;
 #[derive(Debug, Validate)]
 struct Struct<'a> {
     #[garde(url)]
-    #[garde(rename("field"))]
     field: &'a str,
+    #[garde(inner(url))]
+    inner: &'a [&'a str],
 }
 
 #[derive(Debug, Validate)]
@@ -29,9 +30,11 @@ fn url_valid() {
         &[
             Struct {
                 field: "http://info.cern.ch/hypertext/WWW/TheProject.html",
+                inner: &["http://info.cern.ch/hypertext/WWW/TheProject.html"],
             },
             Struct {
                 field: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                inner: &["https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
             },
         ],
         &(),
@@ -51,6 +54,7 @@ fn url_enum_valid() {
                 field: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
                 v: Struct {
                     field: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                    inner: &["https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
                 },
             },
             Enum::Tuple("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
@@ -61,7 +65,13 @@ fn url_enum_valid() {
 
 #[test]
 fn url_invalid() {
-    util::check_fail!(&[Struct { field: "asdf" }], &())
+    util::check_fail!(
+        &[Struct {
+            field: "asdf",
+            inner: &["asdf"]
+        }],
+        &()
+    )
 }
 
 #[test]
@@ -80,6 +90,7 @@ fn url_enum_invalid() {
                 field: "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
                 v: Struct {
                     field: "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                    inner: &["htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ"],
                 },
             },
             Enum::Tuple("htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ"),
@@ -92,6 +103,7 @@ fn url_enum_invalid() {
 fn url_valid_wrapper() {
     let value = Struct {
         field: "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        inner: &["htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ"],
     };
     println!("{}", value.validate(&()).unwrap_err());
 }

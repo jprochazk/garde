@@ -4,6 +4,8 @@ use super::util;
 struct Test<'a> {
     #[garde(length(min = 10, max = 100))]
     field: &'a str,
+    #[garde(inner(length(min = 10, max = 100)))]
+    inner: &'a [&'a str],
 }
 
 #[test]
@@ -12,10 +14,12 @@ fn length_valid() {
         Test {
             // 'a' * 10
             field: "aaaaaaaaaa",
+            inner: &["aaaaaaaaaa"]
         },
         Test {
             // 'a' * 100
             field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            inner: &["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
         },
     ], &())
 }
@@ -26,10 +30,12 @@ fn length_invalid() {
         Test {
             // 'a' * 9
             field: "aaaaaaaaa",
+            inner: &["aaaaaaaaa"]
         },
         Test {
             // 'a' * 101
             field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            inner: &["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
         },
     ], &())
 }
@@ -38,6 +44,8 @@ fn length_invalid() {
 struct Exact<'a> {
     #[garde(length(min = 2, max = 2))]
     field: &'a str,
+    #[garde(inner(length(min = 2, max = 2)))]
+    inner: &'a [&'a str],
 }
 
 #[test]
@@ -46,6 +54,7 @@ fn exact_length_valid() {
         &[Exact {
             // 'a' * 2
             field: "aa",
+            inner: &["aa"],
         }],
         &(),
     )
@@ -55,14 +64,19 @@ fn exact_length_valid() {
 fn exact_length_invalid() {
     util::check_fail!(
         &[
-            Exact { field: "" },
+            Exact {
+                field: "",
+                inner: &[""]
+            },
             Exact {
                 // 'a' * 1
                 field: "a",
+                inner: &["a"]
             },
             Exact {
                 // 'a' * 3
                 field: "aaa",
+                inner: &["aaa"]
             },
         ],
         &()

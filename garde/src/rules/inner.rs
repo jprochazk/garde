@@ -16,7 +16,7 @@ use crate::Errors;
 pub fn apply<T, U, C, F>(field: &T, ctx: &C, f: F) -> Errors
 where
     T: Inner<U>,
-    F: Fn(&U, &C, &mut T::ErrorBuilder),
+    F: Fn(&U, &C) -> Errors,
 {
     field.validate_inner(ctx, f)
 }
@@ -26,7 +26,7 @@ pub trait Inner<T> {
 
     fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
     where
-        F: Fn(&T, &C, &mut Self::ErrorBuilder);
+        F: Fn(&T, &C) -> Errors;
 }
 
 impl<T> Inner<T> for Vec<T> {
@@ -34,7 +34,7 @@ impl<T> Inner<T> for Vec<T> {
 
     fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
     where
-        F: Fn(&T, &C, &mut Self::ErrorBuilder),
+        F: Fn(&T, &C) -> Errors,
     {
         self.as_slice().validate_inner(ctx, f)
     }
@@ -45,11 +45,11 @@ impl<'a, T> Inner<T> for &'a [T] {
 
     fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
     where
-        F: Fn(&T, &C, &mut Self::ErrorBuilder),
+        F: Fn(&T, &C) -> Errors,
     {
         Errors::list(|b| {
             for item in self.iter() {
-                f(item, ctx, b);
+                b.push(f(item, ctx));
             }
         })
     }

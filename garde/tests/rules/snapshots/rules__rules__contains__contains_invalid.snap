@@ -1,10 +1,14 @@
 ---
-source: garde_derive_tests/tests/./rules/contains.rs
+source: garde/tests/./rules/contains.rs
 expression: snapshot
 ---
 Test {
     field: "_____",
+    inner: [
+        "_____",
+    ],
 }
 value.field: does not contain "test"
+value.inner[0]: does not contain "test"
 
 

@@ -1,15 +1,23 @@
 ---
-source: garde_derive_tests/tests/./rules/suffix.rs
+source: garde/tests/./rules/suffix.rs
 expression: snapshot
 ---
 Test {
     field: "a",
+    inner: [
+        "a",
+    ],
 }
 value.field: does not end with "test"
+value.inner[0]: does not end with "test"
 
 Test {
     field: "test_",
+    inner: [
+        "test_",
+    ],
 }
 value.field: does not end with "test"
+value.inner[0]: does not end with "test"
 
 

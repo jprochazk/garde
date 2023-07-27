@@ -1,15 +1,23 @@
 ---
-source: garde_derive_tests/tests/./rules/credit_card.rs
+source: garde/tests/./rules/credit_card.rs
 expression: snapshot
 ---
 Test {
     field: "zduhefljsdfKJKJZHUI",
+    inner: [
+        "zduhefljsdfKJKJZHUI",
+    ],
 }
 value.field: not a valid credit card number: invalid format
+value.inner[0]: not a valid credit card number: invalid format
 
 Test {
     field: "5236313877109141",
+    inner: [
+        "5236313877109141",
+    ],
 }
 value.field: not a valid credit card number: invalid luhn
+value.inner[0]: not a valid credit card number: invalid luhn
 
 

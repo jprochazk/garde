@@ -3,6 +3,9 @@ use super::util;
 struct Test<'a> {
     #[garde(credit_card)]
     field: &'a str,
+
+    #[garde(inner(credit_card))]
+    inner: &'a [&'a str],
 }
 
 #[test]
@@ -11,9 +14,11 @@ fn credit_card_valid() {
         &[
             Test {
                 field: "4539571147647251",
+                inner: &["4539571147647251"],
             },
             Test {
                 field: "343380440754432",
+                inner: &["343380440754432"],
             },
         ],
         &(),
@@ -25,10 +30,12 @@ fn credit_card_invalid() {
     util::check_fail!(
         &[
             Test {
-                field: "zduhefljsdfKJKJZHUI"
+                field: "zduhefljsdfKJKJZHUI",
+                inner: &["zduhefljsdfKJKJZHUI"],
             },
             Test {
-                field: "5236313877109141"
+                field: "5236313877109141",
+                inner: &["5236313877109141"],
             },
         ],
         &()

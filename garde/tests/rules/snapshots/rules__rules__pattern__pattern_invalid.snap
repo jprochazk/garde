@@ -1,15 +1,23 @@
 ---
-source: garde_derive_tests/tests/./rules/pattern.rs
+source: garde/tests/./rules/pattern.rs
 expression: snapshot
 ---
 Test {
     field: "dcba",
+    inner: [
+        "dcba",
+    ],
 }
 value.field: does not match pattern /^abcd|efgh$/
+value.inner[0]: does not match pattern /^abcd|efgh$/
 
 Test {
     field: "hgfe",
+    inner: [
+        "hgfe",
+    ],
 }
 value.field: does not match pattern /^abcd|efgh$/
+value.inner[0]: does not match pattern /^abcd|efgh$/
 
 

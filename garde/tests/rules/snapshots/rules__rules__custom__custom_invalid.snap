@@ -1,12 +1,20 @@
 ---
-source: garde_derive_tests/tests/./rules/custom.rs
+source: garde/tests/./rules/custom.rs
 expression: snapshot
 ---
 Test {
     a: "asdf",
     b: "asdf",
+    inner_a: [
+        "asdf",
+    ],
+    inner_b: [
+        "asdf",
+    ],
 }
 value.a: not equal to test
 value.b: `b` is not equal to test
+value.inner_a[0]: not equal to test
+value.inner_b[0]: `b` is not equal to test
 
 

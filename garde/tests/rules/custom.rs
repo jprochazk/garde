@@ -15,6 +15,15 @@ struct Test<'a> {
         Ok(())
     }))]
     b: &'a str,
+    #[garde(inner(custom(custom_validate_fn)))]
+    inner_a: &'a [&'a str],
+    #[garde(inner(custom(|value: &str, ctx: &Context| {
+        if value != ctx.needle {
+            return Err(garde::Error::new(format!("`b` is not equal to {}", ctx.needle)));
+        }
+        Ok(())
+    })))]
+    inner_b: &'a [&'a str],
 }
 
 fn custom_validate_fn(value: &str, ctx: &Context) -> Result<(), garde::Error> {
@@ -33,6 +42,8 @@ fn custom_valid() {
         &[Test {
             a: "test",
             b: "test",
+            inner_a: &["test"],
+            inner_b: &["test"],
         }],
         &ctx,
     )
@@ -47,6 +58,8 @@ fn custom_invalid() {
         &[Test {
             a: "asdf",
             b: "asdf",
+            inner_a: &["asdf"],
+            inner_b: &["asdf"],
         }],
         &ctx
     )
@@ -57,6 +70,9 @@ fn custom_invalid() {
 struct Multi<'a> {
     #[garde(custom(custom_validate_fn), custom(custom_validate_fn))]
     field: &'a str,
+
+    #[garde(inner(custom(custom_validate_fn), custom(custom_validate_fn)))]
+    inner: &'a [&'a str],
 }
 
 #[test]
@@ -64,7 +80,13 @@ fn multi_custom_valid() {
     let ctx = Context {
         needle: "test".into(),
     };
-    util::check_ok(&[Multi { field: "test" }], &ctx)
+    util::check_ok(
+        &[Multi {
+            field: "test",
+            inner: &["test"],
+        }],
+        &ctx,
+    )
 }
 
 #[test]
@@ -72,5 +94,11 @@ fn multi_custom_invalid() {
     let ctx = Context {
         needle: "test".into(),
     };
-    util::check_fail!(&[Multi { field: "asdf" }], &ctx)
+    util::check_fail!(
+        &[Multi {
+            field: "asdf",
+            inner: &["asdf"]
+        }],
+        &ctx
+    )
 }
