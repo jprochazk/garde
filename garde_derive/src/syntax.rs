@@ -295,6 +295,16 @@ impl Parse for model::RawRule {
     }
 }
 
+impl Parse for model::Pattern {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        if input.peek(syn::Lit) {
+            Ok(Self::Lit(model::Str::parse(input)?))
+        } else {
+            Ok(Self::Expr(syn::Expr::parse(input)?))
+        }
+    }
+}
+
 impl Parse for model::Str {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         Ok(model::Str {

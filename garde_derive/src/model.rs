@@ -106,9 +106,14 @@ pub enum RawRuleKind {
     Contains(Str),
     Prefix(Str),
     Suffix(Str),
-    Pattern(Str),
+    Pattern(Pattern),
     Custom(Func),
     Inner(List<RawRule>),
+}
+
+pub enum Pattern {
+    Lit(Str),
+    Expr(Expr),
 }
 
 pub struct Str {
@@ -212,7 +217,7 @@ pub enum ValidateRule {
     Contains(String),
     Prefix(String),
     Suffix(String),
-    Pattern(String),
+    Pattern(ValidatePattern),
 }
 
 impl ValidateRule {
@@ -237,6 +242,11 @@ impl ValidateRule {
             ValidateRule::Pattern(_) => "pattern",
         }
     }
+}
+
+pub enum ValidatePattern {
+    String(String),
+    Expr(Expr),
 }
 
 pub enum ValidateRange<T> {

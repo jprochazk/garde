@@ -1,7 +1,8 @@
 use std::cell::RefCell;
 
 use proc_macro2::{Ident, TokenStream as TokenStream2};
-use quote::{format_ident, quote, ToTokens};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
+use syn::spanned::Spanned;
 
 use crate::model;
 
@@ -234,11 +235,14 @@ impl<'a> ToTokens for Rules<'a> {
                     model::ValidateRange::Between(min, max) => quote!((Some(#min), Some(#max))),
                 },
                 Contains(s) | Prefix(s) | Suffix(s) => quote!((#s,)),
-                Pattern(s) => quote!({
-                    static PATTERN: ::garde::rules::pattern::StaticPattern =
-                        ::garde::rules::pattern::init_pattern!(#s);
-                    (&PATTERN,)
-                }),
+                Pattern(pat) => match pat {
+                    model::ValidatePattern::Expr(expr) => quote_spanned!(expr.span() => (#expr,)),
+                    model::ValidatePattern::String(s) => quote!({
+                        static PATTERN: ::garde::rules::pattern::StaticPattern =
+                            ::garde::rules::pattern::init_pattern!(#s);
+                        (&PATTERN,)
+                    }),
+                },
             };
             quote! {
                 if let Err(__garde_error) = (::garde::rules::#name::apply)(&*__garde_binding, #args) {
