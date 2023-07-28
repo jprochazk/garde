@@ -8,6 +8,21 @@
 //! }
 //! ```
 //!
+//! The pattern argument can also be provided directly as an expression that references a value of type `Regex`.
+//!
+//! ```rust
+//! use once_cell::sync::Lazy;
+//! use regex::Regex;
+//!
+//! static LAZY_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"[a-zA-Z0-9][a-zA-Z0-9_]+").unwrap());
+//!
+//! #[derive(garde::Validate)]
+//! struct Test {
+//!     #[garde(pattern(LAZY_RE))]
+//!     v: String,
+//! }
+//! ```
+//!
 //! The entrypoint is the [`Pattern`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(pattern(...))]` rule.
 //!
 //! This trait has a blanket implementation for all `T: garde::rules::AsStr`.

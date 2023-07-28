@@ -370,12 +370,15 @@ fn check_range_not_ord<T>(range: model::Range<T>) -> syn::Result<model::Validate
     }
 }
 
-fn check_regex(value: model::Str) -> syn::Result<String> {
-    #[cfg(feature = "regex")]
-    {
-        if let Err(e) = regex::Regex::new(&value.value) {
-            return Err(syn::Error::new(value.span, format!("invalid regex: {e}")));
+fn check_regex(value: model::Pattern) -> syn::Result<model::ValidatePattern> {
+    match value {
+        model::Pattern::Lit(lit) => {
+            #[cfg(feature = "regex")]
+            if let Err(e) = regex::Regex::new(&lit.value) {
+                return Err(syn::Error::new(lit.span, format!("invalid regex: {e}")));
+            }
+            Ok(model::ValidatePattern::Lit(lit.value))
         }
+        model::Pattern::Expr(expr) => Ok(model::ValidatePattern::Expr(expr)),
     }
-    Ok(value.value)
 }
