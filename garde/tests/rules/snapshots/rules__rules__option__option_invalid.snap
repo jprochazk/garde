@@ -3,20 +3,88 @@ source: garde/tests/./rules/option.rs
 expression: snapshot
 ---
 Test {
-    a: Some(
+    alphanumeric: Some(
+        "😂",
+    ),
+    ascii: Some(
+        "😂",
+    ),
+    byte_length_min1_str: Some(
         "",
     ),
-    b: Some(
+    byte_length_min1_u8_slice: Some(
+        [],
+    ),
+    contains_a: Some(
+        "😂",
+    ),
+    credit_card: Some(
+        "😂",
+    ),
+    email: Some(
+        "😂",
+    ),
+    ip: Some(
+        "😂",
+    ),
+    length_min1: Some(
         "",
+    ),
+    pat_a_or_b: Some(
+        "😂",
+    ),
+    phone_number: Some(
+        "😂",
+    ),
+    prefix_a: Some(
+        "",
+    ),
+    range_min1: Some(
+        0,
+    ),
+    required: None,
+    suffix_a: Some(
+        "😂",
+    ),
+    url: Some(
+        "😂",
     ),
 }
-value.a: length is lower than 1
-value.b: length is lower than 1
+value.alphanumeric: not alphanumeric
+value.ascii: not ascii
+value.byte_length_min1_str: byte length is lower than 1
+value.byte_length_min1_u8_slice: byte length is lower than 1
+value.contains_a: does not contain "a"
+value.credit_card: not a valid credit card number: invalid format
+value.email: not a valid email: value is missing `@`
+value.ip: not a valid IP address
+value.length_min1: length is lower than 1
+value.pat_a_or_b: does not match pattern /a|b/
+value.phone_number: not a valid phone number: not a number
+value.prefix_a: value does not begin with "a"
+value.range_min1: lower than 1
+value.required: not set
+value.suffix_a: does not end with "a"
+value.url: not a valid url: relative URL without a base
 
 Test {
-    a: None,
-    b: None,
+    alphanumeric: None,
+    ascii: None,
+    byte_length_min1_str: None,
+    byte_length_min1_u8_slice: None,
+    contains_a: None,
+    credit_card: None,
+    email: None,
+    ip: None,
+    length_min1: None,
+    pat_a_or_b: None,
+    phone_number: None,
+    prefix_a: None,
+    range_min1: None,
+    required: None,
+    suffix_a: None,
+    url: None,
 }
-value.a: not set
+value.required: not set
 
 
