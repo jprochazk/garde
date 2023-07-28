@@ -225,17 +225,13 @@ impl<'a> ToTokens for Rules<'a> {
                 }
                 Length(range) | ByteLength(range) => match range {
                     model::ValidateRange::GreaterThan(min) => quote!((#min, usize::MAX)),
-                    model::ValidateRange::LowerThan(max) => quote!((0, #max)),
+                    model::ValidateRange::LowerThan(max) => quote!((0usize, #max)),
                     model::ValidateRange::Between(min, max) => quote!((#min, #max)),
                 },
                 Range(range) => match range {
-                    model::ValidateRange::GreaterThan(min) => {
-                        quote!((&#min, &(<_ as ::garde::rules::range::Bounds>::MAX)))
-                    }
-                    model::ValidateRange::LowerThan(max) => {
-                        quote!((&(<_ as ::garde::rules::range::Bounds>::MIN), &#max))
-                    }
-                    model::ValidateRange::Between(min, max) => quote!((&#min, &#max)),
+                    model::ValidateRange::GreaterThan(min) => quote!((Some(#min), None)),
+                    model::ValidateRange::LowerThan(max) => quote!((None, Some(#max))),
+                    model::ValidateRange::Between(min, max) => quote!((Some(#min), Some(#max))),
                 },
                 Contains(s) | Prefix(s) | Suffix(s) => quote!((#s,)),
                 Pattern(s) => quote!({

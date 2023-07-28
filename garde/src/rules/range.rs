@@ -16,7 +16,13 @@ use std::fmt::Display;
 
 use crate::error::Error;
 
-pub fn apply<T: Bounds + Display>(v: &T, (min, max): (&T::Size, &T::Size)) -> Result<(), Error> {
+#[inline]
+pub fn apply<T: Bounds>(
+    v: &T,
+    (min, max): (Option<T::Size>, Option<T::Size>),
+) -> Result<(), Error> {
+    let min = min.unwrap_or(T::MIN);
+    let max = max.unwrap_or(T::MAX);
     if let Err(e) = v.validate_bounds(min, max) {
         match e {
             OutOfBounds::Lower => return Err(Error::new(format!("lower than {min}"))),
@@ -27,15 +33,15 @@ pub fn apply<T: Bounds + Display>(v: &T, (min, max): (&T::Size, &T::Size)) -> Re
 }
 
 pub trait Bounds: PartialOrd {
-    type Size: Sized + Display;
+    type Size: Copy + Sized + Display;
 
     const MIN: Self::Size;
     const MAX: Self::Size;
 
     fn validate_bounds(
         &self,
-        lower_bound: &Self::Size,
-        upper_bound: &Self::Size,
+        lower_bound: Self::Size,
+        upper_bound: Self::Size,
     ) -> Result<(), OutOfBounds>;
 }
 
@@ -55,12 +61,12 @@ macro_rules! impl_for_int {
 
                 fn validate_bounds(
                     &self,
-                    lower_bound: &Self::Size,
-                    upper_bound: &Self::Size,
+                    lower_bound: Self::Size,
+                    upper_bound: Self::Size,
                 ) -> Result<(), OutOfBounds> {
-                    if self < lower_bound {
+                    if self < &lower_bound {
                         Err(OutOfBounds::Lower)
-                    } else if self > upper_bound {
+                    } else if self > &upper_bound {
                         Err(OutOfBounds::Upper)
                     } else {
                         Ok(())
@@ -81,8 +87,8 @@ impl<T: Bounds> Bounds for Option<T> {
 
     fn validate_bounds(
         &self,
-        lower_bound: &Self::Size,
-        upper_bound: &Self::Size,
+        lower_bound: Self::Size,
+        upper_bound: Self::Size,
     ) -> Result<(), OutOfBounds> {
         match self {
             Some(value) => value.validate_bounds(lower_bound, upper_bound),
