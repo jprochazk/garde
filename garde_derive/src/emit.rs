@@ -234,7 +234,9 @@ impl<'a> ToTokens for Rules<'a> {
                     model::ValidateRange::LowerThan(max) => quote!((None, Some(#max))),
                     model::ValidateRange::Between(min, max) => quote!((Some(#min), Some(#max))),
                 },
-                Contains(s) | Prefix(s) | Suffix(s) => quote!((#s,)),
+                Contains(expr) | Prefix(expr) | Suffix(expr) => {
+                    quote_spanned!(expr.span() => (#expr,))
+                }
                 Pattern(pat) => match pat {
                     model::ValidatePattern::Expr(expr) => quote_spanned!(expr.span() => (#expr,)),
                     model::ValidatePattern::String(s) => quote!({

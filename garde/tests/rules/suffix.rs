@@ -1,9 +1,12 @@
 use super::util;
+
+const TEST: &str = "test";
+
 #[derive(Debug, garde::Validate)]
 struct Test<'a> {
-    #[garde(suffix("test"))]
+    #[garde(suffix(TEST))]
     field: &'a str,
-    #[garde(inner(suffix("test")))]
+    #[garde(inner(suffix(TEST)))]
     inner: &'a [&'a str],
 }
 

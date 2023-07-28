@@ -1,10 +1,14 @@
 //! Substring validation.
 //!
 //! ```rust
+//! const STR: &str = "test";
+//!
 //! #[derive(garde::Validate)]
 //! struct Test {
 //!     #[garde(contains("test"))]
 //!     v: String,
+//!     #[garde(contains(STR))]
+//!     w: String,
 //! }
 //! ```
 //!

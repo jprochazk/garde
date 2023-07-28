@@ -1,10 +1,14 @@
 //! Prefix validation.
 //!
 //! ```rust
+//! const PRE: &str = "test_";
+//!
 //! #[derive(garde::Validate)]
 //! struct Test {
 //!     #[garde(prefix("test_"))]
 //!     v: String,
+//!     #[garde(prefix(PRE))]
+//!     w: String,
 //! }
 //! ```
 //!
