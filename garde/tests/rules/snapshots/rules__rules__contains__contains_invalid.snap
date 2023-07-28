@@ -4,11 +4,15 @@ expression: snapshot
 ---
 Test {
     field: "_____",
+    field_path: "_____",
+    field_call: "_____",
     inner: [
         "_____",
     ],
 }
 value.field: does not contain "test"
+value.field_call: does not contain "test"
+value.field_path: does not contain "test"
 value.inner[0]: does not contain "test"
 
 

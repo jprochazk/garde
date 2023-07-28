@@ -310,9 +310,9 @@ fn check_rule(
         Length(v) => apply!(rule_set, Length(check_range(v)?), span),
         ByteLength(v) => apply!(rule_set, ByteLength(check_range(v)?), span),
         Range(v) => apply!(rule_set, Range(check_range_not_ord(v)?), span),
-        Contains(v) => apply!(rule_set, Contains(v.value), span),
-        Prefix(v) => apply!(rule_set, Prefix(v.value), span),
-        Suffix(v) => apply!(rule_set, Suffix(v.value), span),
+        Contains(v) => apply!(rule_set, Contains(v), span),
+        Prefix(v) => apply!(rule_set, Prefix(v), span),
+        Suffix(v) => apply!(rule_set, Suffix(v), span),
         Pattern(v) => apply!(rule_set, Pattern(check_regex(v)?), span),
         Inner(v) => {
             if rule_set.inner.is_none() {

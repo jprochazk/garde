@@ -1,6 +1,8 @@
+const TEST: &str = "test";
+
 #[derive(garde::Validate)]
 struct Test<'a> {
-    #[garde(suffix("test"))]
+    #[garde(suffix(TEST))]
     field: &'a str,
     #[garde(inner(suffix("test")))]
     inner: &'a [&'a str],
