@@ -310,9 +310,9 @@ fn check_rule(
         Length(v) => apply!(rule_set, Length(check_range(v)?), span),
         ByteLength(v) => apply!(rule_set, ByteLength(check_range(v)?), span),
         Range(v) => apply!(rule_set, Range(check_range_not_ord(v)?), span),
-        Contains(v) => apply!(rule_set, Contains(v.value), span),
-        Prefix(v) => apply!(rule_set, Prefix(v.value), span),
-        Suffix(v) => apply!(rule_set, Suffix(v.value), span),
+        Contains(v) => apply!(rule_set, Contains(v), span),
+        Prefix(v) => apply!(rule_set, Prefix(v), span),
+        Suffix(v) => apply!(rule_set, Suffix(v), span),
         Pattern(v) => apply!(rule_set, Pattern(check_regex(v)?), span),
         Inner(v) => {
             if rule_set.inner.is_none() {
@@ -370,12 +370,15 @@ fn check_range_not_ord<T>(range: model::Range<T>) -> syn::Result<model::Validate
     }
 }
 
-fn check_regex(value: model::Str) -> syn::Result<String> {
-    #[cfg(feature = "regex")]
-    {
-        if let Err(e) = regex::Regex::new(&value.value) {
-            return Err(syn::Error::new(value.span, format!("invalid regex: {e}")));
+fn check_regex(value: model::Pattern) -> syn::Result<model::ValidatePattern> {
+    match value {
+        model::Pattern::Lit(lit) => {
+            #[cfg(feature = "regex")]
+            if let Err(e) = regex::Regex::new(&lit.value) {
+                return Err(syn::Error::new(lit.span, format!("invalid regex: {e}")));
+            }
+            Ok(model::ValidatePattern::Lit(lit.value))
         }
+        model::Pattern::Expr(expr) => Ok(model::ValidatePattern::Expr(expr)),
     }
-    Ok(value.value)
 }

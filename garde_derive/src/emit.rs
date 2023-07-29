@@ -1,7 +1,8 @@
 use std::cell::RefCell;
 
 use proc_macro2::{Ident, TokenStream as TokenStream2};
-use quote::{format_ident, quote, ToTokens};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
+use syn::spanned::Spanned;
 
 use crate::model;
 
@@ -20,6 +21,7 @@ impl ToTokens for model::Validate {
             impl #impl_generics ::garde::Validate for #ident #ty_generics #where_clause {
                 type Context = #context_ty ;
 
+                #[allow(clippy::needless_borrow)]
                 fn validate(&self, __garde_user_ctx: &Self::Context) -> ::core::result::Result<(), ::garde::error::Errors> {
                     (
                         #kind
@@ -233,12 +235,17 @@ impl<'a> ToTokens for Rules<'a> {
                     model::ValidateRange::LowerThan(max) => quote!((None, Some(#max))),
                     model::ValidateRange::Between(min, max) => quote!((Some(#min), Some(#max))),
                 },
-                Contains(s) | Prefix(s) | Suffix(s) => quote!((#s,)),
-                Pattern(s) => quote!({
-                    static PATTERN: ::garde::rules::pattern::StaticPattern =
-                        ::garde::rules::pattern::init_pattern!(#s);
-                    (&PATTERN,)
-                }),
+                Contains(expr) | Prefix(expr) | Suffix(expr) => {
+                    quote_spanned!(expr.span() => (&#expr,))
+                }
+                Pattern(pat) => match pat {
+                    model::ValidatePattern::Expr(expr) => quote_spanned!(expr.span() => (&#expr,)),
+                    model::ValidatePattern::Lit(s) => quote!({
+                        static PATTERN: ::garde::rules::pattern::StaticPattern =
+                            ::garde::rules::pattern::init_pattern!(#s);
+                        (&PATTERN,)
+                    }),
+                },
             };
             quote! {
                 if let Err(__garde_error) = (::garde::rules::#name::apply)(&*__garde_binding, #args) {

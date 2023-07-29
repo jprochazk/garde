@@ -1,10 +1,14 @@
 //! Suffix validation.
 //!
 //! ```rust
+//! const SFX: &str = "_test";
+//!
 //! #[derive(garde::Validate)]
 //! struct Test {
 //!     #[garde(suffix("_test"))]
 //!     v: String,
+//!     #[garde(suffix(SFX))]
+//!     w: String,
 //! }
 //! ```
 //!

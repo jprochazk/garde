@@ -103,12 +103,17 @@ pub enum RawRuleKind {
     Length(Range<usize>),
     ByteLength(Range<usize>),
     Range(Range<Expr>),
-    Contains(Str),
-    Prefix(Str),
-    Suffix(Str),
-    Pattern(Str),
+    Contains(Expr),
+    Prefix(Expr),
+    Suffix(Expr),
+    Pattern(Pattern),
     Custom(Func),
     Inner(List<RawRule>),
+}
+
+pub enum Pattern {
+    Lit(Str),
+    Expr(Expr),
 }
 
 pub struct Str {
@@ -209,10 +214,10 @@ pub enum ValidateRule {
     Length(ValidateRange<usize>),
     ByteLength(ValidateRange<usize>),
     Range(ValidateRange<Expr>),
-    Contains(String),
-    Prefix(String),
-    Suffix(String),
-    Pattern(String),
+    Contains(Expr),
+    Prefix(Expr),
+    Suffix(Expr),
+    Pattern(ValidatePattern),
 }
 
 impl ValidateRule {
@@ -237,6 +242,11 @@ impl ValidateRule {
             ValidateRule::Pattern(_) => "pattern",
         }
     }
+}
+
+pub enum ValidatePattern {
+    Lit(String),
+    Expr(Expr),
 }
 
 pub enum ValidateRange<T> {

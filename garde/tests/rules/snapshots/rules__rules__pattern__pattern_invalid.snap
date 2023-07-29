@@ -4,20 +4,28 @@ expression: snapshot
 ---
 Test {
     field: "dcba",
+    field_path: "dcba",
+    field_call: "dcba",
     inner: [
         "dcba",
     ],
 }
 value.field: does not match pattern /^abcd|efgh$/
+value.field_call: does not match pattern /^abcd|efgh$/
+value.field_path: does not match pattern /^abcd|efgh$/
 value.inner[0]: does not match pattern /^abcd|efgh$/
 
 Test {
     field: "hgfe",
+    field_path: "hgfe",
+    field_call: "hgfe",
     inner: [
         "hgfe",
     ],
 }
 value.field: does not match pattern /^abcd|efgh$/
+value.field_call: does not match pattern /^abcd|efgh$/
+value.field_path: does not match pattern /^abcd|efgh$/
 value.inner[0]: does not match pattern /^abcd|efgh$/
 
 
