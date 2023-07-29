@@ -48,7 +48,7 @@ jobs:
         include:
           - build: pinned
             os: ubuntu-20.04
-            rust: 1.65
+            rust: 1.69
           - build: stable
             os: ubuntu-20.04
             rust: stable
