@@ -377,7 +377,7 @@ fn check_regex(value: model::Pattern) -> syn::Result<model::ValidatePattern> {
             if let Err(e) = regex::Regex::new(&lit.value) {
                 return Err(syn::Error::new(lit.span, format!("invalid regex: {e}")));
             }
-            Ok(model::ValidatePattern::String(lit.value))
+            Ok(model::ValidatePattern::Lit(lit.value))
         }
         model::Pattern::Expr(expr) => Ok(model::ValidatePattern::Expr(expr)),
     }

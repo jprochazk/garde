@@ -245,7 +245,7 @@ impl ValidateRule {
 }
 
 pub enum ValidatePattern {
-    String(String),
+    Lit(String),
     Expr(Expr),
 }
 
