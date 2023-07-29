@@ -9,6 +9,8 @@ use crate::Result;
 #[derive(Args)]
 pub struct Test {
     targets: Vec<Target>,
+    #[arg(long)]
+    review: bool,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -23,7 +25,7 @@ enum Target {
 impl Test {
     pub fn run(mut self) -> Result {
         let commands = if self.targets.is_empty() {
-            vec![unit(), ui(), rules(), axum()]
+            vec![unit(), ui(), rules(self.review), axum()]
         } else {
             self.targets.sort();
             BTreeSet::from_iter(self.targets)
@@ -32,7 +34,7 @@ impl Test {
                     Target::Unit => unit(),
                     Target::Doc => doc(),
                     Target::Ui => ui(),
-                    Target::Rules => rules(),
+                    Target::Rules => rules(self.review),
                     Target::Axum => axum(),
                 })
                 .collect()
@@ -60,8 +62,12 @@ fn ui() -> Command {
         .with_env("TRYBUILD", "overwrite")
 }
 
-fn rules() -> Command {
-    cargo("insta").with_args(["test", "--review", "--package=garde", "--test=rules"])
+fn rules(review: bool) -> Command {
+    if review {
+        cargo("insta").with_args(["test", "--review", "--package=garde", "--test=rules"])
+    } else {
+        cargo("test").with_args(["--package=garde", "--all-features", "--test=rules"])
+    }
 }
 
 fn axum() -> Command {
