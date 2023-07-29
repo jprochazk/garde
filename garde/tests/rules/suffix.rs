@@ -6,7 +6,7 @@ const TEST: &str = "test";
 struct Test<'a> {
     #[garde(suffix(TEST))]
     field: &'a str,
-    #[garde(inner(suffix(TEST)))]
+    #[garde(inner(suffix("test")))]
     inner: &'a [&'a str],
 }
 
