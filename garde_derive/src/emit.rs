@@ -21,6 +21,7 @@ impl ToTokens for model::Validate {
             impl #impl_generics ::garde::Validate for #ident #ty_generics #where_clause {
                 type Context = #context_ty ;
 
+                #[allow(clippy::needless_borrow)]
                 fn validate(&self, __garde_user_ctx: &Self::Context) -> ::core::result::Result<(), ::garde::error::Errors> {
                     (
                         #kind
@@ -235,11 +236,11 @@ impl<'a> ToTokens for Rules<'a> {
                     model::ValidateRange::Between(min, max) => quote!((Some(#min), Some(#max))),
                 },
                 Contains(expr) | Prefix(expr) | Suffix(expr) => {
-                    quote_spanned!(expr.span() => (#expr,))
+                    quote_spanned!(expr.span() => (&#expr,))
                 }
                 Pattern(pat) => match pat {
-                    model::ValidatePattern::Expr(expr) => quote_spanned!(expr.span() => (#expr,)),
-                    model::ValidatePattern::String(s) => quote!({
+                    model::ValidatePattern::Expr(expr) => quote_spanned!(expr.span() => (&#expr,)),
+                    model::ValidatePattern::Lit(s) => quote!({
                         static PATTERN: ::garde::rules::pattern::StaticPattern =
                             ::garde::rules::pattern::init_pattern!(#s);
                         (&PATTERN,)
