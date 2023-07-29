@@ -5,6 +5,7 @@ use super::util;
 
 mod sub {
     use super::*;
+
     pub static LAZY_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^abcd|efgh$").unwrap());
 }
 
