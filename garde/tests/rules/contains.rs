@@ -10,7 +10,7 @@ struct Test<'a> {
     #[garde(contains(TEST))]
     field_path: &'a str,
 
-    #[garde(contains(&format!("{}{}", "te", "st")))]
+    #[garde(contains(format!("{}{}", "te", "st")))]
     field_call: &'a str,
 
     #[garde(inner(contains("test")))]
