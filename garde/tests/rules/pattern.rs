@@ -13,18 +13,18 @@ struct Test<'a> {
     #[garde(pattern(r"^abcd|efgh$"))]
     field: &'a str,
 
-    #[garde(pattern(&sub::LAZY_RE))]
+    #[garde(pattern(sub::LAZY_RE))]
     field_path: &'a str,
 
-    #[garde(pattern(&create_regex()))]
+    #[garde(pattern(create_regex()))]
     field_call: &'a str,
 
     #[garde(inner(pattern(r"^abcd|efgh$")))]
     inner: &'a [&'a str],
 }
 
-fn create_regex() -> Lazy<Regex> {
-    Lazy::new(|| Regex::new(r"^abcd|efgh$").unwrap())
+fn create_regex() -> Regex {
+    Regex::new(r"^abcd|efgh$").unwrap()
 }
 
 #[test]
