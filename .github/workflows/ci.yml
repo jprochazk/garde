@@ -69,11 +69,14 @@ jobs:
         with:
           shared-key: "rust-${{ matrix.build }}-test"
 
+      - name: Build xtask
+        run: cargo build -p xtask
+
       - name: Build docs
         run: cargo doc --all-features
 
       - name: Run tests
-        run: cargo test --all-features
+        run: cargo x test
 
   checks:
     name: Checks
@@ -100,13 +103,9 @@ jobs:
         with:
           shared-key: "rust-checks"
 
+      - name: Build xtask
+        run: cargo build -p xtask
+
       - name: Run checks
-        run: |
-          cargo fmt --all -- --check
-          cargo clippy -- -D warnings
-          cargo deny check
-          rm -rf ~/.cargo/advisory-db
-          # cargo audit
-          cargo udeps
-          cargo pants --dev
+        run: cargo x check
 

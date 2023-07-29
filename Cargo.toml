@@ -3,6 +3,7 @@ members = [
   "garde_derive",
   "garde",
   "integrations/axum_garde",
+  "xtask",
 ]
 resolver = "2"
 
