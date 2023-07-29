@@ -2,4 +2,7 @@ error[E0308]: mismatched types
  --> tests/ui/compile-fail/contains_mismatched_types.rs:5:22
   |
 5 |     #[garde(contains(NUM))]
-  |                      ^^^ expected `&str`, found `u32`
+  |                      ^^^ expected `&str`, found `&u32`
+  |
+  = note: expected reference `&str`
+             found reference `&u32`
