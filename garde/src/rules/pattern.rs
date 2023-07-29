@@ -8,7 +8,9 @@
 //! }
 //! ```
 //!
-//! The pattern argument can also be provided directly as an expression that references a value of type `Regex`.
+//! The pattern argument can also be provided directly as an expression of type `Regex` or one that dereferences to a `Regex`.
+//! Please note that the expression will be evaluated each time `validate` is called, so avoid doing any expensive work in the expression.
+//! If the work is unavoidable, at least try to amortize it, such as by using `once_cell::Lazy` or the nightly-only `std::sync::LazyLock`.
 //!
 //! ```rust
 //! use once_cell::sync::Lazy;
@@ -18,7 +20,7 @@
 //!
 //! #[derive(garde::Validate)]
 //! struct Test {
-//!     #[garde(pattern(&LAZY_RE))]
+//!     #[garde(pattern(LAZY_RE))]
 //!     v: String,
 //! }
 //! ```
