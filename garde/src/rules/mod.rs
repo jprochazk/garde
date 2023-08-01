@@ -11,7 +11,6 @@ pub mod email;
 pub mod inner;
 pub mod ip;
 pub mod length;
-#[cfg(feature = "pattern")]
 pub mod pattern;
 #[cfg(feature = "phone-number")]
 pub mod phone_number;

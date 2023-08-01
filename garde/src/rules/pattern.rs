@@ -1,6 +1,6 @@
 //! Pattern validation.
 //!
-//! The pattern argument can be a regular expression provided as a string literal, which is then parsed by the [`regex`] crate.
+//! The pattern argument can be a regular expression provided as a string literal, which is then parsed by the [`regex`] crate (if the `regex` feature is enabled).
 //!
 //! ```rust
 //! #[derive(garde::Validate)]
@@ -11,7 +11,7 @@
 //! ```
 //!
 //! Alternatively, it can be an expression of type implementing [`Matcher`] or one that dereferences to a [`Matcher`].
-//! [`Matcher`] is implemented for `regex::Regex` and `once_cell::sync::Lazy<T>` with any `T: Matcher`.
+//! [`Matcher`] is implemented for `regex::Regex` (if the `regex` feature is enabled) and `once_cell::sync::Lazy<T>` with any `T: Matcher`.
 //! Please note that the expression will be evaluated each time `validate` is called, so avoid doing any expensive work in the expression.
 //! If the work is unavoidable, at least try to amortize it, such as by using `once_cell::Lazy` or the nightly-only `std::sync::LazyLock`.
 //!
@@ -32,6 +32,7 @@
 //!
 //! This trait has a blanket implementation for all `T: garde::rules::AsStr`.
 
+#[cfg(feature = "regex")]
 #[doc(hidden)]
 pub use regex::Regex;
 
@@ -53,24 +54,28 @@ pub trait Matcher: AsStr {
     fn is_match(&self, haystack: &str) -> bool;
 }
 
+#[cfg(feature = "regex")]
 impl Matcher for Regex {
     fn is_match(&self, haystack: &str) -> bool {
         self.is_match(haystack)
     }
 }
 
+#[cfg(feature = "regex")]
 impl<T: Matcher> Matcher for once_cell::sync::Lazy<T> {
     fn is_match(&self, haystack: &str) -> bool {
         once_cell::sync::Lazy::force(self).is_match(haystack)
     }
 }
 
+#[cfg(feature = "regex")]
 impl AsStr for Regex {
     fn as_str(&self) -> &str {
         self.as_str()
     }
 }
 
+#[cfg(feature = "regex")]
 impl<T: AsStr> AsStr for once_cell::sync::Lazy<T> {
     fn as_str(&self) -> &str {
         once_cell::sync::Lazy::force(self).as_str()
@@ -81,9 +86,11 @@ pub trait Pattern {
     fn validate_pattern<M: Matcher>(&self, matcher: &M) -> bool;
 }
 
+#[cfg(feature = "regex")]
 #[doc(hidden)]
 pub type StaticPattern = once_cell::sync::Lazy<Regex>;
 
+#[cfg(feature = "regex")]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __init_pattern {
@@ -93,6 +100,7 @@ macro_rules! __init_pattern {
         })
     };
 }
+#[cfg(feature = "regex")]
 #[doc(hidden)]
 pub use crate::__init_pattern as init_pattern;
 
