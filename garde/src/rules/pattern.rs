@@ -32,10 +32,6 @@
 //!
 //! This trait has a blanket implementation for all `T: garde::rules::AsStr`.
 
-#[cfg(feature = "regex")]
-#[doc(hidden)]
-pub use regex::Regex;
-
 use super::AsStr;
 use crate::error::Error;
 
@@ -54,55 +50,9 @@ pub trait Matcher: AsStr {
     fn is_match(&self, haystack: &str) -> bool;
 }
 
-#[cfg(feature = "regex")]
-impl Matcher for Regex {
-    fn is_match(&self, haystack: &str) -> bool {
-        self.is_match(haystack)
-    }
-}
-
-#[cfg(feature = "regex")]
-impl<T: Matcher> Matcher for once_cell::sync::Lazy<T> {
-    fn is_match(&self, haystack: &str) -> bool {
-        once_cell::sync::Lazy::force(self).is_match(haystack)
-    }
-}
-
-#[cfg(feature = "regex")]
-impl AsStr for Regex {
-    fn as_str(&self) -> &str {
-        self.as_str()
-    }
-}
-
-#[cfg(feature = "regex")]
-impl<T: AsStr> AsStr for once_cell::sync::Lazy<T> {
-    fn as_str(&self) -> &str {
-        once_cell::sync::Lazy::force(self).as_str()
-    }
-}
-
 pub trait Pattern {
     fn validate_pattern<M: Matcher>(&self, matcher: &M) -> bool;
 }
-
-#[cfg(feature = "regex")]
-#[doc(hidden)]
-pub type StaticPattern = once_cell::sync::Lazy<Regex>;
-
-#[cfg(feature = "regex")]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! __init_pattern {
-    ($pat:literal) => {
-        $crate::rules::pattern::StaticPattern::new(|| {
-            $crate::rules::pattern::Regex::new($pat).unwrap()
-        })
-    };
-}
-#[cfg(feature = "regex")]
-#[doc(hidden)]
-pub use crate::__init_pattern as init_pattern;
 
 impl<T: AsStr> Pattern for T {
     fn validate_pattern<M: Matcher>(&self, matcher: &M) -> bool {
@@ -117,4 +67,48 @@ impl<T: Pattern> Pattern for Option<T> {
             None => true,
         }
     }
+}
+
+#[cfg(feature = "regex")]
+#[doc(hidden)]
+pub mod regex {
+    pub use ::regex::Regex;
+
+    use super::*;
+
+    impl Matcher for Regex {
+        fn is_match(&self, haystack: &str) -> bool {
+            self.is_match(haystack)
+        }
+    }
+
+    impl<T: Matcher> Matcher for once_cell::sync::Lazy<T> {
+        fn is_match(&self, haystack: &str) -> bool {
+            once_cell::sync::Lazy::force(self).is_match(haystack)
+        }
+    }
+
+    impl AsStr for Regex {
+        fn as_str(&self) -> &str {
+            self.as_str()
+        }
+    }
+
+    impl<T: AsStr> AsStr for once_cell::sync::Lazy<T> {
+        fn as_str(&self) -> &str {
+            once_cell::sync::Lazy::force(self).as_str()
+        }
+    }
+
+    pub type StaticPattern = once_cell::sync::Lazy<Regex>;
+
+    #[macro_export]
+    macro_rules! __init_pattern {
+        ($pat:literal) => {
+            $crate::rules::pattern::regex::StaticPattern::new(|| {
+                $crate::rules::pattern::regex::Regex::new($pat).unwrap()
+            })
+        };
+    }
+    pub use crate::__init_pattern as init_pattern;
 }

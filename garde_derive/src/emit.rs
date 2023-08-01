@@ -241,8 +241,8 @@ impl<'a> ToTokens for Rules<'a> {
                 Pattern(pat) => match pat {
                     model::ValidatePattern::Expr(expr) => quote_spanned!(expr.span() => (&#expr,)),
                     model::ValidatePattern::Lit(s) => quote!({
-                        static PATTERN: ::garde::rules::pattern::StaticPattern =
-                            ::garde::rules::pattern::init_pattern!(#s);
+                        static PATTERN: ::garde::rules::pattern::regex::StaticPattern =
+                            ::garde::rules::pattern::regex::init_pattern!(#s);
                         (&PATTERN,)
                     }),
                 },
