@@ -90,7 +90,8 @@ if let Err(e) = data.validate(&()) {
 | contains     | `#[garde(contains(<string>))]`                   | a string-like value containing a substring           | -              |
 | prefix       | `#[garde(prefix(<string>))]`                     | a string-like value prefixed by some string          | -              |
 | suffix       | `#[garde(suffix(<string>))]`                     | a string-like value suffixed by some string          | -              |
-| pattern      | `#[garde(pattern(<regex>))]`                     | a string-like value matching some regular expression | `pattern`      |
+| pattern      | `#[garde(pattern("<regex>"))]`                   | a string-like value matching some regular expression | `regex`        |
+| pattern      | `#[garde(pattern(<matcher>))]`                   | a string-like value matched by some [Matcher](https://docs.rs/garde/latest/garde/rules/pattern/trait.Matcher.html) | - |
 | dive         | `#[garde(dive)]`                                 | nested validation, calls `validate` on the value     | -              |
 | skip         | `#[garde(skip)]`                                 | skip validation                                      | -              |
 | custom       | `#[garde(custom(<function or closure>))]`        | a custom validator                                   | -              |
@@ -280,7 +281,7 @@ The `ListErrorBuilder::push` and `ListErrorBuilder::insert` methods will ignore 
 | `url`                    | Validation of URLs via the `url` crate.                                                                                           | [`url`](https://crates.io/crates/url)                                                        |
 | `email`                  | Validation of emails according to [HTML5](https://html.spec.whatwg.org/multipage/forms.html#valid-e-mail-address)                 | [`regex`](https://crates.io/crates/regex), [`once_cell`](https://crates.io/crates/once_cell) |
 | `email-idna`             | Support for [Internationalizing Domain Names for Applications](https://url.spec.whatwg.org/#idna) in email addresses              | [`idna`](https://crates.io/crates/idna)                                                      |
-| `pattern`                | Validation using regular expressions via the `regex` crate                                                                        | [`regex`](https://crates.io/crates/regex), [`once_cell`](https://crates.io/crates/once_cell) |
+| `regex`                  | Support for regular expressions in `pattern` via the `regex` crate                                                                | [`regex`](https://crates.io/crates/regex), [`once_cell`](https://crates.io/crates/once_cell) |
 | `credit-card`            | Validation of credit card numbers via the `card-validate` crate                                                                   | [`card-validate`](https://crates.io/crates/card-validate)                                    |
 | `phone-number`           | Validation of phone numbers via the `phonenumber` crate                                                                           | [`phonenumber`](https://crates.io/crates/phonenumber)                                        |
 

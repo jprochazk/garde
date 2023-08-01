@@ -374,10 +374,17 @@ fn check_regex(value: model::Pattern) -> syn::Result<model::ValidatePattern> {
     match value {
         model::Pattern::Lit(lit) => {
             #[cfg(feature = "regex")]
-            if let Err(e) = regex::Regex::new(&lit.value) {
-                return Err(syn::Error::new(lit.span, format!("invalid regex: {e}")));
+            {
+                if let Err(e) = regex::Regex::new(&lit.value) {
+                    return Err(syn::Error::new(lit.span, format!("invalid regex: {e}")));
+                }
+                Ok(model::ValidatePattern::Lit(lit.value))
             }
-            Ok(model::ValidatePattern::Lit(lit.value))
+            #[cfg(not(feature = "regex"))]
+            Err(syn::Error::new(
+                lit.span,
+                "regex feature must be enabled to use literal patterns",
+            ))
         }
         model::Pattern::Expr(expr) => Ok(model::ValidatePattern::Expr(expr)),
     }
