@@ -4,20 +4,24 @@ expression: snapshot
 ---
 Test {
     field: 9,
+    refers_to_field: 10,
     inner: [
         9,
     ],
 }
 value.field: lower than 10
 value.inner[0]: lower than 10
+value.refers_to_field: greater than 9
 
 Test {
     field: 101,
+    refers_to_field: 200,
     inner: [
         101,
     ],
 }
 value.field: greater than 100
 value.inner[0]: greater than 100
+value.refers_to_field: greater than 101
 
 
