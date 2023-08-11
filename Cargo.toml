@@ -10,3 +10,9 @@ resolver = "2"
 [profile.dev.package]
 insta = { opt-level = 3 }
 trybuild = { opt-level = 3 }
+
+[patch.crates-io]
+tokio = { git = "https://github.com/wasix-org/tokio.git", branch = "epoll" }
+socket2 = { git = "https://github.com/wasix-org/socket2.git", branch = "v0.4.9" }
+libc = { git = "https://github.com/wasix-org/libc.git", branch = "master" }
+hyper = {  git = "https://github.com/wasix-org/hyper.git", branch = "v0.14.27" }
