@@ -12,7 +12,7 @@ pub struct Input {
 
 #[repr(u8)]
 pub enum Attr {
-    Context(Box<Type>),
+    Context(Box<Type>, Ident),
     AllowUnvalidated,
 }
 
@@ -27,7 +27,7 @@ impl Attr {
 
     pub fn name(&self) -> &'static str {
         match self {
-            Attr::Context(_) => "context",
+            Attr::Context(..) => "context",
             Attr::AllowUnvalidated => "allow_unvalidated",
         }
     }
@@ -100,8 +100,8 @@ pub enum RawRuleKind {
     IpV6,
     CreditCard,
     PhoneNumber,
-    Length(Range<usize>),
-    ByteLength(Range<usize>),
+    Length(Range<Expr>),
+    ByteLength(Range<Expr>),
     Range(Range<Expr>),
     Contains(Expr),
     Prefix(Expr),
@@ -135,7 +135,7 @@ pub struct List<T> {
 pub struct Validate {
     pub ident: Ident,
     pub generics: Generics,
-    pub context: Type,
+    pub context: (Type, Ident),
     pub kind: ValidateKind,
     pub options: Options,
 }
@@ -211,8 +211,8 @@ pub enum ValidateRule {
     IpV6,
     CreditCard,
     PhoneNumber,
-    Length(ValidateRange<usize>),
-    ByteLength(ValidateRange<usize>),
+    Length(ValidateRange<Expr>),
+    ByteLength(ValidateRange<Expr>),
     Range(ValidateRange<Expr>),
     Contains(Expr),
     Prefix(Expr),

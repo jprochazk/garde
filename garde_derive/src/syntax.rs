@@ -5,11 +5,12 @@ use syn::ext::IdentExt;
 use syn::parse::Parse;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
+use syn::token::As;
 use syn::{DeriveInput, Token, Type};
 
 use crate::model;
 use crate::model::List;
-use crate::util::MaybeFoldError;
+use crate::util::{default_ctx_name, MaybeFoldError};
 
 pub fn parse(input: DeriveInput) -> syn::Result<model::Input> {
     let mut error = None;
@@ -90,7 +91,13 @@ impl Parse for model::Attr {
                 let content;
                 syn::parenthesized!(content in input);
                 let ty = content.parse::<Type>()?;
-                Ok(model::Attr::Context(Box::new(ty)))
+                let ident = if content.parse::<As>().is_ok() {
+                    content.parse()?
+                } else {
+                    default_ctx_name()
+                };
+
+                Ok(model::Attr::Context(Box::new(ty), ident))
             }
             "allow_unvalidated" => Ok(model::Attr::AllowUnvalidated),
             _ => Err(syn::Error::new(ident.span(), "unrecognized attribute")),

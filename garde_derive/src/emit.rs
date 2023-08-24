@@ -13,7 +13,7 @@ pub fn emit(input: model::Validate) -> TokenStream2 {
 impl ToTokens for model::Validate {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let ident = &self.ident;
-        let context_ty = &self.context;
+        let (context_ty, context_ident) = &self.context;
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
         let kind = &self.kind;
 
@@ -22,7 +22,9 @@ impl ToTokens for model::Validate {
                 type Context = #context_ty ;
 
                 #[allow(clippy::needless_borrow)]
-                fn validate(&self, __garde_user_ctx: &Self::Context) -> ::core::result::Result<(), ::garde::error::Errors> {
+                fn validate(&self, #context_ident: &Self::Context) -> ::core::result::Result<(), ::garde::error::Errors> {
+                    let __garde_user_ctx = &#context_ident;
+
                     (
                         #kind
                     )

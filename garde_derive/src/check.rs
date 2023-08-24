@@ -5,7 +5,7 @@ use syn::parse_quote;
 use syn::spanned::Spanned;
 
 use crate::model;
-use crate::util::MaybeFoldError;
+use crate::util::{default_ctx_name, MaybeFoldError};
 
 pub fn check(input: model::Input) -> syn::Result<model::Validate> {
     let model::Input {
@@ -25,7 +25,7 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         Ok(v) => v,
         Err(e) => {
             error.maybe_fold(e);
-            parse_quote!(())
+            (parse_quote!(()), default_ctx_name())
         }
     };
 
@@ -92,7 +92,7 @@ fn check_attrs(attrs: &[(Span, model::Attr)]) -> syn::Result<()> {
     }
 }
 
-fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<syn::Type> {
+fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<(syn::Type, syn::Ident)> {
     #![allow(clippy::single_match)]
 
     let error = None;
@@ -100,7 +100,7 @@ fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<syn::Type> {
 
     for (_, attr) in attrs {
         match attr {
-            model::Attr::Context(ty) => context = Some(ty),
+            model::Attr::Context(ty, ident) => context = Some((ty, ident)),
             _ => {}
         }
     }
@@ -110,8 +110,8 @@ fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<syn::Type> {
     }
 
     match context {
-        Some(v) => Ok((**v).clone()),
-        None => Ok(parse_quote!(())),
+        Some((ty, id)) => Ok(((**ty).clone(), (*id).clone())),
+        None => Ok((parse_quote!(()), default_ctx_name())),
     }
 }
 
@@ -122,7 +122,7 @@ fn get_options(attrs: &[(Span, model::Attr)]) -> model::Options {
 
     for (_, attr) in attrs {
         match attr {
-            model::Attr::Context(_) => {}
+            model::Attr::Context(..) => {}
             model::Attr::AllowUnvalidated => options.allow_unvalidated = true,
         }
     }
@@ -309,7 +309,7 @@ fn check_rule(
         PhoneNumber => apply!(rule_set, PhoneNumber(), span),
         Length(v) => apply!(rule_set, Length(check_range(v)?), span),
         ByteLength(v) => apply!(rule_set, ByteLength(check_range(v)?), span),
-        Range(v) => apply!(rule_set, Range(check_range_not_ord(v)?), span),
+        Range(v) => apply!(rule_set, Range(check_range(v)?), span),
         Contains(v) => apply!(rule_set, Contains(v), span),
         Prefix(v) => apply!(rule_set, Prefix(v), span),
         Suffix(v) => apply!(rule_set, Suffix(v), span),
@@ -339,26 +339,7 @@ trait CheckRange: Sized {
     fn check_range(self) -> syn::Result<model::ValidateRange<Self>>;
 }
 
-fn check_range<T>(range: model::Range<T>) -> syn::Result<model::ValidateRange<T>>
-where
-    T: PartialOrd,
-{
-    match (range.min, range.max) {
-        (Some(min), Some(max)) if min <= max => Ok(model::ValidateRange::Between(min, max)),
-        (Some(_), Some(_)) => Err(syn::Error::new(
-            range.span,
-            "`min` must be lower than or equal to `max`",
-        )),
-        (Some(min), None) => Ok(model::ValidateRange::GreaterThan(min)),
-        (None, Some(max)) => Ok(model::ValidateRange::LowerThan(max)),
-        (None, None) => Err(syn::Error::new(
-            range.span,
-            "range must have at least one of `min`, `max`",
-        )),
-    }
-}
-
-fn check_range_not_ord<T>(range: model::Range<T>) -> syn::Result<model::ValidateRange<T>> {
+fn check_range<T>(range: model::Range<T>) -> syn::Result<model::ValidateRange<T>> {
     match (range.min, range.max) {
         (Some(min), Some(max)) => Ok(model::ValidateRange::Between(min, max)),
         (Some(min), None) => Ok(model::ValidateRange::GreaterThan(min)),

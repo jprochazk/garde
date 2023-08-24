@@ -1,5 +1,0 @@
-error: `min` must be lower than or equal to `max`
- --> tests/ui/compile-fail/byte_length_bad_min.rs:3:25
-  |
-3 |     #[garde(byte_length(min = 100, max = 10))]
-  |                         ^^^
