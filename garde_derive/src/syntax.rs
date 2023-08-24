@@ -390,7 +390,11 @@ where
             }
         }
 
-        Ok(model::Range { span, min, max })
+        if let Some(error) = error {
+            Err(error)
+        } else {
+            Ok(model::Range { span, min, max })
+        }
     }
 }
 
@@ -409,6 +413,18 @@ impl<T: Parse> Parse for List<T> {
 
 trait FromExpr: Sized {
     fn from_expr(v: syn::Expr) -> syn::Result<Self>;
+}
+
+impl<L, R> FromExpr for model::Either<L, R>
+where
+    L: FromExpr,
+    R: FromExpr,
+{
+    fn from_expr(v: syn::Expr) -> syn::Result<Self> {
+        L::from_expr(v.clone())
+            .map(model::Either::Left)
+            .or_else(|_| R::from_expr(v).map(model::Either::Right))
+    }
 }
 
 impl FromExpr for syn::Expr {

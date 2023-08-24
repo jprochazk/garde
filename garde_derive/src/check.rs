@@ -340,7 +340,7 @@ trait CheckRange: Sized {
 }
 
 fn check_range_generic<L, R>(
-    range: model::Either<model::Range<L>, model::Range<R>>,
+    range: model::Range<model::Either<L, R>>,
 ) -> syn::Result<model::ValidateRange<model::Either<L, R>>>
 where
     L: PartialOrd,
@@ -359,11 +359,38 @@ where
         }};
     }
 
-    let range = match range {
-        model::Either::Left(left) => map_validate_range!(check_range(left)?, model::Either::Left),
-        model::Either::Right(right) => {
-            map_validate_range!(check_range_not_ord(right)?, model::Either::Right)
+    let range = match (range.span, range.min, range.max) {
+        (span, Some(model::Either::Left(min)), Some(model::Either::Left(max))) => {
+            map_validate_range!(
+                check_range(model::Range {
+                    span,
+                    min: Some(min),
+                    max: Some(max)
+                })?,
+                model::Either::Left
+            )
         }
+        (span, Some(model::Either::Left(min)), None) => {
+            map_validate_range!(
+                check_range(model::Range {
+                    span,
+                    min: Some(min),
+                    max: None,
+                })?,
+                model::Either::Left
+            )
+        }
+        (span, None, Some(model::Either::Left(max))) => {
+            map_validate_range!(
+                check_range(model::Range {
+                    span,
+                    min: None,
+                    max: Some(max),
+                })?,
+                model::Either::Left
+            )
+        }
+        (span, min, max) => check_range_not_ord(model::Range { span, min, max })?,
     };
 
     Ok(range)

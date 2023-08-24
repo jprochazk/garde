@@ -100,8 +100,8 @@ pub enum RawRuleKind {
     IpV6,
     CreditCard,
     PhoneNumber,
-    Length(Either<Range<usize>, Range<Expr>>),
-    ByteLength(Either<Range<usize>, Range<Expr>>),
+    Length(Range<Either<usize, Expr>>),
+    ByteLength(Range<Either<usize, Expr>>),
     Range(Range<Expr>),
     Contains(Expr),
     Prefix(Expr),
@@ -114,18 +114,6 @@ pub enum RawRuleKind {
 pub enum Either<L, R> {
     Left(L),
     Right(R),
-}
-
-impl<L, R> syn::parse::Parse for Either<L, R>
-where
-    L: syn::parse::Parse,
-    R: syn::parse::Parse,
-{
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        L::parse(input)
-            .map(Self::Left)
-            .or_else(|_| R::parse(input).map(Either::Right))
-    }
 }
 
 impl<L, R> quote::ToTokens for Either<L, R>
