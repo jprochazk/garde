@@ -307,9 +307,9 @@ fn check_rule(
         IpV6 => apply!(rule_set, IpV6(), span),
         CreditCard => apply!(rule_set, CreditCard(), span),
         PhoneNumber => apply!(rule_set, PhoneNumber(), span),
-        Length(v) => apply!(rule_set, Length(check_range(v)?), span),
-        ByteLength(v) => apply!(rule_set, ByteLength(check_range(v)?), span),
-        Range(v) => apply!(rule_set, Range(check_range(v)?), span),
+        Length(v) => apply!(rule_set, Length(check_range_generic(v)?), span),
+        ByteLength(v) => apply!(rule_set, ByteLength(check_range_generic(v)?), span),
+        Range(v) => apply!(rule_set, Range(check_range_not_ord(v)?), span),
         Contains(v) => apply!(rule_set, Contains(v), span),
         Prefix(v) => apply!(rule_set, Prefix(v), span),
         Suffix(v) => apply!(rule_set, Suffix(v), span),
@@ -339,7 +339,56 @@ trait CheckRange: Sized {
     fn check_range(self) -> syn::Result<model::ValidateRange<Self>>;
 }
 
-fn check_range<T>(range: model::Range<T>) -> syn::Result<model::ValidateRange<T>> {
+fn check_range_generic<L, R>(
+    range: model::Either<model::Range<L>, model::Range<R>>,
+) -> syn::Result<model::ValidateRange<model::Either<L, R>>>
+where
+    L: PartialOrd,
+{
+    macro_rules! map_validate_range {
+        ($value:expr, $wrapper:expr) => {{
+            match $value {
+                model::ValidateRange::GreaterThan(v) => {
+                    model::ValidateRange::GreaterThan($wrapper(v))
+                }
+                model::ValidateRange::LowerThan(v) => model::ValidateRange::LowerThan($wrapper(v)),
+                model::ValidateRange::Between(v1, v2) => {
+                    model::ValidateRange::Between($wrapper(v1), $wrapper(v2))
+                }
+            }
+        }};
+    }
+
+    let range = match range {
+        model::Either::Left(left) => map_validate_range!(check_range(left)?, model::Either::Left),
+        model::Either::Right(right) => {
+            map_validate_range!(check_range_not_ord(right)?, model::Either::Right)
+        }
+    };
+
+    Ok(range)
+}
+
+fn check_range<T>(range: model::Range<T>) -> syn::Result<model::ValidateRange<T>>
+where
+    T: PartialOrd,
+{
+    match (range.min, range.max) {
+        (Some(min), Some(max)) if min <= max => Ok(model::ValidateRange::Between(min, max)),
+        (Some(_), Some(_)) => Err(syn::Error::new(
+            range.span,
+            "`min` must be lower than or equal to `max`",
+        )),
+        (Some(min), None) => Ok(model::ValidateRange::GreaterThan(min)),
+        (None, Some(max)) => Ok(model::ValidateRange::LowerThan(max)),
+        (None, None) => Err(syn::Error::new(
+            range.span,
+            "range must have at least one of `min`, `max`",
+        )),
+    }
+}
+
+fn check_range_not_ord<T>(range: model::Range<T>) -> syn::Result<model::ValidateRange<T>> {
     match (range.min, range.max) {
         (Some(min), Some(max)) => Ok(model::ValidateRange::Between(min, max)),
         (Some(min), None) => Ok(model::ValidateRange::GreaterThan(min)),

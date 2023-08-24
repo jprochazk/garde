@@ -100,8 +100,8 @@ pub enum RawRuleKind {
     IpV6,
     CreditCard,
     PhoneNumber,
-    Length(Range<Expr>),
-    ByteLength(Range<Expr>),
+    Length(Either<Range<usize>, Range<Expr>>),
+    ByteLength(Either<Range<usize>, Range<Expr>>),
     Range(Range<Expr>),
     Contains(Expr),
     Prefix(Expr),
@@ -109,6 +109,36 @@ pub enum RawRuleKind {
     Pattern(Pattern),
     Custom(Func),
     Inner(List<RawRule>),
+}
+
+pub enum Either<L, R> {
+    Left(L),
+    Right(R),
+}
+
+impl<L, R> syn::parse::Parse for Either<L, R>
+where
+    L: syn::parse::Parse,
+    R: syn::parse::Parse,
+{
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        L::parse(input)
+            .map(Self::Left)
+            .or_else(|_| R::parse(input).map(Either::Right))
+    }
+}
+
+impl<L, R> quote::ToTokens for Either<L, R>
+where
+    L: quote::ToTokens,
+    R: quote::ToTokens,
+{
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        match self {
+            Self::Left(left) => left.to_tokens(tokens),
+            Self::Right(right) => right.to_tokens(tokens),
+        }
+    }
 }
 
 pub enum Pattern {
@@ -211,8 +241,8 @@ pub enum ValidateRule {
     IpV6,
     CreditCard,
     PhoneNumber,
-    Length(ValidateRange<Expr>),
-    ByteLength(ValidateRange<Expr>),
+    Length(ValidateRange<Either<usize, Expr>>),
+    ByteLength(ValidateRange<Either<usize, Expr>>),
     Range(ValidateRange<Expr>),
     Contains(Expr),
     Prefix(Expr),
