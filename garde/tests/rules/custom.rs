@@ -4,7 +4,7 @@ struct Context {
 }
 
 #[derive(Debug, garde::Validate)]
-#[garde(context(Context))]
+#[garde(context(Context as ctx))]
 struct Test<'a> {
     #[garde(custom(custom_validate_fn))]
     a: &'a str,
@@ -24,6 +24,9 @@ struct Test<'a> {
         Ok(())
     })))]
     inner_b: &'a [&'a str],
+
+    #[garde(length(min = ctx.needle.len()))]
+    uses_ctx: &'a str,
 }
 
 fn custom_validate_fn(value: &str, ctx: &Context) -> Result<(), garde::Error> {
@@ -44,6 +47,7 @@ fn custom_valid() {
             b: "test",
             inner_a: &["test"],
             inner_b: &["test"],
+            uses_ctx: "test",
         }],
         &ctx,
     )
@@ -60,6 +64,7 @@ fn custom_invalid() {
             b: "asdf",
             inner_a: &["asdf"],
             inner_b: &["asdf"],
+            uses_ctx: "",
         }],
         &ctx
     )
