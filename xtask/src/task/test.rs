@@ -12,8 +12,8 @@ use crate::Result;
 pub struct Test {
     #[argh(positional)]
     targets: Vec<Target>,
-    #[argh(option, description = "run insta with --review")]
-    review: Option<bool>,
+    #[argh(switch, description = "run insta with --review")]
+    review: bool,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -54,9 +54,9 @@ impl FromStr for Target {
 
 impl Test {
     pub fn run(mut self) -> Result {
-        let review = self.review.unwrap_or(false);
+        let review = self.review;
         let commands = if self.targets.is_empty() {
-            vec![unit(), ui(), rules(review), axum()]
+            vec![unit(), ui(review), rules(review), axum()]
         } else {
             self.targets.sort();
             BTreeSet::from_iter(self.targets)
@@ -64,7 +64,7 @@ impl Test {
                 .map(|target| match target {
                     Target::Unit => unit(),
                     Target::Doc => doc(),
-                    Target::Ui => ui(),
+                    Target::Ui => ui(review),
                     Target::Rules => rules(review),
                     Target::Axum => axum(),
                 })
@@ -87,10 +87,13 @@ fn doc() -> Command {
     cargo("test").with_args(["--package=garde", "--all-features", "--doc"])
 }
 
-fn ui() -> Command {
-    cargo("test")
-        .with_args(["--package=garde", "--all-features", "--test=ui"])
-        .with_env("TRYBUILD", "overwrite")
+fn ui(review: bool) -> Command {
+    let cmd = cargo("test").with_args(["--package=garde", "--all-features", "--test=ui"]);
+    if review {
+        cmd.with_env("TRYBUILD", "overwrite")
+    } else {
+        cmd
+    }
 }
 
 fn rules(review: bool) -> Command {

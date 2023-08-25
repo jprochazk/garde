@@ -1,6 +1,7 @@
 use std::ffi::OsStr;
 use std::path::Path;
 use std::process::Command;
+use std::process::Stdio;
 
 use anyhow::anyhow;
 
@@ -10,8 +11,22 @@ pub fn project_root() -> &'static Path {
     Path::new(env!("CARGO_MANIFEST_DIR"))
 }
 
+pub fn rustup(cmd: &str) -> Command {
+    Command::new("rustup").with_arg(cmd)
+}
+
 pub fn cargo(cmd: &str) -> Command {
     Command::new(env!("CARGO")).with_arg(cmd)
+}
+
+pub fn has_cargo_subcmd(cmd: &str) -> Result<bool> {
+    Ok(cargo("--list")
+        .run_with_output()?
+        .split('\n')
+        .filter(|v| v.starts_with(|c: char| c.is_ascii_whitespace()))
+        .map(str::trim)
+        .map(|v| v.split_ascii_whitespace().next().unwrap())
+        .any(|v| v == cmd))
 }
 
 pub trait CommandExt {
@@ -30,6 +45,8 @@ pub trait CommandExt {
         V: AsRef<OsStr>;
 
     fn run(self) -> Result;
+
+    fn run_with_output(self) -> Result<String>;
 }
 
 impl CommandExt for Command {
@@ -62,6 +79,16 @@ impl CommandExt for Command {
     fn run(mut self) -> Result {
         self.spawn()?.wait()?.check()
     }
+
+    fn run_with_output(mut self) -> Result<String> {
+        let output = self
+            .stderr(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?
+            .wait_with_output()?;
+        output.check()?;
+        Ok(String::from_utf8(output.stdout)?)
+    }
 }
 
 pub trait CheckStatus {
@@ -77,5 +104,11 @@ impl CheckStatus for std::process::ExitStatus {
                 self.code().unwrap_or(-1)
             )),
         }
+    }
+}
+
+impl CheckStatus for std::process::Output {
+    fn check(&self) -> Result {
+        self.status.check()
     }
 }

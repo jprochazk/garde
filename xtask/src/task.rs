@@ -1,19 +1,19 @@
-pub mod check;
-pub mod release;
-pub mod test;
-pub mod version;
+mod check;
+mod release;
+mod setup;
+mod test;
+mod version;
 
 use argh::FromArgs;
 
-use self::check::Check;
-use self::test::Test;
 use crate::Result;
 
 #[derive(FromArgs)]
 #[argh(subcommand)]
 pub enum Task {
-    Test(Test),
-    Check(Check),
+    Test(test::Test),
+    Check(check::Check),
+    Setup(setup::Setup),
     // Version(Version),
     // Release(Release),
 }
@@ -23,6 +23,7 @@ impl Task {
         match self {
             Task::Test(cmd) => cmd.run(),
             Task::Check(cmd) => cmd.run(),
+            Task::Setup(cmd) => cmd.run(),
         }
     }
 }
