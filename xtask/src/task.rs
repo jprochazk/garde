@@ -3,13 +3,14 @@ pub mod release;
 pub mod test;
 pub mod version;
 
-use clap::Subcommand;
+use argh::FromArgs;
 
 use self::check::Check;
 use self::test::Test;
 use crate::Result;
 
-#[derive(Subcommand)]
+#[derive(FromArgs)]
+#[argh(subcommand)]
 pub enum Task {
     Test(Test),
     Check(Check),

@@ -1,8 +1,9 @@
-use clap::Args;
+use argh::FromArgs;
 
 use crate::Result;
 
-#[derive(Args)]
+#[derive(FromArgs)]
+#[argh(subcommand, name = "version", description = "Bump crate versions")]
 pub struct Version {}
 
 impl Version {

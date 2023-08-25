@@ -1,8 +1,9 @@
-use clap::Args;
+use argh::FromArgs;
 
 use crate::Result;
 
-#[derive(Args)]
+#[derive(FromArgs)]
+#[argh(subcommand, name = "release", description = "Release to crates.io")]
 pub struct Release {}
 
 impl Release {

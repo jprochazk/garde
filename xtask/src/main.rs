@@ -7,21 +7,21 @@ mod util;
 use std::io::{stderr, Write};
 use std::process::ExitCode;
 
-use clap::Parser;
+use argh::FromArgs;
 
 use self::task::Task;
 
 pub type Result<T = ()> = anyhow::Result<T>;
 
-#[derive(Parser)]
-#[command(version, about)]
+#[derive(FromArgs)]
+#[argh(description = "Common tasks")]
 pub struct Cli {
-    #[command(subcommand)]
+    #[argh(subcommand)]
     pub task: Task,
 }
 
 fn try_main() -> Result {
-    Cli::try_parse()?.task.run()
+    argh::from_env::<Cli>().task.run()
 }
 
 fn main() -> ExitCode {
