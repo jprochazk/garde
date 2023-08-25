@@ -12,7 +12,7 @@ publish = false
 
 [dependencies]
 anyhow = { version = "1.0.72", features = ["backtrace"] }
-clap = { version = "4.3", default-features = false, features = [
+clap = { version = "=4.3", default-features = false, features = [
   "derive",
   "std",
   "help",
