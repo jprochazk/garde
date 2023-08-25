@@ -1,9 +1,7 @@
-use crate::util::cargo;
-use crate::util::has_cargo_subcmd;
-use crate::util::rustup;
-use crate::util::CommandExt;
-use crate::Result;
 use argh::FromArgs;
+
+use crate::util::{cargo, has_cargo_subcmd, rustup, CommandExt};
+use crate::Result;
 
 const COMPONENTS: &[&str] = &["rustfmt", "clippy"];
 const TOOLS: &[&str] = &["cargo-deny", "cargo-udeps", "cargo-pants", "cargo-insta"];
