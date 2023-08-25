@@ -5,7 +5,7 @@ use syn::parse_quote;
 use syn::spanned::Spanned;
 
 use crate::model;
-use crate::util::MaybeFoldError;
+use crate::util::{default_ctx_name, MaybeFoldError};
 
 pub fn check(input: model::Input) -> syn::Result<model::Validate> {
     let model::Input {
@@ -25,7 +25,7 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         Ok(v) => v,
         Err(e) => {
             error.maybe_fold(e);
-            parse_quote!(())
+            (parse_quote!(()), default_ctx_name())
         }
     };
 
@@ -92,7 +92,7 @@ fn check_attrs(attrs: &[(Span, model::Attr)]) -> syn::Result<()> {
     }
 }
 
-fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<syn::Type> {
+fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<(syn::Type, syn::Ident)> {
     #![allow(clippy::single_match)]
 
     let error = None;
@@ -100,7 +100,7 @@ fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<syn::Type> {
 
     for (_, attr) in attrs {
         match attr {
-            model::Attr::Context(ty) => context = Some(ty),
+            model::Attr::Context(ty, ident) => context = Some((ty, ident)),
             _ => {}
         }
     }
@@ -110,8 +110,8 @@ fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<syn::Type> {
     }
 
     match context {
-        Some(v) => Ok((**v).clone()),
-        None => Ok(parse_quote!(())),
+        Some((ty, id)) => Ok(((**ty).clone(), (*id).clone())),
+        None => Ok((parse_quote!(()), default_ctx_name())),
     }
 }
 
@@ -122,7 +122,7 @@ fn get_options(attrs: &[(Span, model::Attr)]) -> model::Options {
 
     for (_, attr) in attrs {
         match attr {
-            model::Attr::Context(_) => {}
+            model::Attr::Context(..) => {}
             model::Attr::AllowUnvalidated => options.allow_unvalidated = true,
         }
     }
@@ -307,8 +307,8 @@ fn check_rule(
         IpV6 => apply!(rule_set, IpV6(), span),
         CreditCard => apply!(rule_set, CreditCard(), span),
         PhoneNumber => apply!(rule_set, PhoneNumber(), span),
-        Length(v) => apply!(rule_set, Length(check_range(v)?), span),
-        ByteLength(v) => apply!(rule_set, ByteLength(check_range(v)?), span),
+        Length(v) => apply!(rule_set, Length(check_range_generic(v)?), span),
+        ByteLength(v) => apply!(rule_set, ByteLength(check_range_generic(v)?), span),
         Range(v) => apply!(rule_set, Range(check_range_not_ord(v)?), span),
         Contains(v) => apply!(rule_set, Contains(v), span),
         Prefix(v) => apply!(rule_set, Prefix(v), span),
@@ -337,6 +337,63 @@ fn check_rule(
 
 trait CheckRange: Sized {
     fn check_range(self) -> syn::Result<model::ValidateRange<Self>>;
+}
+
+fn check_range_generic<L, R>(
+    range: model::Range<model::Either<L, R>>,
+) -> syn::Result<model::ValidateRange<model::Either<L, R>>>
+where
+    L: PartialOrd,
+{
+    macro_rules! map_validate_range {
+        ($value:expr, $wrapper:expr) => {{
+            match $value {
+                model::ValidateRange::GreaterThan(v) => {
+                    model::ValidateRange::GreaterThan($wrapper(v))
+                }
+                model::ValidateRange::LowerThan(v) => model::ValidateRange::LowerThan($wrapper(v)),
+                model::ValidateRange::Between(v1, v2) => {
+                    model::ValidateRange::Between($wrapper(v1), $wrapper(v2))
+                }
+            }
+        }};
+    }
+
+    let range = match (range.span, range.min, range.max) {
+        (span, Some(model::Either::Left(min)), Some(model::Either::Left(max))) => {
+            map_validate_range!(
+                check_range(model::Range {
+                    span,
+                    min: Some(min),
+                    max: Some(max)
+                })?,
+                model::Either::Left
+            )
+        }
+        (span, Some(model::Either::Left(min)), None) => {
+            map_validate_range!(
+                check_range(model::Range {
+                    span,
+                    min: Some(min),
+                    max: None,
+                })?,
+                model::Either::Left
+            )
+        }
+        (span, None, Some(model::Either::Left(max))) => {
+            map_validate_range!(
+                check_range(model::Range {
+                    span,
+                    min: None,
+                    max: Some(max),
+                })?,
+                model::Either::Left
+            )
+        }
+        (span, min, max) => check_range_not_ord(model::Range { span, min, max })?,
+    };
+
+    Ok(range)
 }
 
 fn check_range<T>(range: model::Range<T>) -> syn::Result<model::ValidateRange<T>>

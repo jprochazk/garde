@@ -5,11 +5,12 @@ use syn::ext::IdentExt;
 use syn::parse::Parse;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
+use syn::token::As;
 use syn::{DeriveInput, Token, Type};
 
 use crate::model;
 use crate::model::List;
-use crate::util::MaybeFoldError;
+use crate::util::{default_ctx_name, MaybeFoldError};
 
 pub fn parse(input: DeriveInput) -> syn::Result<model::Input> {
     let mut error = None;
@@ -90,7 +91,13 @@ impl Parse for model::Attr {
                 let content;
                 syn::parenthesized!(content in input);
                 let ty = content.parse::<Type>()?;
-                Ok(model::Attr::Context(Box::new(ty)))
+                let ident = if content.parse::<As>().is_ok() {
+                    content.parse()?
+                } else {
+                    default_ctx_name()
+                };
+
+                Ok(model::Attr::Context(Box::new(ty), ident))
             }
             "allow_unvalidated" => Ok(model::Attr::AllowUnvalidated),
             _ => Err(syn::Error::new(ident.span(), "unrecognized attribute")),
@@ -383,7 +390,11 @@ where
             }
         }
 
-        Ok(model::Range { span, min, max })
+        if let Some(error) = error {
+            Err(error)
+        } else {
+            Ok(model::Range { span, min, max })
+        }
     }
 }
 
@@ -402,6 +413,18 @@ impl<T: Parse> Parse for List<T> {
 
 trait FromExpr: Sized {
     fn from_expr(v: syn::Expr) -> syn::Result<Self>;
+}
+
+impl<L, R> FromExpr for model::Either<L, R>
+where
+    L: FromExpr,
+    R: FromExpr,
+{
+    fn from_expr(v: syn::Expr) -> syn::Result<Self> {
+        L::from_expr(v.clone())
+            .map(model::Either::Left)
+            .or_else(|_| R::from_expr(v).map(model::Either::Right))
+    }
 }
 
 impl FromExpr for syn::Expr {

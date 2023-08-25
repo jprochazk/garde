@@ -1,7 +1,10 @@
 use super::util;
+
+const UWU: usize = 101;
+
 #[derive(Debug, garde::Validate)]
 struct Test<'a> {
-    #[garde(byte_length(min = 10, max = 100))]
+    #[garde(byte_length(min = 10, max = UWU - 1))]
     field: &'a str,
 
     #[garde(inner(length(min = 10, max = 100)))]

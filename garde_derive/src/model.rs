@@ -12,7 +12,7 @@ pub struct Input {
 
 #[repr(u8)]
 pub enum Attr {
-    Context(Box<Type>),
+    Context(Box<Type>, Ident),
     AllowUnvalidated,
 }
 
@@ -27,7 +27,7 @@ impl Attr {
 
     pub fn name(&self) -> &'static str {
         match self {
-            Attr::Context(_) => "context",
+            Attr::Context(..) => "context",
             Attr::AllowUnvalidated => "allow_unvalidated",
         }
     }
@@ -100,8 +100,8 @@ pub enum RawRuleKind {
     IpV6,
     CreditCard,
     PhoneNumber,
-    Length(Range<usize>),
-    ByteLength(Range<usize>),
+    Length(Range<Either<usize, Expr>>),
+    ByteLength(Range<Either<usize, Expr>>),
     Range(Range<Expr>),
     Contains(Expr),
     Prefix(Expr),
@@ -109,6 +109,24 @@ pub enum RawRuleKind {
     Pattern(Pattern),
     Custom(Func),
     Inner(List<RawRule>),
+}
+
+pub enum Either<L, R> {
+    Left(L),
+    Right(R),
+}
+
+impl<L, R> quote::ToTokens for Either<L, R>
+where
+    L: quote::ToTokens,
+    R: quote::ToTokens,
+{
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        match self {
+            Self::Left(left) => left.to_tokens(tokens),
+            Self::Right(right) => right.to_tokens(tokens),
+        }
+    }
 }
 
 pub enum Pattern {
@@ -135,7 +153,7 @@ pub struct List<T> {
 pub struct Validate {
     pub ident: Ident,
     pub generics: Generics,
-    pub context: Type,
+    pub context: (Type, Ident),
     pub kind: ValidateKind,
     pub options: Options,
 }
@@ -211,8 +229,8 @@ pub enum ValidateRule {
     IpV6,
     CreditCard,
     PhoneNumber,
-    Length(ValidateRange<usize>),
-    ByteLength(ValidateRange<usize>),
+    Length(ValidateRange<Either<usize, Expr>>),
+    ByteLength(ValidateRange<Either<usize, Expr>>),
     Range(ValidateRange<Expr>),
     Contains(Expr),
     Prefix(Expr),
