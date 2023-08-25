@@ -8,8 +8,8 @@ error[E0277]: the trait bound `&str: Matcher` is not satisfied
   |                     ^^^ the trait `Matcher` is not implemented for `&str`
   |
   = help: the following other types implement trait `Matcher`:
-            Regex
             once_cell::sync::Lazy<T>
+            Regex
 note: required by a bound in `garde::rules::pattern::apply`
  --> src/rules/pattern.rs
   |
