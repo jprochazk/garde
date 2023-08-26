@@ -4,12 +4,12 @@ mod setup;
 mod test;
 mod version;
 
-use argh::FromArgs;
+use argp::FromArgs;
 
 use crate::Result;
 
 #[derive(FromArgs)]
-#[argh(subcommand)]
+#[argp(subcommand)]
 pub enum Task {
     Test(test::Test),
     Check(check::Check),

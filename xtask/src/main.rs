@@ -7,21 +7,22 @@ mod util;
 use std::io::{stderr, Write};
 use std::process::ExitCode;
 
-use argh::FromArgs;
+use argp::FromArgs;
 
 use self::task::Task;
 
 pub type Result<T = ()> = anyhow::Result<T>;
 
 #[derive(FromArgs)]
-#[argh(description = "Common tasks")]
+#[argp(description = "Common tasks")]
 pub struct Cli {
-    #[argh(subcommand)]
+    #[argp(subcommand)]
     pub task: Task,
 }
 
 fn try_main() -> Result {
-    argh::from_env::<Cli>().task.run()
+    let args: Cli = argp::parse_args_or_exit(argp::DEFAULT);
+    args.task.run()
 }
 
 fn main() -> ExitCode {
