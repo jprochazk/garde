@@ -49,7 +49,7 @@ impl argp::FromArgValue for Target {
             .iter()
             .find(|(name, _)| value.eq_ignore_ascii_case(std::ffi::OsStr::new(*name)))
             .map(|(_, target)| *target)
-            .ok_or_else(|| format!("invalid target, expected one of: unit, doc, ui, rules, axum"))
+            .ok_or_else(|| "invalid target, expected one of: unit, doc, ui, rules, axum".into())
     }
 }
 
