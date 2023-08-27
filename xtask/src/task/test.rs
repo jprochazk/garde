@@ -1,18 +1,17 @@
 use std::collections::BTreeSet;
 use std::process::Command;
-use std::str::FromStr;
 
-use argh::FromArgs;
+use argp::FromArgs;
 
 use crate::util::{cargo, CommandExt};
 use crate::Result;
 
 #[derive(FromArgs)]
-#[argh(subcommand, name = "test", description = "Run tests")]
+#[argp(subcommand, name = "test", description = "Run tests")]
 pub struct Test {
-    #[argh(positional)]
+    #[argp(positional)]
     targets: Vec<Target>,
-    #[argh(switch, description = "run insta with --review")]
+    #[argp(switch, description = "Run insta with --review")]
     review: bool,
 }
 
@@ -36,19 +35,21 @@ impl std::fmt::Display for InvalidTarget {
     }
 }
 
-impl FromStr for Target {
-    type Err = InvalidTarget;
+impl argp::FromArgValue for Target {
+    fn from_arg_value(value: &std::ffi::OsStr) -> std::result::Result<Self, String> {
+        let options = [
+            ("unit", Self::Unit),
+            ("doc", Self::Doc),
+            ("ui", Self::Ui),
+            ("rules", Self::Rules),
+            ("axum", Self::Axum),
+        ];
 
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        let s = s.to_ascii_lowercase();
-        match s.as_str() {
-            "unit" => Ok(Self::Unit),
-            "doc" => Ok(Self::Doc),
-            "ui" => Ok(Self::Ui),
-            "rules" => Ok(Self::Rules),
-            "axum" => Ok(Self::Axum),
-            _ => Err(InvalidTarget),
-        }
+        options
+            .iter()
+            .find(|(name, _)| value.eq_ignore_ascii_case(std::ffi::OsStr::new(*name)))
+            .map(|(_, target)| *target)
+            .ok_or_else(|| "invalid target, expected one of: unit, doc, ui, rules, axum".into())
     }
 }
 

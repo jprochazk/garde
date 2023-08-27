@@ -1,4 +1,4 @@
-use argh::FromArgs;
+use argp::FromArgs;
 
 use crate::util::{cargo, has_cargo_subcmd, rustup, CommandExt};
 use crate::Result;
@@ -7,10 +7,10 @@ const COMPONENTS: &[&str] = &["rustfmt", "clippy"];
 const TOOLS: &[&str] = &["cargo-deny", "cargo-udeps", "cargo-pants", "cargo-insta"];
 
 #[derive(FromArgs)]
-#[argh(subcommand, name = "setup")]
-/// Install tools and rustup components used in the repository.
+#[argp(subcommand, name = "setup")]
+/// Install tooling
 pub struct Setup {
-    #[argh(switch, description = "install using `cargo-binstall` instead")]
+    #[argp(switch, description = "Install using `cargo-binstall` instead")]
     binary: bool,
 }
 

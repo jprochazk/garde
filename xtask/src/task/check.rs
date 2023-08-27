@@ -1,10 +1,10 @@
-use argh::FromArgs;
+use argp::FromArgs;
 
 use crate::util::{cargo, CommandExt};
 use crate::Result;
 
 #[derive(FromArgs)]
-#[argh(subcommand, name = "check", description = "Run all checks")]
+#[argp(subcommand, name = "check", description = "Run all checks")]
 pub struct Check {}
 
 impl Check {
