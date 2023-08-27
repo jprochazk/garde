@@ -1,10 +1,10 @@
 error[E0277]: the trait bound `&str: Matcher` is not satisfied
- --> tests/ui/compile-fail/pattern_mismatched_types.rs:5:21
+ --> tests/ui/compile-fail/pattern_mismatched_types.rs
   |
-3 | #[derive(garde::Validate)]
+  | #[derive(garde::Validate)]
   |          --------------- required by a bound introduced by this call
-4 | struct Test<'a> {
-5 |     #[garde(pattern(STR))]
+  | struct Test<'a> {
+  |     #[garde(pattern(STR))]
   |                     ^^^ the trait `Matcher` is not implemented for `&str`
   |
   = help: the following other types implement trait `Matcher`:
