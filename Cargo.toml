@@ -1,10 +1,5 @@
 [workspace]
-members = [
-  "garde_derive",
-  "garde",
-  "integrations/axum_garde",
-  "xtask",
-]
+members = ["garde_derive", "garde", "integrations/axum_garde"]
 resolver = "2"
 
 [profile.dev.package]

@@ -1,4 +1,5 @@
 use std::collections::BTreeSet;
+use std::env;
 use std::process::Command;
 
 use argp::FromArgs;
@@ -89,11 +90,21 @@ fn doc() -> Command {
 }
 
 fn ui(review: bool) -> Command {
+    let filter = env::var("EXCLUDE_UI_TESTS").ok();
+    if let Some(filter) = &filter {
+        println!("UI tests are filtered: `{filter}`");
+    }
+
     let cmd = cargo("test").with_args(["--package=garde", "--all-features", "--test=ui"]);
-    if review {
-        cmd.with_env("TRYBUILD", "overwrite")
-    } else {
-        cmd
+
+    let cmd = match review {
+        true => cmd.with_env("TRYBUILD", "overwrite"),
+        false => cmd,
+    };
+
+    match filter {
+        Some(filter) => cmd.with_env("EXCLUDE_UI_TESTS", filter),
+        None => cmd,
     }
 }
 
