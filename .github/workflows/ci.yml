@@ -49,12 +49,17 @@ jobs:
           - build: pinned
             os: ubuntu-20.04
             rust: 1.69
+            # Fails on pinned version because the output changed,
+            # so we're excluding it, but it's still tested on stable and nightly.
+            EXCLUDE_UI_TESTS: "pattern_mismatched_types"
           - build: stable
             os: ubuntu-20.04
             rust: stable
+            EXCLUDE_UI_TESTS: ""
           - build: nightly
             os: ubuntu-20.04
             rust: nightly
+            EXCLUDE_UI_TESTS: ""
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -77,6 +82,8 @@ jobs:
 
       - name: Run tests
         run: cargo x test
+        env:
+          EXCLUDE_UI_TESTS: ${{ matrix.EXCLUDE_UI_TESTS }}
 
   checks:
     name: Checks
