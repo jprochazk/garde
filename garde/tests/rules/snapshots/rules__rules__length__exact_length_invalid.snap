@@ -8,8 +8,8 @@ Exact {
         "",
     ],
 }
-value.field: length is lower than 2
-value.inner[0]: length is lower than 2
+field: length is lower than 2
+inner[0]: length is lower than 2
 
 Exact {
     field: "a",
@@ -17,8 +17,8 @@ Exact {
         "a",
     ],
 }
-value.field: length is lower than 2
-value.inner[0]: length is lower than 2
+field: length is lower than 2
+inner[0]: length is lower than 2
 
 Exact {
     field: "aaa",
@@ -26,7 +26,7 @@ Exact {
         "aaa",
     ],
 }
-value.field: length is greater than 2
-value.inner[0]: length is greater than 2
+field: length is greater than 2
+inner[0]: length is greater than 2
 
 

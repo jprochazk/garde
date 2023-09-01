@@ -8,7 +8,7 @@ Test {
         "!!!!",
     ],
 }
-value.field: not alphanumeric
-value.inner[0]: not alphanumeric
+field: not alphanumeric
+inner[0]: not alphanumeric
 
 

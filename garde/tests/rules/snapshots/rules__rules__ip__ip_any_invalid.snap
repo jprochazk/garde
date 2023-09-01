@@ -8,8 +8,8 @@ TestIpAny {
         "256.1.1.1",
     ],
 }
-value.field: not a valid IP address
-value.inner[0]: not a valid IP address
+field: not a valid IP address
+inner[0]: not a valid IP address
 
 TestIpAny {
     field: "25.1.1.",
@@ -17,8 +17,8 @@ TestIpAny {
         "25.1.1.",
     ],
 }
-value.field: not a valid IP address
-value.inner[0]: not a valid IP address
+field: not a valid IP address
+inner[0]: not a valid IP address
 
 TestIpAny {
     field: "25,1,1,1",
@@ -26,8 +26,8 @@ TestIpAny {
         "25,1,1,1",
     ],
 }
-value.field: not a valid IP address
-value.inner[0]: not a valid IP address
+field: not a valid IP address
+inner[0]: not a valid IP address
 
 TestIpAny {
     field: "2a02::223:6cff :fe8a:2e8a",
@@ -35,7 +35,7 @@ TestIpAny {
         "2a02::223:6cff :fe8a:2e8a",
     ],
 }
-value.field: not a valid IP address
-value.inner[0]: not a valid IP address
+field: not a valid IP address
+inner[0]: not a valid IP address
 
 

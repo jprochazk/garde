@@ -8,8 +8,8 @@ Test {
         "a",
     ],
 }
-value.field: value does not begin with "test"
-value.inner[0]: value does not begin with "test"
+field: value does not begin with "test"
+inner[0]: value does not begin with "test"
 
 Test {
     field: "_test",
@@ -17,7 +17,7 @@ Test {
         "_test",
     ],
 }
-value.field: value does not begin with "test"
-value.inner[0]: value does not begin with "test"
+field: value does not begin with "test"
+inner[0]: value does not begin with "test"
 
 

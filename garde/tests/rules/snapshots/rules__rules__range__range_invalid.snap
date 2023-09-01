@@ -9,9 +9,9 @@ Test {
         9,
     ],
 }
-value.field: lower than 10
-value.inner[0]: lower than 10
-value.refers_to_field: greater than 9
+field: lower than 10
+inner[0]: lower than 10
+refers_to_field: greater than 9
 
 Test {
     field: 101,
@@ -20,8 +20,8 @@ Test {
         101,
     ],
 }
-value.field: greater than 100
-value.inner[0]: greater than 100
-value.refers_to_field: greater than 101
+field: greater than 100
+inner[0]: greater than 100
+refers_to_field: greater than 101
 
 

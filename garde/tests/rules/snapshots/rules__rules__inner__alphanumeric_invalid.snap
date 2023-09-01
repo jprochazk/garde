@@ -9,6 +9,6 @@ Inner {
         ],
     ],
 }
-value.inner[0][0]: not alphanumeric
+inner[0][0]: not alphanumeric
 
 

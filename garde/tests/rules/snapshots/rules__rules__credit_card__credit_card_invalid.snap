@@ -8,8 +8,8 @@ Test {
         "zduhefljsdfKJKJZHUI",
     ],
 }
-value.field: not a valid credit card number: invalid format
-value.inner[0]: not a valid credit card number: invalid format
+field: not a valid credit card number: invalid format
+inner[0]: not a valid credit card number: invalid format
 
 Test {
     field: "5236313877109141",
@@ -17,7 +17,7 @@ Test {
         "5236313877109141",
     ],
 }
-value.field: not a valid credit card number: invalid luhn
-value.inner[0]: not a valid credit card number: invalid luhn
+field: not a valid credit card number: invalid luhn
+inner[0]: not a valid credit card number: invalid luhn
 
 

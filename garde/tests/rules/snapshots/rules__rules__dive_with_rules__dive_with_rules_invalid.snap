@@ -1,11 +1,11 @@
 ---
-source: garde_tests/tests/./rules/dive_with_rules.rs
+source: garde/tests/./rules/dive_with_rules.rs
 expression: snapshot
 ---
 Test {
     field: [],
 }
-value.field: length is lower than 1
+field: length is lower than 1
 
 Test {
     field: [
@@ -14,6 +14,6 @@ Test {
         },
     ],
 }
-value.field[0].field: length is lower than 1
+field[0].field: length is lower than 1
 
 

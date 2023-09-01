@@ -50,22 +50,22 @@ Test {
         "😂",
     ),
 }
-value.alphanumeric: not alphanumeric
-value.ascii: not ascii
-value.byte_length_min1_str: byte length is lower than 1
-value.byte_length_min1_u8_slice: byte length is lower than 1
-value.contains_a: does not contain "a"
-value.credit_card: not a valid credit card number: invalid format
-value.email: not a valid email: value is missing `@`
-value.ip: not a valid IP address
-value.length_min1: length is lower than 1
-value.pat_a_or_b: does not match pattern /a|b/
-value.phone_number: not a valid phone number: not a number
-value.prefix_a: value does not begin with "a"
-value.range_min1: lower than 1
-value.required: not set
-value.suffix_a: does not end with "a"
-value.url: not a valid url: relative URL without a base
+alphanumeric: not alphanumeric
+ascii: not ascii
+byte_length_min1_str: byte length is lower than 1
+byte_length_min1_u8_slice: byte length is lower than 1
+contains_a: does not contain "a"
+credit_card: not a valid credit card number: invalid format
+email: not a valid email: value is missing `@`
+ip: not a valid IP address
+length_min1: length is lower than 1
+pat_a_or_b: does not match pattern /a|b/
+phone_number: not a valid phone number: not a number
+prefix_a: value does not begin with "a"
+range_min1: lower than 1
+required: not set
+suffix_a: does not end with "a"
+url: not a valid url: relative URL without a base
 
 Test {
     alphanumeric: None,
@@ -85,6 +85,6 @@ Test {
     suffix_a: None,
     url: None,
 }
-value.required: not set
+required: not set
 
 

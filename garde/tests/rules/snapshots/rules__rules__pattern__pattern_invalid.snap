@@ -10,10 +10,10 @@ Test {
         "dcba",
     ],
 }
-value.field: does not match pattern /^abcd|efgh$/
-value.field_call: does not match pattern /^abcd|efgh$/
-value.field_path: does not match pattern /^abcd|efgh$/
-value.inner[0]: does not match pattern /^abcd|efgh$/
+field: does not match pattern /^abcd|efgh$/
+field_call: does not match pattern /^abcd|efgh$/
+field_path: does not match pattern /^abcd|efgh$/
+inner[0]: does not match pattern /^abcd|efgh$/
 
 Test {
     field: "hgfe",
@@ -23,9 +23,9 @@ Test {
         "hgfe",
     ],
 }
-value.field: does not match pattern /^abcd|efgh$/
-value.field_call: does not match pattern /^abcd|efgh$/
-value.field_path: does not match pattern /^abcd|efgh$/
-value.inner[0]: does not match pattern /^abcd|efgh$/
+field: does not match pattern /^abcd|efgh$/
+field_call: does not match pattern /^abcd|efgh$/
+field_path: does not match pattern /^abcd|efgh$/
+inner[0]: does not match pattern /^abcd|efgh$/
 
 

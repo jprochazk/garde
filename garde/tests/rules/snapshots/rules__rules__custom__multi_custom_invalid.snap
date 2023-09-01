@@ -8,9 +8,9 @@ Multi {
         "asdf",
     ],
 }
-value.field: not equal to test
-value.field: not equal to test
-value.inner[0]: not equal to test
-value.inner[0]: not equal to test
+field: not equal to test
+field: not equal to test
+inner[0]: not equal to test
+inner[0]: not equal to test
 
 

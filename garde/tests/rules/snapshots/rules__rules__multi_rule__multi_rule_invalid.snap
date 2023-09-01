@@ -8,8 +8,8 @@ Test {
         "text which does not begin with `test`",
     ],
 }
-value.field: value does not begin with "test"
-value.inner[0]: value does not begin with "test"
+field: value does not begin with "test"
+inner[0]: value does not begin with "test"
 
 Test {
     field: "non-ascii 😂😂😂",
@@ -17,10 +17,10 @@ Test {
         "non-ascii 😂😂😂",
     ],
 }
-value.field: not ascii
-value.field: value does not begin with "test"
-value.inner[0]: not ascii
-value.inner[0]: value does not begin with "test"
+field: not ascii
+field: value does not begin with "test"
+inner[0]: not ascii
+inner[0]: value does not begin with "test"
 
 Test {
     field: "aaaaaaaaa",
@@ -28,10 +28,10 @@ Test {
         "aaaaaaaaa",
     ],
 }
-value.field: length is lower than 10
-value.field: value does not begin with "test"
-value.inner[0]: length is lower than 10
-value.inner[0]: value does not begin with "test"
+field: length is lower than 10
+field: value does not begin with "test"
+inner[0]: length is lower than 10
+inner[0]: value does not begin with "test"
 
 Test {
     field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -39,9 +39,9 @@ Test {
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     ],
 }
-value.field: length is greater than 100
-value.field: value does not begin with "test"
-value.inner[0]: length is greater than 100
-value.inner[0]: value does not begin with "test"
+field: length is greater than 100
+field: value does not begin with "test"
+inner[0]: length is greater than 100
+inner[0]: value does not begin with "test"
 
 

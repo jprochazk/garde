@@ -8,7 +8,7 @@ Test {
         "invalid.com",
     ],
 }
-value.field: not a valid email: value is missing `@`
-value.inner[0]: not a valid email: value is missing `@`
+field: not a valid email: value is missing `@`
+inner[0]: not a valid email: value is missing `@`
 
 
