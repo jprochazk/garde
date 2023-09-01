@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use garde::Errors;
+use garde::Report;
 use thiserror::Error;
 
 /// Rejection used for [`WithValidation`]
@@ -14,7 +14,7 @@ pub enum WithValidationRejection<T> {
     /// Variant for the payload's validation errors. Responds with status code
     /// `422 Unprocessable Content`
     #[error(transparent)]
-    ValidationError(#[from] Errors),
+    ValidationError(#[from] Report),
 }
 
 impl<T: IntoResponse> IntoResponse for WithValidationRejection<T> {

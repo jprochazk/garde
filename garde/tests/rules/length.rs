@@ -8,6 +8,100 @@ struct Test<'a> {
     inner: &'a [&'a str],
 }
 
+/*
+impl<'a> ::garde::Validate for Test<'a> {
+    type Context = ();
+    #[allow(clippy::needless_borrow)]
+    fn validate_into(
+        &self,
+        __garde_user_ctx: &Self::Context,
+        __garde_path: &::garde::error::Path,
+        __garde_report: &mut ::garde::error::Report,
+    ) {
+        let __garde_user_ctx = &__garde_user_ctx;
+        {
+            let Self { field, inner } = self;
+            {
+                {
+                    let __garde_path = &__garde_path.join("field");
+                    let __garde_binding = &*field;
+                    {
+                        if let Err(__garde_error) =
+                            (::garde::rules::length::apply)(&*__garde_binding, (10usize, 100usize))
+                        {
+                            __garde_report.append(__garde_path.clone(), __garde_error);
+                        }
+                    }
+                }
+                {
+                    let __garde_path = &__garde_path.join("inner");
+                    let __garde_binding = &*inner;
+                    ::garde::rules::inner::apply(
+                        &*__garde_binding,
+                        __garde_user_ctx,
+                        __garde_path,
+                        __garde_report,
+                        |__garde_binding, __garde_user_ctx, __garde_path, __garde_report| {
+                            if let Err(__garde_error) = (::garde::rules::length::apply)(
+                                &*__garde_binding,
+                                (10usize, 100usize),
+                            ) {
+                                __garde_report.append(__garde_path.clone(), __garde_error);
+                            }
+                        },
+                    );
+                }
+            }
+        }
+    }
+}
+*/
+
+/* impl<'a> ::garde::Validate for Test<'a> {
+    type Context = ();
+
+    #[allow(clippy::needless_borrow)]
+    fn validate_into(
+        &self,
+        __garde_user_ctx: &Self::Context,
+        __garde_path: &::garde::error::Path,
+        __garde_report: &mut ::garde::error::Report,
+    ) {
+        let __garde_user_ctx = &__garde_user_ctx;
+        let Self { field, inner } = self;
+        {
+            let __garde_path = &__garde_path.join("field");
+            let __garde_binding = &*field;
+            {
+                if let Err(__garde_error) =
+                    (::garde::rules::length::apply)(&*__garde_binding, (10usize, 100usize))
+                {
+                    __garde_report.append(__garde_path.clone(), __garde_error);
+                }
+            }
+        }
+        {
+            let __garde_path = &__garde_path.join("inner");
+            let __garde_binding = &*inner;
+            {
+                ::garde::rules::inner::apply(
+                    &*__garde_binding,
+                    __garde_user_ctx,
+                    __garde_path,
+                    __garde_report,
+                    |__garde_binding, __garde_user_ctx, __garde_path, __garde_report| {
+                        if let Err(__garde_error) =
+                            (::garde::rules::length::apply)(&*__garde_binding, (10usize, 100usize))
+                        {
+                            __garde_report.append(__garde_path.clone(), __garde_error);
+                        }
+                    },
+                );
+            }
+        }
+    }
+} */
+
 #[test]
 fn length_valid() {
     util::check_ok(&[

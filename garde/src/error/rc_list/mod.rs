@@ -1,0 +1,157 @@
+use std::cell::RefCell;
+use std::mem::{swap, transmute};
+use std::rc::Rc;
+
+/// A reverse singly-linked list.
+///
+/// Each node in the list is reference counted,
+/// meaning cloning the list is safe and cheap.
+///
+/// We're optimizing for cloning the list and
+/// appending an item onto its end, both of which
+/// are O(1).
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+pub struct List<T> {
+    node: RefCell<Option<Rc<Node<T>>>>,
+    length: usize,
+}
+
+impl<T> List<T> {
+    pub fn new() -> Self {
+        Self {
+            node: RefCell::new(None),
+            length: 0,
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.length
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.length == 0
+    }
+
+    pub fn append(&self, value: T) -> Self {
+        let list = Self {
+            node: self.node.clone(),
+            length: self.length + 1,
+        };
+
+        let mut node = list.node.borrow_mut();
+        if let Some(node) = node.as_mut() {
+            *node = Rc::new(Node {
+                prev: Some(Rc::clone(node)),
+                value,
+            });
+        } else {
+            *node = Some(Rc::new(Node { prev: None, value }));
+        }
+        drop(node);
+
+        list
+    }
+
+    pub fn iter(&self) -> Iter<'_, T> {
+        Iter::new(self)
+    }
+}
+
+impl<T> Clone for List<T> {
+    fn clone(&self) -> Self {
+        Self {
+            node: self.node.clone(),
+            length: self.length,
+        }
+    }
+}
+
+impl<T: std::hash::Hash> std::hash::Hash for List<T> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.node.borrow().hash(state);
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct Node<T> {
+    prev: Option<Rc<Node<T>>>,
+    value: T,
+}
+
+pub struct Iter<'a, T> {
+    list: &'a List<T>,
+    next: Option<Rc<Node<T>>>,
+    node: Option<Rc<Node<T>>>,
+}
+
+impl<'a, T> Iter<'a, T> {
+    fn new(list: &'a List<T>) -> Self {
+        Self {
+            list,
+            next: None,
+            node: list.node.borrow().clone(),
+        }
+    }
+}
+
+impl<'a, T> Iterator for Iter<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut node = self.node.take();
+        swap(&mut self.next, &mut node);
+        if let Some(prev) = self.next.as_ref().and_then(|node| node.prev.as_ref()) {
+            self.node = Some(Rc::clone(prev));
+        }
+        self.next.as_ref().map(|next| {
+            // SAFETY:
+            // We're returning a reference here, but the reference points
+            // to the inside of an `Rc<Node<T>>`, meaning the reference
+            // to it is valid for as long as the `Rc` lives. It lives for
+            // as long as the `list` it came from, which is longer than
+            // `self` here.
+            // The items within `list` will never be moved around or
+            // mutated in any way, because it is immutable. The only
+            // supported operation is `append`, which constructs a new
+            // list with a pointer to the old one.
+            // The borrow checker will ensure that the items do not
+            // outlive their parent `list`.
+            unsafe { transmute(&next.value) }
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rc_list_shenanigans() {
+        let list = List::new();
+        assert_eq!(list.len(), 0);
+
+        let mut iter = list.iter();
+        let item = iter.next();
+        drop(iter);
+        println!("{item:?}");
+
+        let a = list.append("a");
+        let b = list.append("b");
+        let c_a = a.append("c");
+        let d_c_a = c_a.append("d");
+
+        let mut iter = list.iter();
+        let item = iter.next();
+        drop(iter);
+        println!("{item:?}");
+
+        assert_eq!(a.len(), 1);
+        assert_eq!(a.iter().copied().collect::<Vec<_>>(), ["a"]);
+        assert_eq!(b.len(), 1);
+        assert_eq!(b.iter().copied().collect::<Vec<_>>(), ["b"]);
+        assert_eq!(c_a.len(), 2);
+        assert_eq!(c_a.iter().copied().collect::<Vec<_>>(), ["c", "a"]);
+        assert_eq!(d_c_a.len(), 3);
+        assert_eq!(d_c_a.iter().copied().collect::<Vec<_>>(), ["d", "c", "a"]);
+    }
+}

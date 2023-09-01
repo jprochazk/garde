@@ -35,20 +35,15 @@ struct MyVec<T>(Vec<T>);
 impl<T: garde::Validate> garde::Validate for MyVec<T> {
     type Context = T::Context;
 
-    fn validate(&self, ctx: &Self::Context) -> Result<(), garde::Errors> {
-        let errors = garde::Errors::list(|errors| {
-            for item in self.0.iter() {
-                if let Err(e) = item.validate(ctx) {
-                    errors.push(e);
-                }
-            }
-        });
-
-        if !errors.is_empty() {
-            return Err(errors);
+    fn validate_into(
+        &self,
+        ctx: &Self::Context,
+        current_path: &garde::Path,
+        report: &mut garde::Report,
+    ) {
+        for (index, item) in self.0.iter().enumerate() {
+            item.validate_into(ctx, &current_path.join(index), report);
         }
-
-        Ok(())
     }
 }
 

@@ -231,13 +231,15 @@
 //! impl<T: garde::Validate> garde::Validate for MyVec<T> {
 //!     type Context = T::Context;
 //!
-//!     fn validate(&self, ctx: &Self::Context) -> Result<(), garde::Errors> {
-//!         garde::Errors::list(|errors| {
-//!             for item in self.0.iter() {
-//!                 errors.push(item.validate(ctx));
-//!             }
-//!         })
-//!         .finish()
+//!     fn validate_into(
+//!         &self,
+//!         ctx: &Self::Context,
+//!         current_path: &garde::Path,
+//!         report: &mut garde::Report
+//!     ) {
+//!         for (index, item) in self.0.iter().enumerate() {
+//!             item.validate_into(ctx, &current_path.join(index), report);
+//!         }
 //!     }
 //! }
 //!
@@ -287,9 +289,13 @@ pub mod error;
 pub mod rules;
 pub mod validate;
 
-pub use error::{Error, Errors};
+pub use error::{Error, Path, Report};
 #[cfg(feature = "derive")]
 pub use garde_derive::Validate;
 pub use validate::{Unvalidated, Valid, Validate};
 
 pub type Result = ::core::result::Result<(), Error>;
+
+pub mod external {
+    pub use {compact_str, smallvec};
+}

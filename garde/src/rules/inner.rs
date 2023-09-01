@@ -10,58 +10,47 @@
 //!
 //! The entrypoint is the [`Inner`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(inner(..))]` rule.
 
-use crate::error::ListErrorBuilder;
-use crate::Errors;
+use crate::error::{Path, Report};
 
-pub fn apply<T, U, C, F>(field: &T, ctx: &C, f: F) -> Errors
+pub fn apply<T, U, C, F>(field: &T, ctx: &C, current_path: &Path, report: &mut Report, f: F)
 where
     T: Inner<U>,
-    F: Fn(&U, &C) -> Errors,
+    F: Fn(&U, &C, &Path, &mut Report),
 {
-    field.validate_inner(ctx, f)
+    field.validate_inner(ctx, current_path, report, f)
 }
 
 pub trait Inner<T> {
-    type ErrorBuilder;
-
-    fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
+    fn validate_inner<C, F>(&self, ctx: &C, current_path: &Path, report: &mut Report, f: F)
     where
-        F: Fn(&T, &C) -> Errors;
+        F: Fn(&T, &C, &Path, &mut Report);
 }
 
 impl<T> Inner<T> for Vec<T> {
-    type ErrorBuilder = ListErrorBuilder;
-
-    fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
+    fn validate_inner<C, F>(&self, ctx: &C, current_path: &Path, report: &mut Report, f: F)
     where
-        F: Fn(&T, &C) -> Errors,
+        F: Fn(&T, &C, &Path, &mut Report),
     {
-        self.as_slice().validate_inner(ctx, f)
+        self.as_slice().validate_inner(ctx, current_path, report, f)
     }
 }
 
 impl<const N: usize, T> Inner<T> for [T; N] {
-    type ErrorBuilder = ListErrorBuilder;
-
-    fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
+    fn validate_inner<C, F>(&self, ctx: &C, current_path: &Path, report: &mut Report, f: F)
     where
-        F: Fn(&T, &C) -> Errors,
+        F: Fn(&T, &C, &Path, &mut Report),
     {
-        self.as_slice().validate_inner(ctx, f)
+        self.as_slice().validate_inner(ctx, current_path, report, f)
     }
 }
 
 impl<'a, T> Inner<T> for &'a [T] {
-    type ErrorBuilder = ListErrorBuilder;
-
-    fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
+    fn validate_inner<C, F>(&self, ctx: &C, current_path: &Path, report: &mut Report, f: F)
     where
-        F: Fn(&T, &C) -> Errors,
+        F: Fn(&T, &C, &Path, &mut Report),
     {
-        Errors::list(|b| {
-            for item in self.iter() {
-                b.push(f(item, ctx));
-            }
-        })
+        for (index, item) in self.iter().enumerate() {
+            f(item, ctx, &current_path.join(index), report);
+        }
     }
 }
