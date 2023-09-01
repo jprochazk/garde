@@ -25,7 +25,7 @@ impl ToTokens for model::Validate {
                 fn validate_into(
                     &self,
                     #context_ident: &Self::Context,
-                    __garde_path: &::garde::error::Path,
+                    __garde_path: ::garde::error::Path,
                     __garde_report: &mut ::garde::error::Report,
                 ) {
                     let __garde_user_ctx = &#context_ident;
@@ -97,7 +97,7 @@ impl<'a> ToTokens for Struct<'a> {
                 .map(|(key, field)| (Binding::Ident(key), field, key.to_string())),
             |key, value| {
                 quote! {{
-                    let __garde_path = &__garde_path.join(#key);
+                    let __garde_path = __garde_path.join(#key);
                     #value
                 }}
             },
@@ -117,7 +117,7 @@ impl<'a> ToTokens for Tuple<'a> {
                 .map(|(index, field)| (Binding::Index(index), field, index)),
             |index, value| {
                 quote! {{
-                    let __garde_path = &__garde_path.join(#index);
+                    let __garde_path = __garde_path.join(#index);
                     #value
                 }}
             },
@@ -189,16 +189,24 @@ impl<'a> ToTokens for Rules<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let Rules(rule_set) = self;
 
-        for custom_rule in rule_set.custom_rules.iter() {
+        let clone = quote!(.clone());
+
+        let mut custom_rules = rule_set.custom_rules.iter().peekable();
+        while let Some(custom_rule) = custom_rules.next() {
+            let has_next = rule_set.inner.is_some()
+                || !rule_set.rules.is_empty()
+                || custom_rules.peek().is_some();
+            let clone = if has_next { Some(&clone) } else { None };
             quote! {
                 if let Err(__garde_error) = (#custom_rule)(&*__garde_binding, &__garde_user_ctx) {
-                    __garde_report.append(__garde_path.clone(), __garde_error);
+                    __garde_report.append(__garde_path #clone, __garde_error);
                 }
             }
-            .to_tokens(tokens)
+            .to_tokens(tokens);
         }
 
-        for rule in rule_set.rules.iter() {
+        let mut rules = rule_set.rules.iter().peekable();
+        while let Some(rule) = rules.next() {
             let name = format_ident!("{}", rule.name());
             use model::ValidateRule::*;
             let args = match rule {
@@ -236,9 +244,12 @@ impl<'a> ToTokens for Rules<'a> {
                     }),
                 },
             };
+
+            let has_next = rule_set.inner.is_some() || rules.peek().is_some();
+            let clone = if has_next { Some(&clone) } else { None };
             quote! {
                 if let Err(__garde_error) = (::garde::rules::#name::apply)(&*__garde_binding, #args) {
-                    __garde_report.append(__garde_path.clone(), __garde_error);
+                    __garde_report.append(__garde_path #clone, __garde_error);
                 }
             }
             .to_tokens(tokens)
@@ -272,14 +283,22 @@ where
                 false => None,
             };
             let inner = match (&field.dive, &field.rule_set.inner) {
-                (Some(..), None) => Some(quote! {
-                    ::garde::validate::Validate::validate_into(
-                        &*__garde_binding,
-                        __garde_user_ctx,
-                        __garde_path,
-                        __garde_report,
-                    );
-                }),
+                (Some(..), None) => {
+                    let has_next = !field.rule_set.is_empty();
+                    let clone = if has_next {
+                        Some(quote!(.clone()))
+                    } else {
+                        None
+                    };
+                    Some(quote! {
+                        ::garde::validate::Validate::validate_into(
+                            &*__garde_binding,
+                            __garde_user_ctx,
+                            __garde_path #clone,
+                            __garde_report,
+                        );
+                    })
+                }
                 (None, Some(inner)) => Some(Inner(inner).to_token_stream()),
                 (None, None) => None,
                 // TODO: encode this via the type system instead?
@@ -289,8 +308,8 @@ where
             let value = match (outer, inner) {
                 (Some(outer), Some(inner)) => quote! {
                     let __garde_binding = &*#binding;
-                    #outer
                     #inner
+                    #outer
                 },
                 (None, Some(inner)) => quote! {
                     let __garde_binding = &*#binding;

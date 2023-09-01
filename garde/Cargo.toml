@@ -52,3 +52,13 @@ trybuild = { version = "1.0" }
 insta = { version = "1.29" }
 owo-colors = { version = "3.5.0" }
 glob = "0.3.1"
+
+criterion = "0.5"
+
+[[bench]]
+name = "validation"
+harness = false
+
+[profile.profiling]
+inherits = "release"
+debug = true

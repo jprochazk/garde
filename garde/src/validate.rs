@@ -22,7 +22,7 @@ pub trait Validate {
     /// because [`Validate::validate`] has a default implementation that calls [`Validate::validate_into`].
     fn validate(&self, ctx: &Self::Context) -> Result<(), Report> {
         let mut report = Report::new();
-        self.validate_into(ctx, &Path::empty(), &mut report);
+        self.validate_into(ctx, Path::empty(), &mut report);
         match report.is_empty() {
             true => Ok(()),
             false => Err(report),
@@ -31,7 +31,7 @@ pub trait Validate {
 
     /// Validates `Self`, aggregating all validation errors
     /// with a path beginning at `current_path` into the `report`.
-    fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report);
+    fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report);
 }
 
 /// A struct which wraps a valid instance of some `T`.
@@ -96,7 +96,7 @@ impl<T: Debug> Debug for Unvalidated<T> {
 impl<'a, T: ?Sized + Validate> Validate for &'a T {
     type Context = T::Context;
 
-    fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report) {
+    fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report) {
         <T as Validate>::validate_into(self, ctx, current_path, report)
     }
 }
@@ -104,7 +104,7 @@ impl<'a, T: ?Sized + Validate> Validate for &'a T {
 impl<'a, T: ?Sized + Validate> Validate for &'a mut T {
     type Context = T::Context;
 
-    fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report) {
+    fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report) {
         <T as Validate>::validate_into(self, ctx, current_path, report)
     }
 }
@@ -112,7 +112,7 @@ impl<'a, T: ?Sized + Validate> Validate for &'a mut T {
 impl<T: Validate> Validate for std::boxed::Box<T> {
     type Context = T::Context;
 
-    fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report) {
+    fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report) {
         <T as Validate>::validate_into(self, ctx, current_path, report)
     }
 }
@@ -120,7 +120,7 @@ impl<T: Validate> Validate for std::boxed::Box<T> {
 impl<T: Validate> Validate for std::rc::Rc<T> {
     type Context = T::Context;
 
-    fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report) {
+    fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report) {
         <T as Validate>::validate_into(self, ctx, current_path, report)
     }
 }
@@ -128,7 +128,7 @@ impl<T: Validate> Validate for std::rc::Rc<T> {
 impl<T: Validate> Validate for std::sync::Arc<T> {
     type Context = T::Context;
 
-    fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report) {
+    fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report) {
         <T as Validate>::validate_into(self, ctx, current_path, report)
     }
 }
@@ -141,9 +141,9 @@ macro_rules! impl_validate_list {
         {
             type Context = T::Context;
 
-            fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report) {
+            fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report) {
                 for (index, item) in self.iter().enumerate() {
-                    <T as Validate>::validate_into(item, ctx, &current_path.join(index), report);
+                    <T as Validate>::validate_into(item, ctx, current_path.join(index), report);
                 }
             }
         }
@@ -161,9 +161,9 @@ impl_validate_list!(<T> [T]);
 impl<T: Validate, const N: usize> Validate for [T; N] {
     type Context = T::Context;
 
-    fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report) {
+    fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report) {
         for (index, item) in self.iter().enumerate() {
-            <T as Validate>::validate_into(item, ctx, &current_path.join(index), report);
+            <T as Validate>::validate_into(item, ctx, current_path.join(index), report);
         }
     }
 }
@@ -178,13 +178,13 @@ macro_rules! impl_validate_tuple {
             type Context = $A::Context;
 
             #[allow(non_snake_case)]
-            fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report) {
+            fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report) {
                 let ($A, $($T,)*) = self;
                 let mut index = 0;
-                <$A as Validate>::validate_into($A, ctx, &current_path.join(index), report);
+                <$A as Validate>::validate_into($A, ctx, current_path.join(index), report);
                 index += 1;
                 $({
-                    <$T as Validate>::validate_into($T, ctx, &current_path.join(index), report);
+                    <$T as Validate>::validate_into($T, ctx, current_path.join(index), report);
                     index += 1;
                 })*
                 let _ = index;
@@ -209,7 +209,7 @@ impl_validate_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
 impl Validate for () {
     type Context = ();
 
-    fn validate_into(&self, _: &Self::Context, _: &Path, _: &mut Report) {}
+    fn validate_into(&self, _: &Self::Context, _: Path, _: &mut Report) {}
 }
 
 impl<K, V, S> Validate for std::collections::HashMap<K, V, S>
@@ -220,9 +220,9 @@ where
 {
     type Context = V::Context;
 
-    fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report) {
+    fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report) {
         for (key, value) in self.iter() {
-            <V as Validate>::validate_into(value, ctx, &current_path.join(key.clone()), report);
+            <V as Validate>::validate_into(value, ctx, current_path.join(key.clone()), report);
         }
     }
 }
@@ -235,9 +235,9 @@ where
 {
     type Context = V::Context;
 
-    fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report) {
+    fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report) {
         for (key, value) in self.iter() {
-            <V as Validate>::validate_into(value, ctx, &current_path.join(key.clone()), report);
+            <V as Validate>::validate_into(value, ctx, current_path.join(key.clone()), report);
         }
     }
 }
@@ -245,7 +245,7 @@ where
 impl<T: Validate> Validate for Option<T> {
     type Context = T::Context;
 
-    fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report) {
+    fn validate_into(&self, ctx: &Self::Context, current_path: Path, report: &mut Report) {
         if let Some(value) = self {
             value.validate_into(ctx, current_path, report)
         }

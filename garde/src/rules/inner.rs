@@ -12,45 +12,45 @@
 
 use crate::error::{Path, Report};
 
-pub fn apply<T, U, C, F>(field: &T, ctx: &C, current_path: &Path, report: &mut Report, f: F)
+pub fn apply<T, U, C, F>(field: &T, ctx: &C, current_path: Path, report: &mut Report, f: F)
 where
     T: Inner<U>,
-    F: Fn(&U, &C, &Path, &mut Report),
+    F: Fn(&U, &C, Path, &mut Report),
 {
     field.validate_inner(ctx, current_path, report, f)
 }
 
 pub trait Inner<T> {
-    fn validate_inner<C, F>(&self, ctx: &C, current_path: &Path, report: &mut Report, f: F)
+    fn validate_inner<C, F>(&self, ctx: &C, current_path: Path, report: &mut Report, f: F)
     where
-        F: Fn(&T, &C, &Path, &mut Report);
+        F: Fn(&T, &C, Path, &mut Report);
 }
 
 impl<T> Inner<T> for Vec<T> {
-    fn validate_inner<C, F>(&self, ctx: &C, current_path: &Path, report: &mut Report, f: F)
+    fn validate_inner<C, F>(&self, ctx: &C, current_path: Path, report: &mut Report, f: F)
     where
-        F: Fn(&T, &C, &Path, &mut Report),
+        F: Fn(&T, &C, Path, &mut Report),
     {
         self.as_slice().validate_inner(ctx, current_path, report, f)
     }
 }
 
 impl<const N: usize, T> Inner<T> for [T; N] {
-    fn validate_inner<C, F>(&self, ctx: &C, current_path: &Path, report: &mut Report, f: F)
+    fn validate_inner<C, F>(&self, ctx: &C, current_path: Path, report: &mut Report, f: F)
     where
-        F: Fn(&T, &C, &Path, &mut Report),
+        F: Fn(&T, &C, Path, &mut Report),
     {
         self.as_slice().validate_inner(ctx, current_path, report, f)
     }
 }
 
 impl<'a, T> Inner<T> for &'a [T] {
-    fn validate_inner<C, F>(&self, ctx: &C, current_path: &Path, report: &mut Report, f: F)
+    fn validate_inner<C, F>(&self, ctx: &C, current_path: Path, report: &mut Report, f: F)
     where
-        F: Fn(&T, &C, &Path, &mut Report),
+        F: Fn(&T, &C, Path, &mut Report),
     {
         for (index, item) in self.iter().enumerate() {
-            f(item, ctx, &current_path.join(index), report);
+            f(item, ctx, current_path.join(index), report);
         }
     }
 }
