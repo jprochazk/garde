@@ -238,13 +238,15 @@ struct MyVec<T>(Vec<T>);
 impl<T: garde::Validate> garde::Validate for MyVec<T> {
     type Context = T::Context;
 
-    fn validate(&self, ctx: &Self::Context) -> Result<(), garde::Errors> {
-        garde::Errors::list(|errors| {
-            for item in self.0.iter() {
-                errors.push(item.validate(ctx));
-            }
-        })
-        .finish()
+    fn validate_into(
+        &self,
+        ctx: &Self::Context,
+        current_path: &garde::Path,
+        report: &mut garde::Report
+    ) {
+        for (index, item) in self.0.iter().enumerate() {
+            item.validate_into(ctx, &current_path.join(index), report);
+        }
     }
 }
 
@@ -260,13 +262,6 @@ struct Bar {
   value: u32,
 }
 ```
-
-To make implementing the trait easier, the `Errors` type supports a nesting builders.
-- For list-like or tuple-like data structures, use `Errors::list`, and its `.push` method to attach nested `Errors`.
-- For map-like data structures, use `Errors::fields`, and its `.insert` method to attach nested `Errors`.
-- For a "flat" error list, use `Errors::simple`, and its `.push` method to attach individual errors.
-
-The `ListErrorBuilder::push` and `ListErrorBuilder::insert` methods will ignore any errors which are empty (via `Errors::is_empty`).
 
 ### Integration with web frameworks
 

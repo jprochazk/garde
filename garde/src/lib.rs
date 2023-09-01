@@ -256,18 +256,6 @@
 //! }
 //! ```
 //!
-//! To make implementing the trait easier, the [`Errors`][`crate::error::Errors`] type supports a nesting builders.
-//! - For list-like or tuple-like data structures, use [`Errors::list`][`crate::error::Errors::list`],
-//!   and its `.push` method to attach nested [`Errors`][`crate::error::Errors`].
-//! - For map-like data structures, use [`Errors::fields`][`crate::error::Errors::fields`],
-//!   and its `.insert` method to attach nested [`Errors`][`crate::error::Errors`].
-//! - For a "flat" error list, use [`Errors::simple`][`crate::error::Errors::simple`],
-//!   and its `.push` method to attach individual errors.
-//!
-//! The [`ListErrorBuilder::push`][`crate::error::ListErrorBuilder::push`] and
-//! [`FieldsErrorBuilder::insert`][`crate::error::FieldsErrorBuilder::insert`] methods
-//! will ignore any errors which are empty (via [`Errors::is_empty`][`crate::error::Errors::is_empty`]).
-//!
 //! ### Integration with web frameworks
 //!
 //! - [`axum`](https://crates.io/crates/axum): https://crates.io/crates/axum_garde

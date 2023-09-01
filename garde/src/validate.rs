@@ -7,8 +7,8 @@ use crate::Report;
 
 /// The core trait of this crate.
 ///
-/// Validation checks all the conditions and returns all errors aggregated into
-/// an `Errors` container.
+/// Validation runs the fields through every validation rules,
+/// and aggregates any errors into a [`Report`].
 pub trait Validate {
     /// A user-provided context.
     ///
@@ -17,6 +17,9 @@ pub trait Validate {
 
     /// Validates `Self`, returning an `Err` with an aggregate of all errors if
     /// the validation failed.
+    ///
+    /// This method should not be implemented manually. Implement [`Validate::validate_into`] instead,
+    /// because [`Validate::validate`] has a default implementation that calls [`Validate::validate_into`].
     fn validate(&self, ctx: &Self::Context) -> Result<(), Report> {
         let mut report = Report::new();
         self.validate_into(ctx, &Path::empty(), &mut report);
@@ -26,6 +29,8 @@ pub trait Validate {
         }
     }
 
+    /// Validates `Self`, aggregating all validation errors
+    /// with a path beginning at `current_path` into the `report`.
     fn validate_into(&self, ctx: &Self::Context, current_path: &Path, report: &mut Report);
 }
 

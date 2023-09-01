@@ -11,25 +11,37 @@ use smallvec::SmallVec;
 
 use self::rc_list::List;
 
+/// A validation error report.
+///
+/// This type is used as a container for errors aggregated during validation.
+/// It is a flat list of `(Path, Error)`.
+/// A single field or list item may have any number of errors attached to it.
+///
+/// It is possible to extract all errors for specific field using the [`select`] macro.
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct Report {
     errors: Vec<(Path, Error)>,
 }
 
 impl Report {
+    /// Create an empty [`Report`].
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self { errors: Vec::new() }
     }
 
+    /// Append an [`Error`] into this report at the given [`Path`].
     pub fn append(&mut self, path: Path, error: Error) {
         self.errors.push((path, error));
     }
 
+    /// Iterate over all `(Path, Error)` pairs.
     pub fn iter(&self) -> impl Iterator<Item = &(Path, Error)> {
         self.errors.iter()
     }
 
+    /// Returns `true` if the report contains no validation errors.
     pub fn is_empty(&self) -> bool {
         self.errors.is_empty()
     }
@@ -47,6 +59,7 @@ impl std::fmt::Display for Report {
 impl std::error::Error for Report {}
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct Error {
     message: CompactString,
 }
@@ -133,6 +146,15 @@ impl Path {
     pub fn __iter_components_rev(&self) -> rc_list::Iter<'_, (Kind, CompactString)> {
         self.components.iter()
     }
+
+    #[doc(hidden)]
+    pub fn __iter_components(&self) -> impl DoubleEndedIterator<Item = (Kind, &CompactString)> {
+        let mut components = TempComponents::with_capacity(self.components.len());
+        for (kind, component) in self.components.iter() {
+            components.push((*kind, component));
+        }
+        components.into_iter()
+    }
 }
 
 type TempComponents<'a> = SmallVec<[(Kind, &'a CompactString); 8]>;
@@ -146,12 +168,7 @@ impl std::fmt::Debug for Path {
         impl<'a> std::fmt::Debug for Components<'a> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 let mut list = f.debug_list();
-                let mut components = TempComponents::with_capacity(self.path.components.len());
-
-                for (kind, component) in self.path.components.iter() {
-                    components.push((*kind, component));
-                }
-                list.entries(components.iter().rev().map(|(_, c)| c))
+                list.entries(self.path.__iter_components().rev().map(|(_, c)| c))
                     .finish()
             }
         }
@@ -164,20 +181,15 @@ impl std::fmt::Debug for Path {
 
 impl std::fmt::Display for Path {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let mut components = TempComponents::with_capacity(self.components.len());
-        for (kind, component) in self.components.iter() {
-            components.push((*kind, component));
-        }
-
-        let mut components = components.iter().rev().peekable();
+        let mut components = self.__iter_components().rev().peekable();
         let mut first = true;
         while let Some((kind, component)) = components.next() {
-            if first && kind == &Kind::Index {
+            if first && kind == Kind::Index {
                 f.write_str("[")?;
             }
             first = false;
             f.write_str(component.as_str())?;
-            if kind == &Kind::Index {
+            if kind == Kind::Index {
                 f.write_str("]")?;
             }
             if let Some((kind, _)) = components.peek() {
@@ -189,6 +201,17 @@ impl std::fmt::Display for Path {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Path {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let str = self.to_compact_string();
+        serializer.serialize_str(str.as_str())
     }
 }
 
