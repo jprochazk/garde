@@ -326,18 +326,7 @@ impl Parse for model::Message {
         if input.peek(syn::LitStr) {
             Ok(Self::Fmt(model::Str::parse(input)?))
         } else {
-            Ok(Self::Func(model::Func::parse(input)?))
-        }
-    }
-}
-
-impl Parse for model::Func {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let expr = syn::Expr::parse(input)?;
-        match expr {
-            syn::Expr::Closure(v) => Ok(model::Func::Closure(v)),
-            syn::Expr::Path(v) => Ok(model::Func::Path(v)),
-            _ => Err(syn::Error::new(expr.span(), "expected path or closure")),
+            Ok(Self::Func(syn::Expr::parse(input)?))
         }
     }
 }

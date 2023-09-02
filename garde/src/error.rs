@@ -65,7 +65,7 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn new(message: impl PathComponentKind) -> Self {
+    pub fn new(message: impl ToCompactString) -> Self {
         Self {
             message: message.to_compact_string(),
         }

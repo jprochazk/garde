@@ -296,7 +296,7 @@ fn check_rule(
         Message(message) => apply!(is_inner, field, message, message, span),
         Code(code) => apply!(is_inner, field, code, code.value, span),
         Dive => apply!(is_inner, field, dive, span, span),
-        Custom(custom) => rule_set.custom_rules.push(custom.expr()),
+        Custom(custom) => rule_set.custom_rules.push(custom),
         Required => apply!(rule_set, Required(), span),
         Ascii => apply!(rule_set, Ascii(), span),
         Alphanumeric => apply!(rule_set, Alphanumeric(), span),

@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use proc_macro2::{Ident, Span};
-use syn::{Expr, ExprClosure, ExprPath, Generics, Type};
+use syn::{Expr, Generics, Type};
 
 pub struct Input {
     pub ident: Ident,
@@ -60,23 +60,9 @@ pub struct Field {
     pub rules: Vec<RawRule>,
 }
 
-pub enum Func {
-    Closure(ExprClosure),
-    Path(ExprPath),
-}
-
-impl Func {
-    pub fn expr(self) -> syn::Expr {
-        match self {
-            Func::Closure(v) => syn::Expr::Closure(v),
-            Func::Path(v) => syn::Expr::Path(v),
-        }
-    }
-}
-
 pub enum Message {
     Fmt(Str),
-    Func(Func),
+    Func(Expr),
 }
 
 pub struct RawRule {
@@ -107,7 +93,7 @@ pub enum RawRuleKind {
     Prefix(Expr),
     Suffix(Expr),
     Pattern(Pattern),
-    Custom(Func),
+    Custom(Expr),
     Inner(List<RawRule>),
 }
 
