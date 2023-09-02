@@ -8,8 +8,8 @@ Test {
         "aaaaaaaaa",
     ],
 }
-value.field: byte length is lower than 10
-value.inner[0]: length is lower than 10
+field: byte length is lower than 10
+inner[0]: length is lower than 10
 
 Test {
     field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -17,8 +17,8 @@ Test {
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     ],
 }
-value.field: byte length is greater than 100
-value.inner[0]: length is greater than 100
+field: byte length is greater than 100
+inner[0]: length is greater than 100
 
 Test {
     field: "a😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂",
@@ -26,6 +26,6 @@ Test {
         "a😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂",
     ],
 }
-value.field: byte length is greater than 100
+field: byte length is greater than 100
 
 

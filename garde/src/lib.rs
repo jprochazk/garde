@@ -231,13 +231,16 @@
 //! impl<T: garde::Validate> garde::Validate for MyVec<T> {
 //!     type Context = T::Context;
 //!
-//!     fn validate(&self, ctx: &Self::Context) -> Result<(), garde::Errors> {
-//!         garde::Errors::list(|errors| {
-//!             for item in self.0.iter() {
-//!                 errors.push(item.validate(ctx));
-//!             }
-//!         })
-//!         .finish()
+//!     fn validate_into(
+//!         &self,
+//!         ctx: &Self::Context,
+//!         mut parent: &mut dyn FnMut() -> garde::Path,
+//!         report: &mut garde::Report
+//!     ) {
+//!         for (index, item) in self.0.iter().enumerate() {
+//!             let mut path = garde::util::nested_path!(parent, index);
+//!             item.validate_into(ctx, &mut path, report);
+//!         }
 //!     }
 //! }
 //!
@@ -253,18 +256,6 @@
 //!   value: u32,
 //! }
 //! ```
-//!
-//! To make implementing the trait easier, the [`Errors`][`crate::error::Errors`] type supports a nesting builders.
-//! - For list-like or tuple-like data structures, use [`Errors::list`][`crate::error::Errors::list`],
-//!   and its `.push` method to attach nested [`Errors`][`crate::error::Errors`].
-//! - For map-like data structures, use [`Errors::fields`][`crate::error::Errors::fields`],
-//!   and its `.insert` method to attach nested [`Errors`][`crate::error::Errors`].
-//! - For a "flat" error list, use [`Errors::simple`][`crate::error::Errors::simple`],
-//!   and its `.push` method to attach individual errors.
-//!
-//! The [`ListErrorBuilder::push`][`crate::error::ListErrorBuilder::push`] and
-//! [`FieldsErrorBuilder::insert`][`crate::error::FieldsErrorBuilder::insert`] methods
-//! will ignore any errors which are empty (via [`Errors::is_empty`][`crate::error::Errors::is_empty`]).
 //!
 //! ### Integration with web frameworks
 //!
@@ -287,9 +278,67 @@ pub mod error;
 pub mod rules;
 pub mod validate;
 
-pub use error::{Error, Errors};
+pub use error::{Error, Path, Report};
 #[cfg(feature = "derive")]
 pub use garde_derive::Validate;
 pub use validate::{Unvalidated, Valid, Validate};
 
 pub type Result = ::core::result::Result<(), Error>;
+
+pub mod external {
+    pub use {compact_str, smallvec};
+}
+
+#[doc(hidden)]
+pub mod util {
+    use crate::error::PathComponentKind;
+    use crate::Path;
+
+    #[inline]
+    pub fn __make_nested_path<'a, C: PathComponentKind + Clone + 'a>(
+        mut parent: impl FnMut() -> Path + 'a,
+        component: C,
+    ) -> impl FnMut() -> Path + 'a {
+        let mut nested = None::<Path>;
+
+        #[inline]
+        move || MaybeJoin::maybe_join(&mut nested, &mut parent, || component.clone())
+    }
+
+    #[doc(hidden)]
+    #[macro_export]
+    macro_rules! __nested_path {
+        ($parent:ident, $key:expr) => {
+            $crate::util::__make_nested_path(&mut $parent, &$key)
+        };
+    }
+
+    pub use crate::__nested_path as nested_path;
+
+    pub trait MaybeJoin {
+        fn maybe_join<C, P, CF>(&mut self, parent: P, component: CF) -> Path
+        where
+            C: PathComponentKind,
+            P: FnMut() -> Path,
+            CF: Fn() -> C;
+    }
+
+    impl MaybeJoin for Option<Path> {
+        #[inline]
+        fn maybe_join<C, P, CF>(&mut self, mut parent: P, component: CF) -> Path
+        where
+            C: PathComponentKind,
+            P: FnMut() -> Path,
+            CF: Fn() -> C,
+        {
+            match self {
+                Some(path) => path.clone(),
+                None => {
+                    let path = parent().join(component());
+                    *self = Some(path.clone());
+                    path
+                }
+            }
+        }
+    }
+}

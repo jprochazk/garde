@@ -8,8 +8,8 @@ Exact {
         "",
     ],
 }
-value.field: byte length is lower than 4
-value.inner[0]: byte length is lower than 4
+field: byte length is lower than 4
+inner[0]: byte length is lower than 4
 
 Exact {
     field: "a",
@@ -17,8 +17,8 @@ Exact {
         "a",
     ],
 }
-value.field: byte length is lower than 4
-value.inner[0]: byte length is lower than 4
+field: byte length is lower than 4
+inner[0]: byte length is lower than 4
 
 Exact {
     field: "😂😂",
@@ -26,7 +26,7 @@ Exact {
         "😂😂",
     ],
 }
-value.field: byte length is greater than 4
-value.inner[0]: byte length is greater than 4
+field: byte length is greater than 4
+inner[0]: byte length is greater than 4
 
 

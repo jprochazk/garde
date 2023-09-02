@@ -10,58 +10,53 @@
 //!
 //! The entrypoint is the [`Inner`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(inner(..))]` rule.
 
-use crate::error::ListErrorBuilder;
-use crate::Errors;
-
-pub fn apply<T, U, C, F>(field: &T, ctx: &C, f: F) -> Errors
+pub fn apply<T, U, K, F>(field: &T, f: F)
 where
-    T: Inner<U>,
-    F: Fn(&U, &C) -> Errors,
+    T: Inner<U, Key = K>,
+    F: FnMut(&U, &K),
 {
-    field.validate_inner(ctx, f)
+    field.validate_inner(f)
 }
 
 pub trait Inner<T> {
-    type ErrorBuilder;
+    type Key;
 
-    fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
+    fn validate_inner<F>(&self, f: F)
     where
-        F: Fn(&T, &C) -> Errors;
+        F: FnMut(&T, &Self::Key);
 }
 
 impl<T> Inner<T> for Vec<T> {
-    type ErrorBuilder = ListErrorBuilder;
+    type Key = usize;
 
-    fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
+    fn validate_inner<F>(&self, f: F)
     where
-        F: Fn(&T, &C) -> Errors,
+        F: FnMut(&T, &Self::Key),
     {
-        self.as_slice().validate_inner(ctx, f)
+        self.as_slice().validate_inner(f)
     }
 }
 
 impl<const N: usize, T> Inner<T> for [T; N] {
-    type ErrorBuilder = ListErrorBuilder;
+    type Key = usize;
 
-    fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
+    fn validate_inner<F>(&self, f: F)
     where
-        F: Fn(&T, &C) -> Errors,
+        F: FnMut(&T, &Self::Key),
     {
-        self.as_slice().validate_inner(ctx, f)
+        self.as_slice().validate_inner(f)
     }
 }
 
 impl<'a, T> Inner<T> for &'a [T] {
-    type ErrorBuilder = ListErrorBuilder;
+    type Key = usize;
 
-    fn validate_inner<C, F>(&self, ctx: &C, f: F) -> Errors
+    fn validate_inner<F>(&self, mut f: F)
     where
-        F: Fn(&T, &C) -> Errors,
+        F: FnMut(&T, &Self::Key),
     {
-        Errors::list(|b| {
-            for item in self.iter() {
-                b.push(f(item, ctx));
-            }
-        })
+        for (index, item) in self.iter().enumerate() {
+            f(item, &index);
+        }
     }
 }

@@ -8,7 +8,7 @@ Test {
         "😂",
     ],
 }
-value.field: not ascii
-value.inner[0]: not ascii
+field: not ascii
+inner[0]: not ascii
 
 

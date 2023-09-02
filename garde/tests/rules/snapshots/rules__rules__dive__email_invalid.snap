@@ -1,5 +1,5 @@
 ---
-source: garde_derive_tests/tests/./rules/dive.rs
+source: garde/tests/./rules/dive.rs
 expression: snapshot
 ---
 Test {
@@ -42,15 +42,15 @@ Test {
         field: "",
     },
 }
-value.arc.field: length is lower than 1
-value.array[0].field: length is lower than 1
-value.array_ref[0].field: length is lower than 1
-value.boxed.field: length is lower than 1
-value.by_ref.field: length is lower than 1
-value.field.field: length is lower than 1
-value.rc.field: length is lower than 1
-value.slice[0].field: length is lower than 1
-value.tuples[0].field: length is lower than 1
-value.tuples[1].field: length is lower than 1
+arc.field: length is lower than 1
+array[0].field: length is lower than 1
+array_ref[0].field: length is lower than 1
+boxed.field: length is lower than 1
+by_ref.field: length is lower than 1
+field.field: length is lower than 1
+rc.field: length is lower than 1
+slice[0].field: length is lower than 1
+tuples[0].field: length is lower than 1
+tuples[1].field: length is lower than 1
 
 

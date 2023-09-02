@@ -105,20 +105,5 @@ fn url_valid_wrapper() {
         field: "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
         inner: &["htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ"],
     };
-    println!("{}", value.validate(&()).unwrap_err());
+    println!("{:?}", value.validate(&()).unwrap_err());
 }
-
-/* #[derive(garde::Validate)]
-struct _Struct {
-    field: u64,
-}
-
-#[derive(garde::Validate)]
-struct _Tuple(u64);
-
-#[derive(garde::Validate)]
-enum _Enum {
-    Struct { field: u64 },
-    Tuple(u64),
-}
- */

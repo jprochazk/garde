@@ -8,8 +8,8 @@ Test {
         "a",
     ],
 }
-value.field: does not end with "test"
-value.inner[0]: does not end with "test"
+field: does not end with "test"
+inner[0]: does not end with "test"
 
 Test {
     field: "test_",
@@ -17,7 +17,7 @@ Test {
         "test_",
     ],
 }
-value.field: does not end with "test"
-value.inner[0]: does not end with "test"
+field: does not end with "test"
+inner[0]: does not end with "test"
 
 

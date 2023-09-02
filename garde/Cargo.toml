@@ -21,7 +21,7 @@ default = [
     "email-idna",
     "regex",
 ]
-serde = ["dep:serde"]
+serde = ["dep:serde", "compact_str/serde"]
 derive = ["dep:garde_derive"]
 url = ["dep:url"]
 credit-card = ["dep:card-validate"]
@@ -29,16 +29,21 @@ phone-number = ["dep:phonenumber"]
 email = ["regex"]
 email-idna = ["dep:idna"]
 regex = ["dep:regex", "dep:once_cell", "garde_derive?/regex"]
-pattern = ["regex"]  # for backward compatibility with <0.14.0
+pattern = ["regex"] # for backward compatibility with <0.14.0
 
 [dependencies]
 garde_derive = { version = "0.14.0", path = "../garde_derive", optional = true, default-features = false }
+
+smallvec = { version = "1.11.0", default-features = false }
+compact_str = { version = "0.7.1", default-features = false }
 
 serde = { version = "1", features = ["derive"], optional = true }
 url = { version = "2", optional = true }
 card-validate = { version = "2.3", optional = true }
 phonenumber = { version = "0.3.2+8.13.9", optional = true }
-regex = { version = "1", default-features = false, features = ["std"], optional = true }
+regex = { version = "1", default-features = false, features = [
+    "std",
+], optional = true }
 once_cell = { version = "1", optional = true }
 idna = { version = "0.3", optional = true }
 
@@ -47,3 +52,13 @@ trybuild = { version = "1.0" }
 insta = { version = "1.29" }
 owo-colors = { version = "3.5.0" }
 glob = "0.3.1"
+
+criterion = "0.4"
+
+[[bench]]
+name = "validation"
+harness = false
+
+[profile.profiling]
+inherits = "release"
+debug = true

@@ -1,297 +1,274 @@
 //! Error types used by `garde`.
 //!
-//! Even though these are primarily meant for usage in derive macros, care was taken to maintain
-//! composability of the various error constructors.
-//!
-//! The entrypoint of this module is the [`Errors`] type.
-//!
-//! An important highlight is the [`Errors::flatten`] function, which may be used to print readable errors.
+//! The entrypoint of this module is the [`Error`] type.
+#![allow(dead_code)]
 
+mod rc_list;
 use std::borrow::Cow;
-use std::collections::BTreeMap;
 
-/// This type encapsulates a single validation error.
-#[derive(Clone, Debug)]
+use compact_str::{CompactString, ToCompactString};
+use smallvec::SmallVec;
+
+use self::rc_list::List;
+
+/// A validation error report.
+///
+/// This type is used as a container for errors aggregated during validation.
+/// It is a flat list of `(Path, Error)`.
+/// A single field or list item may have any number of errors attached to it.
+///
+/// It is possible to extract all errors for specific field using the [`select`] macro.
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+pub struct Report {
+    errors: Vec<(Path, Error)>,
+}
+
+impl Report {
+    /// Create an empty [`Report`].
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        Self { errors: Vec::new() }
+    }
+
+    /// Append an [`Error`] into this report at the given [`Path`].
+    pub fn append(&mut self, path: Path, error: Error) {
+        self.errors.push((path, error));
+    }
+
+    /// Iterate over all `(Path, Error)` pairs.
+    pub fn iter(&self) -> impl Iterator<Item = &(Path, Error)> {
+        self.errors.iter()
+    }
+
+    /// Returns `true` if the report contains no validation errors.
+    pub fn is_empty(&self) -> bool {
+        self.errors.is_empty()
+    }
+}
+
+impl std::fmt::Display for Report {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for (path, error) in self.iter() {
+            writeln!(f, "{path}: {error}")?;
+        }
+        Ok(())
+    }
+}
+
+impl std::error::Error for Report {}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct Error {
-    /// The error message.
-    ///
-    /// Care should be taken to ensure this error message makes sense in the following context:
-    /// ```text,ignore
-    /// field_name: {message}
-    /// ```
-    pub message: Cow<'static, str>,
+    message: CompactString,
 }
 
 impl Error {
-    /// Create a simple error from an error message.
-    pub fn new(message: impl Into<Cow<'static, str>>) -> Self {
+    pub fn new(message: impl PathComponentKind) -> Self {
         Self {
-            message: message.into(),
+            message: message.to_compact_string(),
         }
+    }
+
+    pub fn message(&self) -> &str {
+        self.message.as_ref()
     }
 }
 
 impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.message)
     }
 }
 
 impl std::error::Error for Error {}
 
-/// This type encapsulates a set of (potentially nested) validation errors.
-#[derive(Clone, Debug)]
-pub enum Errors {
-    /// Errors attached directly to a field.
-    ///
-    /// For example, `#[garde(length(min=1, max=100))]` on a `T: Length` field.
-    Simple(Vec<Error>),
-    /// Errors which are attached both to a field and its inner value.
-    ///
-    /// For example, `#[garde(length(min=1, max=100), dive)]` on a `Vec<T: Validate>` field.
-    Nested {
-        outer: Box<Errors>,
-        inner: Box<Errors>,
-    },
-    /// A list of errors.
-    ///
-    /// For example,  `#[garde(dive)]` on a `Vec<T: Validate>` field.
-    List(Vec<Errors>),
-    /// A map of field names to errors.
-    ///
-    /// For example, `#[garde(dive)]` on a `HashMap<T: Validate>` field.
-    Fields(BTreeMap<Cow<'static, str>, Errors>),
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Path {
+    components: List<(Kind, CompactString)>,
 }
 
-impl From<Result<(), Errors>> for Errors {
-    fn from(value: Result<(), Errors>) -> Self {
-        match value {
-            Ok(()) => Errors::empty(),
-            Err(errors) => errors,
-        }
-    }
+#[doc(hidden)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Kind {
+    Key,
+    Index,
 }
 
-impl Errors {
-    /// Finish building the error.
-    ///
-    /// If `!self.is_empty()`, this returns `Err(self)`, otherwise this returns `Ok(())`.
-    ///
-    /// This exists to make converting the error into a `Result` easier
-    /// in manual implementations of `Validate`.
-    pub fn finish(self) -> Result<(), Errors> {
-        if !self.is_empty() {
-            Err(self)
-        } else {
-            Ok(())
-        }
-    }
+pub trait PathComponentKind: std::fmt::Display + ToCompactString + private::Sealed {
+    fn component_kind() -> Kind;
+}
 
-    /// If the error is empty, returns true.
-    ///
-    /// - For [`Errors::Simple`] and [`Errors::List`] the inner list must be empty.
-    /// - For [`Errors::Fields`] the inner map must be empty.
-    /// - For [`Errors::Nested`] both the list of errors *and* the nested error must be empty.
-    pub fn is_empty(&self) -> bool {
-        match self {
-            Errors::Simple(v) => v.is_empty(),
-            Errors::List(v) => v.is_empty(),
-            Errors::Fields(v) => v.is_empty(),
-            Errors::Nested { outer, inner } => outer.is_empty() && inner.is_empty(),
-        }
-    }
-
-    /// Recursively flattens the error, returning a list of `(path, error)`.
-    ///
-    /// `path` is generated by appending a suffix to the path each time the traversal function recurses:
-    /// - For [`Errors::List`], it appends `[{index}]` to each item.
-    /// - For [`Errors::Fields`], it appends `.{key}` for each key-value pair.
-    /// - For [`Errors::Nested`], it does not append anything.
-    /// - For [`Errors::Simple`], it does not append anything.
-    ///
-    /// For example:
-    /// ```text,ignore
-    /// let errors = Errors::Fields({
-    ///     "a": Errors::List([
-    ///         Errors::Simple([
-    ///             "length is lower than 15",
-    ///             "not alphanumeric"
-    ///         ])
-    ///     ]),
-    ///     "b": Errors::Fields({
-    ///         "c": Errors::Simple([
-    ///             "not a valid url"
-    ///         ])
-    ///     })
-    /// });
-    ///
-    /// println!("{errors}");
-    /// ```
-    /// Would print:
-    /// ```text,ignore
-    /// value.a[0]: length is lower than 15
-    /// value.a[0]: not alphanumeric
-    /// value.b.c: not a valid url
-    /// ```
-    pub fn flatten(&self) -> Vec<(String, Error)> {
-        fn flatten_inner(out: &mut Vec<(String, Error)>, current_path: String, errors: &Errors) {
-            match errors {
-                Errors::Simple(errors) => {
-                    for error in errors {
-                        out.push((current_path.clone(), error.clone()));
-                    }
-                }
-                Errors::Nested { outer, inner } => {
-                    flatten_inner(out, current_path.clone(), inner);
-                    flatten_inner(out, current_path, outer);
-                }
-                Errors::List(errors) => {
-                    for (i, errors) in errors.iter().enumerate() {
-                        flatten_inner(out, format!("{current_path}[{i}]"), errors);
-                    }
-                }
-                Errors::Fields(errors) => {
-                    for (key, errors) in errors.iter() {
-                        flatten_inner(out, format!("{current_path}.{key}"), errors);
-                    }
-                }
+macro_rules! impl_path_component_kind {
+    ($(@$($G:lifetime)*;)? $T:ty => $which:ident) => {
+        impl $(<$($G),*>)? private::Sealed for $T {}
+        impl $(<$($G),*>)? PathComponentKind for $T {
+            fn component_kind() -> Kind {
+                Kind::$which
             }
         }
-
-        let mut errors = vec![];
-        flatten_inner(&mut errors, "value".to_string(), self);
-        errors
     }
+}
 
-    /// Creates an empty list of errors.
-    ///
-    /// This is used as a fallback in case there is nothing to validate (such as when a field is marked `#[garde(skip)]`).
+impl_path_component_kind!(usize => Index);
+impl_path_component_kind!(@'a; &'a str => Key);
+impl_path_component_kind!(@'a; Cow<'a, str> => Key);
+impl_path_component_kind!(String => Key);
+impl_path_component_kind!(CompactString => Key);
+
+impl<'a, T: PathComponentKind> private::Sealed for &'a T {}
+impl<'a, T: PathComponentKind> PathComponentKind for &'a T {
+    fn component_kind() -> Kind {
+        T::component_kind()
+    }
+}
+
+mod private {
+    pub trait Sealed {}
+}
+
+impl Path {
     pub fn empty() -> Self {
-        Errors::Simple(Vec::new())
-    }
-
-    /// Creates a list of [`Error`] constructed via `f`.
-    pub fn simple<F>(f: F) -> Errors
-    where
-        F: FnMut(&mut SimpleErrorBuilder),
-    {
-        SimpleErrorBuilder::dive(f)
-    }
-
-    /// Creates a nested [`Errors`] from a list of simple errors constructed via `outer`, and an arbitrary `inner` error.
-    pub fn nested(outer: Errors, inner: Errors) -> Errors {
-        Errors::Nested {
-            outer: Box::new(outer),
-            inner: Box::new(inner),
+        Self {
+            components: List::new(),
         }
     }
 
-    /// Creates a list of [`Errors`] constructed via `f`.
-    pub fn list<F>(f: F) -> Errors
-    where
-        F: FnMut(&mut ListErrorBuilder),
-    {
-        ListErrorBuilder::dive(f)
-    }
-
-    /// Creates a map of field names to [`Errors`] constructed via `f`.
-    pub fn fields<F>(f: F) -> Errors
-    where
-        F: FnMut(&mut FieldsErrorBuilder),
-    {
-        FieldsErrorBuilder::dive(f)
-    }
-}
-
-// TODO: remove rename, change rules to not require field_name
-
-pub struct SimpleErrorBuilder {
-    inner: Vec<Error>,
-}
-
-impl SimpleErrorBuilder {
-    fn dive<F>(mut f: F) -> Errors
-    where
-        F: FnMut(&mut SimpleErrorBuilder),
-    {
-        let mut builder = SimpleErrorBuilder { inner: Vec::new() };
-        f(&mut builder);
-        Errors::Simple(builder.inner)
-    }
-
-    pub fn push(&mut self, error: Error) {
-        self.inner.push(error);
-    }
-}
-
-pub struct ListErrorBuilder {
-    inner: Vec<Errors>,
-}
-
-impl ListErrorBuilder {
-    fn dive<F>(mut f: F) -> Errors
-    where
-        F: FnMut(&mut ListErrorBuilder),
-    {
-        let mut builder = ListErrorBuilder { inner: Vec::new() };
-        f(&mut builder);
-        Errors::List(builder.inner)
-    }
-
-    pub fn push(&mut self, entry: impl Into<Errors>) {
-        let entry = entry.into();
-
-        if entry.is_empty() {
-            return;
+    pub fn new<C: PathComponentKind>(component: C) -> Self {
+        Self {
+            components: List::new().append((C::component_kind(), component.to_compact_string())),
         }
-
-        self.inner.push(entry);
-    }
-}
-
-pub struct FieldsErrorBuilder {
-    inner: BTreeMap<Cow<'static, str>, Errors>,
-}
-
-impl FieldsErrorBuilder {
-    fn dive<F>(mut f: F) -> Errors
-    where
-        F: FnMut(&mut FieldsErrorBuilder),
-    {
-        let mut builder = FieldsErrorBuilder {
-            inner: BTreeMap::new(),
-        };
-        f(&mut builder);
-        Errors::Fields(builder.inner)
     }
 
-    pub fn insert(&mut self, field: impl Into<Cow<'static, str>>, entry: impl Into<Errors>) {
-        let entry = entry.into();
-
-        if entry.is_empty() {
-            return;
+    pub fn join<C: PathComponentKind>(&self, component: C) -> Self {
+        Self {
+            components: self
+                .components
+                .append((C::component_kind(), component.to_compact_string())),
         }
+    }
 
-        let existing = self.inner.insert(field.into(), entry);
-        assert!(
-            existing.is_none(),
-            "each field should only be dived into once"
-        )
+    #[doc(hidden)]
+    pub fn __iter_components_rev(&self) -> rc_list::Iter<'_, (Kind, CompactString)> {
+        self.components.iter()
+    }
+
+    #[doc(hidden)]
+    pub fn __iter_components(&self) -> impl DoubleEndedIterator<Item = (Kind, &CompactString)> {
+        let mut components = TempComponents::with_capacity(self.components.len());
+        for (kind, component) in self.components.iter() {
+            components.push((*kind, component));
+        }
+        components.into_iter()
     }
 }
 
-impl std::fmt::Display for Errors {
+type TempComponents<'a> = SmallVec<[(Kind, &'a CompactString); 8]>;
+
+impl std::fmt::Debug for Path {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let errors = self.flatten();
-        let mut iter = errors.iter().peekable();
-        while let Some((path, error)) = iter.next() {
-            write!(f, "{path}: {error}")?;
-            if iter.peek().is_some() {
-                writeln!(f)?;
+        struct Components<'a> {
+            path: &'a Path,
+        }
+
+        impl<'a> std::fmt::Debug for Components<'a> {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                let mut list = f.debug_list();
+                list.entries(self.path.__iter_components().rev().map(|(_, c)| c))
+                    .finish()
             }
         }
+
+        f.debug_struct("Path")
+            .field("components", &Components { path: self })
+            .finish()
+    }
+}
+
+impl std::fmt::Display for Path {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let mut components = self.__iter_components().rev().peekable();
+        let mut first = true;
+        while let Some((kind, component)) = components.next() {
+            if first && kind == Kind::Index {
+                f.write_str("[")?;
+            }
+            first = false;
+            f.write_str(component.as_str())?;
+            if kind == Kind::Index {
+                f.write_str("]")?;
+            }
+            if let Some((kind, _)) = components.peek() {
+                match kind {
+                    Kind::Key => f.write_str(".")?,
+                    Kind::Index => f.write_str("[")?,
+                }
+            }
+        }
+
         Ok(())
     }
 }
 
-impl std::error::Error for Errors {}
+#[cfg(feature = "serde")]
+impl serde::Serialize for Path {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let str = self.to_compact_string();
+        serializer.serialize_str(str.as_str())
+    }
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __select {
+    ($report:expr, $($component:ident).*) => {{
+        let report = &$report;
+        let needle = [$(stringify!($component)),*];
+        report.iter()
+            .filter(move |(path, _)| {
+                let components = path.__iter_components_rev();
+                let needle = needle.iter().rev();
+
+                components.map(|(_, v)| v.as_str()).zip(needle).all(|(a, b)| &a == b)
+            })
+            .map(|(_, error)| error)
+    }}
+}
+
+pub use crate::__select as select;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const _: () = {
+        fn assert<T: Send>() {}
+        let _ = assert::<Report>;
+    };
+
+    #[test]
+    fn path_join() {
+        let path = Path::new("a").join("b").join("c");
+        assert_eq!(path.to_string(), "a.b.c");
+    }
+
+    #[test]
+    fn report_select() {
+        let mut report = Report::new();
+        report.append(Path::new("a").join("b"), Error::new("lol"));
+        report.append(
+            Path::new("a").join("b").join("c"),
+            Error::new("that seems wrong"),
+        );
+        report.append(Path::new("a").join("b").join("c"), Error::new("pog"));
+
+        assert_eq!(
+            select!(report, a.b.c).collect::<Vec<_>>(),
+            [&Error::new("that seems wrong"), &Error::new("pog")]
+        );
+    }
+}

@@ -8,7 +8,7 @@ Struct {
         "asdf",
     ],
 }
-value.field: not a valid url: relative URL without a base
-value.inner[0]: not a valid url: relative URL without a base
+field: not a valid url: relative URL without a base
+inner[0]: not a valid url: relative URL without a base
 
 

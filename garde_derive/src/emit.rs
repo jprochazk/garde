@@ -10,6 +10,15 @@ pub fn emit(input: model::Validate) -> TokenStream2 {
     input.to_token_stream()
 }
 
+/*
+fn validate_into<F: FnMut() -> Path>(
+        &self,
+        ctx: &Self::Context,
+        parent: F,
+        report: &mut Report,
+    );
+*/
+
 impl ToTokens for model::Validate {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let ident = &self.ident;
@@ -22,13 +31,15 @@ impl ToTokens for model::Validate {
                 type Context = #context_ty ;
 
                 #[allow(clippy::needless_borrow)]
-                fn validate(&self, #context_ident: &Self::Context) -> ::core::result::Result<(), ::garde::error::Errors> {
+                fn validate_into(
+                    &self,
+                    #context_ident: &Self::Context,
+                    mut __garde_path: &mut dyn FnMut() -> ::garde::Path,
+                    __garde_report: &mut ::garde::error::Report,
+                ) {
                     let __garde_user_ctx = &#context_ident;
 
-                    (
-                        #kind
-                    )
-                    .finish()
+                    #kind
                 }
             }
         }
@@ -71,19 +82,14 @@ struct Validation<'a>(&'a model::ValidateVariant);
 
 impl<'a> ToTokens for Validation<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
-        // TODO: deduplicate this a bit
         match &self.0 {
             model::ValidateVariant::Struct(fields) => {
                 let fields = Struct(fields);
-                quote! {
-                    ::garde::error::Errors::fields(|__garde_errors| {#fields})
-                }
+                quote! {{#fields}}
             }
             model::ValidateVariant::Tuple(fields) => {
                 let fields = Tuple(fields);
-                quote! {
-                    ::garde::error::Errors::list(|__garde_errors| {#fields})
-                }
+                quote! {{#fields}}
             }
         }
         .to_tokens(tokens)
@@ -99,12 +105,10 @@ impl<'a> ToTokens for Struct<'a> {
                 .iter()
                 .map(|(key, field)| (Binding::Ident(key), field, key.to_string())),
             |key, value| {
-                quote! {
-                    __garde_errors.insert(
-                        #key,
-                        #value,
-                    );
-                }
+                quote! {{
+                    let mut __garde_path = ::garde::util::nested_path!(__garde_path, #key);
+                    #value
+                }}
             },
         )
         .to_tokens(tokens)
@@ -119,11 +123,12 @@ impl<'a> ToTokens for Tuple<'a> {
             self.0
                 .iter()
                 .enumerate()
-                .map(|(index, field)| (Binding::Index(index), field, ())),
-            |(), value| {
-                quote! {
-                    __garde_errors.push(#value);
-                }
+                .map(|(index, field)| (Binding::Index(index), field, index)),
+            |index, value| {
+                quote! {{
+                    let mut __garde_path = ::garde::util::nested_path!(__garde_path, #index);
+                    #value
+                }}
             },
         )
         .to_tokens(tokens)
@@ -139,13 +144,7 @@ impl<'a> ToTokens for Inner<'a> {
         let outer = match rule_set.has_top_level_rules() {
             true => {
                 let rules = Rules(rule_set);
-                Some(quote! {
-                    ::garde::error::Errors::simple(
-                        |__garde_errors| {
-                            #rules
-                        }
-                    )
-                })
+                Some(quote! {#rules})
             }
             false => None,
         };
@@ -153,16 +152,11 @@ impl<'a> ToTokens for Inner<'a> {
 
         let value = match (outer, inner) {
             (Some(outer), Some(inner)) => quote! {
-                    ::garde::error::Errors::nested(
-                        #outer,
-                        #inner,
-                    )
+                #outer
+                #inner
             },
             (None, Some(inner)) => quote! {
-                    ::garde::error::Errors::nested(
-                        ::garde::error::Errors::empty(),
-                        #inner,
-                    )
+                #inner
             },
             (Some(outer), None) => outer,
             (None, None) => return,
@@ -171,11 +165,11 @@ impl<'a> ToTokens for Inner<'a> {
         quote! {
             ::garde::rules::inner::apply(
                 &*__garde_binding,
-                __garde_user_ctx,
-                |__garde_binding, __garde_user_ctx| {
+                |__garde_binding, __garde_inner_key| {
+                    let mut __garde_path = ::garde::util::nested_path!(__garde_path, __garde_inner_key);
                     #value
                 }
-            )
+            );
         }
         .to_tokens(tokens)
     }
@@ -205,10 +199,10 @@ impl<'a> ToTokens for Rules<'a> {
         for custom_rule in rule_set.custom_rules.iter() {
             quote! {
                 if let Err(__garde_error) = (#custom_rule)(&*__garde_binding, &__garde_user_ctx) {
-                    __garde_errors.push(__garde_error)
+                    __garde_report.append(__garde_path(), __garde_error);
                 }
             }
-            .to_tokens(tokens)
+            .to_tokens(tokens);
         }
 
         for rule in rule_set.rules.iter() {
@@ -249,9 +243,10 @@ impl<'a> ToTokens for Rules<'a> {
                     }),
                 },
             };
+
             quote! {
                 if let Err(__garde_error) = (::garde::rules::#name::apply)(&*__garde_binding, #args) {
-                    __garde_errors.push(__garde_error)
+                    __garde_report.append(__garde_path(), __garde_error);
                 }
             }
             .to_tokens(tokens)
@@ -281,24 +276,19 @@ where
         for (binding, field, extra) in fields {
             let rules = Rules(&field.rule_set);
             let outer = match field.has_top_level_rules() {
-                true => Some(quote! {
-                    ::garde::error::Errors::simple(|__garde_errors| {#rules})
-                }),
+                true => Some(quote! {{#rules}}),
                 false => None,
             };
             let inner = match (&field.dive, &field.rule_set.inner) {
                 (Some(..), None) => Some(quote! {
-                    ::garde::validate::Validate::validate(
+                    ::garde::validate::Validate::validate_into(
                         &*__garde_binding,
                         __garde_user_ctx,
-                    )
-                        .err()
-                        .unwrap_or_else(::garde::error::Errors::empty)
+                        &mut __garde_path,
+                        __garde_report,
+                    );
                 }),
-                (None, Some(inner)) => {
-                    let inner = Inner(inner);
-                    Some(inner.to_token_stream())
-                }
+                (None, Some(inner)) => Some(Inner(inner).to_token_stream()),
                 (None, None) => None,
                 // TODO: encode this via the type system instead?
                 _ => unreachable!("`dive` and `inner` are mutually exclusive"),
@@ -306,28 +296,17 @@ where
 
             let value = match (outer, inner) {
                 (Some(outer), Some(inner)) => quote! {
-                    {
-                        let __garde_binding = &*#binding;
-                        ::garde::error::Errors::nested(
-                            #outer,
-                            #inner,
-                        )
-                    }
+                    let __garde_binding = &*#binding;
+                    #inner
+                    #outer
                 },
                 (None, Some(inner)) => quote! {
-                    {
-                        let __garde_binding = &*#binding;
-                        ::garde::error::Errors::nested(
-                            ::garde::error::Errors::empty(),
-                            #inner,
-                        )
-                    }
+                    let __garde_binding = &*#binding;
+                    #inner
                 },
                 (Some(outer), None) => quote! {
-                    {
-                        let __garde_binding = &*#binding;
-                        #outer
-                    }
+                    let __garde_binding = &*#binding;
+                    #outer
                 },
                 (None, None) => unreachable!("field should already be skipped"),
             };

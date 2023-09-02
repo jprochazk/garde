@@ -8,8 +8,8 @@ TestIpV6 {
         "foo",
     ],
 }
-value.field: not a valid IPv6 address
-value.inner[0]: not a valid IPv6 address
+field: not a valid IPv6 address
+inner[0]: not a valid IPv6 address
 
 TestIpV6 {
     field: "127.0.0.1",
@@ -17,8 +17,8 @@ TestIpV6 {
         "127.0.0.1",
     ],
 }
-value.field: not a valid IPv6 address
-value.inner[0]: not a valid IPv6 address
+field: not a valid IPv6 address
+inner[0]: not a valid IPv6 address
 
 TestIpV6 {
     field: "12345::",
@@ -26,8 +26,8 @@ TestIpV6 {
         "12345::",
     ],
 }
-value.field: not a valid IPv6 address
-value.inner[0]: not a valid IPv6 address
+field: not a valid IPv6 address
+inner[0]: not a valid IPv6 address
 
 TestIpV6 {
     field: "1::2::3::4",
@@ -35,8 +35,8 @@ TestIpV6 {
         "1::2::3::4",
     ],
 }
-value.field: not a valid IPv6 address
-value.inner[0]: not a valid IPv6 address
+field: not a valid IPv6 address
+inner[0]: not a valid IPv6 address
 
 TestIpV6 {
     field: "1::zzz",
@@ -44,8 +44,8 @@ TestIpV6 {
         "1::zzz",
     ],
 }
-value.field: not a valid IPv6 address
-value.inner[0]: not a valid IPv6 address
+field: not a valid IPv6 address
+inner[0]: not a valid IPv6 address
 
 TestIpV6 {
     field: "1:2",
@@ -53,8 +53,8 @@ TestIpV6 {
         "1:2",
     ],
 }
-value.field: not a valid IPv6 address
-value.inner[0]: not a valid IPv6 address
+field: not a valid IPv6 address
+inner[0]: not a valid IPv6 address
 
 TestIpV6 {
     field: "fe80::223: 6cff:fe8a:2e8a",
@@ -62,8 +62,8 @@ TestIpV6 {
         "fe80::223: 6cff:fe8a:2e8a",
     ],
 }
-value.field: not a valid IPv6 address
-value.inner[0]: not a valid IPv6 address
+field: not a valid IPv6 address
+inner[0]: not a valid IPv6 address
 
 TestIpV6 {
     field: "2a02::223:6cff :fe8a:2e8a",
@@ -71,8 +71,8 @@ TestIpV6 {
         "2a02::223:6cff :fe8a:2e8a",
     ],
 }
-value.field: not a valid IPv6 address
-value.inner[0]: not a valid IPv6 address
+field: not a valid IPv6 address
+inner[0]: not a valid IPv6 address
 
 TestIpV6 {
     field: "::ffff:999.42.16.14",
@@ -80,8 +80,8 @@ TestIpV6 {
         "::ffff:999.42.16.14",
     ],
 }
-value.field: not a valid IPv6 address
-value.inner[0]: not a valid IPv6 address
+field: not a valid IPv6 address
+inner[0]: not a valid IPv6 address
 
 TestIpV6 {
     field: "::ffff:zzzz:0a0a",
@@ -89,7 +89,7 @@ TestIpV6 {
         "::ffff:zzzz:0a0a",
     ],
 }
-value.field: not a valid IPv6 address
-value.inner[0]: not a valid IPv6 address
+field: not a valid IPv6 address
+inner[0]: not a valid IPv6 address
 
 

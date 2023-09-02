@@ -8,8 +8,8 @@ Test {
         "aaaaaaaaa",
     ],
 }
-value.field: length is lower than 10
-value.inner[0]: length is lower than 10
+field: length is lower than 10
+inner[0]: length is lower than 10
 
 Test {
     field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -17,7 +17,7 @@ Test {
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     ],
 }
-value.field: length is greater than 100
-value.inner[0]: length is greater than 100
+field: length is greater than 100
+inner[0]: length is greater than 100
 
 

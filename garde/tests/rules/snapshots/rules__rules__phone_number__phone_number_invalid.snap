@@ -8,8 +8,8 @@ Test {
         "14152370800",
     ],
 }
-value.field: not a valid phone number: invalid country code
-value.inner[0]: not a valid phone number: invalid country code
+field: not a valid phone number: invalid country code
+inner[0]: not a valid phone number: invalid country code
 
 Test {
     field: "0642926829",
@@ -17,8 +17,8 @@ Test {
         "0642926829",
     ],
 }
-value.field: not a valid phone number: invalid country code
-value.inner[0]: not a valid phone number: invalid country code
+field: not a valid phone number: invalid country code
+inner[0]: not a valid phone number: invalid country code
 
 Test {
     field: "00642926829",
@@ -26,8 +26,8 @@ Test {
         "00642926829",
     ],
 }
-value.field: not a valid phone number: invalid country code
-value.inner[0]: not a valid phone number: invalid country code
+field: not a valid phone number: invalid country code
+inner[0]: not a valid phone number: invalid country code
 
 Test {
     field: "A012",
@@ -35,8 +35,8 @@ Test {
         "A012",
     ],
 }
-value.field: not a valid phone number: invalid country code
-value.inner[0]: not a valid phone number: invalid country code
+field: not a valid phone number: invalid country code
+inner[0]: not a valid phone number: invalid country code
 
 Test {
     field: "TEXT",
@@ -44,7 +44,7 @@ Test {
         "TEXT",
     ],
 }
-value.field: not a valid phone number: not a number
-value.inner[0]: not a valid phone number: not a number
+field: not a valid phone number: not a number
+inner[0]: not a valid phone number: not a number
 
 

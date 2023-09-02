@@ -13,10 +13,10 @@ Test {
     ],
     uses_ctx: "",
 }
-value.a: not equal to test
-value.b: `b` is not equal to test
-value.inner_a[0]: not equal to test
-value.inner_b[0]: `b` is not equal to test
-value.uses_ctx: length is lower than 4
+a: not equal to test
+b: `b` is not equal to test
+inner_a[0]: not equal to test
+inner_b[0]: `b` is not equal to test
+uses_ctx: length is lower than 4
 
 

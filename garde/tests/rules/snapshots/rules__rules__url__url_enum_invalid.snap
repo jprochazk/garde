@@ -11,13 +11,13 @@ Struct {
         ],
     },
 }
-value.field: not a valid url: relative URL without a base
-value.v.field: not a valid url: relative URL without a base
-value.v.inner[0]: not a valid url: relative URL without a base
+field: not a valid url: relative URL without a base
+v.field: not a valid url: relative URL without a base
+v.inner[0]: not a valid url: relative URL without a base
 
 Tuple(
     "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
 )
-value[0]: not a valid url: relative URL without a base
+[0]: not a valid url: relative URL without a base
 
 
