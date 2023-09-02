@@ -241,11 +241,12 @@ impl<T: garde::Validate> garde::Validate for MyVec<T> {
     fn validate_into(
         &self,
         ctx: &Self::Context,
-        current_path: &garde::Path,
+        mut parent: &mut dyn FnMut() -> garde::Path,
         report: &mut garde::Report
     ) {
         for (index, item) in self.0.iter().enumerate() {
-            item.validate_into(ctx, &current_path.join(index), report);
+            let mut path = garde::util::nested_path!(parent, index);
+            item.validate_into(ctx, &mut path, report);
         }
     }
 }
