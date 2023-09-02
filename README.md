@@ -12,6 +12,7 @@ A Rust validation library
 - [Inner type validation](#inner-type-validation)
 - [Handling Option](#handling-option)
 - [Custom validation](#custom-validation)
+- [Context/Self access](#contextself-access)
 - [Implementing rules](#implementing-rules)
 - [Implementing `Validate`](#implementing-validate)
 - [Integration with web frameworks](#integration-with-web-frameworks)
@@ -170,7 +171,7 @@ Validation may be customized via the `custom` rule, and the `context` attribute.
 
 The context may be any type without generic parameters. By default, the context is `()`.
 
-```rust
+```rust,ignore
 #[derive(garde::Validate)]
 #[garde(context(PasswordContext))]
 struct User {
@@ -200,6 +201,27 @@ user.validate(&ctx)?;
 
 The validator function may accept the value as a reference to any type which it derefs to.
 In the above example, it is possible to use `&str`, because `password` is a `String`, and `String` derefs to `&str`.
+
+### Context/Self access
+
+It's generally possible to also access the context and `self`, because they are in scope in the output of the proc macro:
+```rust
+struct Limits {
+    min: usize,
+    max: usize,
+}
+
+struct Config {
+    username: Limits,
+}
+
+#[derive(garde::Validate)]
+#[garde(context(Config as ctx))]
+struct User {
+    #[garde(length(min = ctx.username.min, max = ctx.username.max))]
+    username: String,
+}
+```
 
 ### Implementing rules
 
