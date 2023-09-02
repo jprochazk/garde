@@ -245,6 +245,11 @@ pub use crate::__select as select;
 mod tests {
     use super::*;
 
+    const _: () = {
+        fn assert<T: Send>() {}
+        let _ = assert::<Report>;
+    };
+
     #[test]
     fn path_join() {
         let path = Path::new("a").join("b").join("c");
