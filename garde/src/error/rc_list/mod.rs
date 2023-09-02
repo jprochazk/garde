@@ -1,6 +1,5 @@
-use std::cell::RefCell;
 use std::mem::{swap, transmute};
-use std::rc::Rc;
+use std::sync::Arc;
 
 /// A reverse singly-linked list.
 ///
@@ -10,16 +9,16 @@ use std::rc::Rc;
 /// We're optimizing for cloning the list and
 /// appending an item onto its end, both of which
 /// are O(1).
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct List<T> {
-    node: RefCell<Option<Rc<Node<T>>>>,
+    node: Option<Arc<Node<T>>>,
     length: usize,
 }
 
 impl<T> List<T> {
     pub fn new() -> Self {
         Self {
-            node: RefCell::new(None),
+            node: None,
             length: 0,
         }
     }
@@ -33,23 +32,13 @@ impl<T> List<T> {
     }
 
     pub fn append(&self, value: T) -> Self {
-        let list = Self {
-            node: self.node.clone(),
-            length: self.length + 1,
-        };
-
-        let mut node = list.node.borrow_mut();
-        if let Some(node) = node.as_mut() {
-            *node = Rc::new(Node {
-                prev: Some(Rc::clone(node)),
+        Self {
+            node: Some(Arc::new(Node {
+                prev: self.node.clone(),
                 value,
-            });
-        } else {
-            *node = Some(Rc::new(Node { prev: None, value }));
+            })),
+            length: self.length + 1,
         }
-        drop(node);
-
-        list
     }
 
     pub fn iter(&self) -> Iter<'_, T> {
@@ -57,31 +46,16 @@ impl<T> List<T> {
     }
 }
 
-impl<T> Clone for List<T> {
-    fn clone(&self) -> Self {
-        Self {
-            node: self.node.clone(),
-            length: self.length,
-        }
-    }
-}
-
-impl<T: std::hash::Hash> std::hash::Hash for List<T> {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.node.borrow().hash(state);
-    }
-}
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct Node<T> {
-    prev: Option<Rc<Node<T>>>,
+    prev: Option<Arc<Node<T>>>,
     value: T,
 }
 
 pub struct Iter<'a, T> {
     list: &'a List<T>,
-    next: Option<Rc<Node<T>>>,
-    node: Option<Rc<Node<T>>>,
+    next: Option<Arc<Node<T>>>,
+    node: Option<Arc<Node<T>>>,
 }
 
 impl<'a, T> Iter<'a, T> {
@@ -89,7 +63,7 @@ impl<'a, T> Iter<'a, T> {
         Self {
             list,
             next: None,
-            node: list.node.borrow().clone(),
+            node: list.node.clone(),
         }
     }
 }
@@ -101,13 +75,13 @@ impl<'a, T> Iterator for Iter<'a, T> {
         let mut node = self.node.take();
         swap(&mut self.next, &mut node);
         if let Some(prev) = self.next.as_ref().and_then(|node| node.prev.as_ref()) {
-            self.node = Some(Rc::clone(prev));
+            self.node = Some(Arc::clone(prev));
         }
         self.next.as_ref().map(|next| {
             // SAFETY:
             // We're returning a reference here, but the reference points
-            // to the inside of an `Rc<Node<T>>`, meaning the reference
-            // to it is valid for as long as the `Rc` lives. It lives for
+            // to the inside of an `Arc<Node<T>>`, meaning the reference
+            // to it is valid for as long as the `Arc` lives. It lives for
             // as long as the `list` it came from, which is longer than
             // `self` here.
             // The items within `list` will never be moved around or
@@ -124,6 +98,11 @@ impl<'a, T> Iterator for Iter<'a, T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const _: () = {
+        fn assert<T: Send>() {}
+        let _ = assert::<List<u8>>;
+    };
 
     #[test]
     fn rc_list_shenanigans() {
