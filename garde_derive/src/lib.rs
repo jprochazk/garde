@@ -120,10 +120,17 @@ pub fn select(input: TokenStream) -> TokenStream {
         let needle = [#(#components),*];
         report.iter()
             .filter(move |(path, _)| {
-                let components = path.__iter_components_rev();
-                let needle = needle.iter().rev();
-
-                components.map(|(_, v)| v.as_str()).zip(needle).all(|(a, b)| &a == b)
+                if needle.len() > path.len() {
+                    return false
+                }
+                let mut path = path.__iter().rev().map(|(_, v)| v.as_str());
+                for left in needle.iter().copied() {
+                    match path.next() {
+                        Some(right) => if left != right { return false },
+                        None => return false,
+                    }
+                }
+                true
             })
             .map(|(_, error)| error)
     }}

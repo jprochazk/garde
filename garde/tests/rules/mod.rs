@@ -17,6 +17,7 @@ mod pattern;
 mod phone_number;
 mod prefix;
 mod range;
+mod select;
 mod skip;
 mod suffix;
 mod url;

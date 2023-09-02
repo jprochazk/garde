@@ -135,6 +135,14 @@ impl Path {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.components.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.components.is_empty()
+    }
+
     pub fn new<C: PathComponentKind>(component: C) -> Self {
         Self {
             components: List::new().append((C::component_kind(), component.to_compact_string())),
@@ -150,12 +158,7 @@ impl Path {
     }
 
     #[doc(hidden)]
-    pub fn __iter_components_rev(&self) -> rc_list::Iter<'_, (Kind, CompactString)> {
-        self.components.iter()
-    }
-
-    #[doc(hidden)]
-    pub fn __iter_components(&self) -> impl DoubleEndedIterator<Item = (Kind, &CompactString)> {
+    pub fn __iter(&self) -> impl DoubleEndedIterator<Item = (Kind, &CompactString)> {
         let mut components = TempComponents::with_capacity(self.components.len());
         for (kind, component) in self.components.iter() {
             components.push((*kind, component));
@@ -175,7 +178,7 @@ impl std::fmt::Debug for Path {
         impl<'a> std::fmt::Debug for Components<'a> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 let mut list = f.debug_list();
-                list.entries(self.path.__iter_components().rev().map(|(_, c)| c))
+                list.entries(self.path.__iter().rev().map(|(_, c)| c))
                     .finish()
             }
         }
@@ -188,7 +191,7 @@ impl std::fmt::Debug for Path {
 
 impl std::fmt::Display for Path {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let mut components = self.__iter_components().rev().peekable();
+        let mut components = self.__iter().rev().peekable();
         let mut first = true;
         while let Some((kind, component)) = components.next() {
             if first && kind == Kind::Index {
