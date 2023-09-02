@@ -96,7 +96,7 @@ pub enum Kind {
     Index,
 }
 
-pub trait PathComponentKind: ToCompactString + private::Sealed {
+pub trait PathComponentKind: std::fmt::Display + ToCompactString + private::Sealed {
     fn component_kind() -> Kind;
 }
 
@@ -116,6 +116,13 @@ impl_path_component_kind!(@'a; &'a str => Key);
 impl_path_component_kind!(@'a; Cow<'a, str> => Key);
 impl_path_component_kind!(String => Key);
 impl_path_component_kind!(CompactString => Key);
+
+impl<'a, T: PathComponentKind> private::Sealed for &'a T {}
+impl<'a, T: PathComponentKind> PathComponentKind for &'a T {
+    fn component_kind() -> Kind {
+        T::component_kind()
+    }
+}
 
 mod private {
     pub trait Sealed {}

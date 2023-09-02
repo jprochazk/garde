@@ -34,7 +34,7 @@
     missing_debug_implementations,
     missing_docs
 )]
-#![deny(unreachable_pub, private_in_public)]
+#![deny(unreachable_pub)]
 #![forbid(unsafe_code)]
 
 mod error;

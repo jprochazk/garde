@@ -10,6 +10,15 @@ pub fn emit(input: model::Validate) -> TokenStream2 {
     input.to_token_stream()
 }
 
+/*
+fn validate_into<F: FnMut() -> Path>(
+        &self,
+        ctx: &Self::Context,
+        parent: F,
+        report: &mut Report,
+    );
+*/
+
 impl ToTokens for model::Validate {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let ident = &self.ident;
@@ -25,7 +34,7 @@ impl ToTokens for model::Validate {
                 fn validate_into(
                     &self,
                     #context_ident: &Self::Context,
-                    __garde_path: ::garde::error::Path,
+                    mut __garde_path: &mut dyn FnMut() -> ::garde::Path,
                     __garde_report: &mut ::garde::error::Report,
                 ) {
                     let __garde_user_ctx = &#context_ident;
@@ -97,7 +106,7 @@ impl<'a> ToTokens for Struct<'a> {
                 .map(|(key, field)| (Binding::Ident(key), field, key.to_string())),
             |key, value| {
                 quote! {{
-                    let __garde_path = __garde_path.join(#key);
+                    let mut __garde_path = ::garde::util::nested_path!(__garde_path, #key);
                     #value
                 }}
             },
@@ -117,7 +126,7 @@ impl<'a> ToTokens for Tuple<'a> {
                 .map(|(index, field)| (Binding::Index(index), field, index)),
             |index, value| {
                 quote! {{
-                    let __garde_path = __garde_path.join(#index);
+                    let mut __garde_path = ::garde::util::nested_path!(__garde_path, #index);
                     #value
                 }}
             },
@@ -156,10 +165,8 @@ impl<'a> ToTokens for Inner<'a> {
         quote! {
             ::garde::rules::inner::apply(
                 &*__garde_binding,
-                __garde_user_ctx,
-                __garde_path,
-                __garde_report,
-                |__garde_binding, __garde_user_ctx, __garde_path, __garde_report| {
+                |__garde_binding, __garde_inner_key| {
+                    let mut __garde_path = ::garde::util::nested_path!(__garde_path, __garde_inner_key);
                     #value
                 }
             );
@@ -189,24 +196,16 @@ impl<'a> ToTokens for Rules<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let Rules(rule_set) = self;
 
-        let clone = quote!(.clone());
-
-        let mut custom_rules = rule_set.custom_rules.iter().peekable();
-        while let Some(custom_rule) = custom_rules.next() {
-            let has_next = rule_set.inner.is_some()
-                || !rule_set.rules.is_empty()
-                || custom_rules.peek().is_some();
-            let clone = if has_next { Some(&clone) } else { None };
+        for custom_rule in rule_set.custom_rules.iter() {
             quote! {
                 if let Err(__garde_error) = (#custom_rule)(&*__garde_binding, &__garde_user_ctx) {
-                    __garde_report.append(__garde_path #clone, __garde_error);
+                    __garde_report.append(__garde_path(), __garde_error);
                 }
             }
             .to_tokens(tokens);
         }
 
-        let mut rules = rule_set.rules.iter().peekable();
-        while let Some(rule) = rules.next() {
+        for rule in rule_set.rules.iter() {
             let name = format_ident!("{}", rule.name());
             use model::ValidateRule::*;
             let args = match rule {
@@ -245,11 +244,9 @@ impl<'a> ToTokens for Rules<'a> {
                 },
             };
 
-            let has_next = rule_set.inner.is_some() || rules.peek().is_some();
-            let clone = if has_next { Some(&clone) } else { None };
             quote! {
                 if let Err(__garde_error) = (::garde::rules::#name::apply)(&*__garde_binding, #args) {
-                    __garde_report.append(__garde_path #clone, __garde_error);
+                    __garde_report.append(__garde_path(), __garde_error);
                 }
             }
             .to_tokens(tokens)
@@ -283,22 +280,14 @@ where
                 false => None,
             };
             let inner = match (&field.dive, &field.rule_set.inner) {
-                (Some(..), None) => {
-                    let has_next = !field.rule_set.is_empty();
-                    let clone = if has_next {
-                        Some(quote!(.clone()))
-                    } else {
-                        None
-                    };
-                    Some(quote! {
-                        ::garde::validate::Validate::validate_into(
-                            &*__garde_binding,
-                            __garde_user_ctx,
-                            __garde_path #clone,
-                            __garde_report,
-                        );
-                    })
-                }
+                (Some(..), None) => Some(quote! {
+                    ::garde::validate::Validate::validate_into(
+                        &*__garde_binding,
+                        __garde_user_ctx,
+                        &mut __garde_path,
+                        __garde_report,
+                    );
+                }),
                 (None, Some(inner)) => Some(Inner(inner).to_token_stream()),
                 (None, None) => None,
                 // TODO: encode this via the type system instead?
