@@ -129,20 +129,50 @@ macro_rules! invalid_input {
     };
 }
 
-fn benchmark(c: &mut Criterion) {
+fn validate(c: &mut Criterion) {
     let inputs = vec![
-        valid_input!(valid_input!(valid_input!(valid_input!()))),
-        invalid_input!(invalid_input!(invalid_input!(invalid_input!()))),
+        (
+            "valid",
+            valid_input!(valid_input!(valid_input!(valid_input!()))),
+        ),
+        (
+            "invalid",
+            invalid_input!(invalid_input!(invalid_input!(invalid_input!()))),
+        ),
     ];
 
-    c.bench_function("validate", |b| {
-        b.iter(|| {
-            for input in inputs.iter() {
+    for (name, input) in inputs {
+        c.bench_function(&format!("validate `{name}`"), |b| {
+            b.iter(|| {
                 let _ = black_box(input.validate(&()));
-            }
-        })
-    });
+            })
+        });
+    }
 }
 
-criterion_group!(benches, benchmark);
+fn display(c: &mut Criterion) {
+    let inputs = vec![
+        (
+            "valid",
+            valid_input!(valid_input!(valid_input!(valid_input!()))).validate(&()),
+        ),
+        (
+            "invalid",
+            invalid_input!(invalid_input!(invalid_input!(invalid_input!()))).validate(&()),
+        ),
+    ];
+
+    for (name, input) in inputs {
+        c.bench_function(&format!("display `{name}`"), |b| {
+            b.iter(|| {
+                let _ = black_box(match &input {
+                    Ok(()) => String::new(),
+                    Err(e) => e.to_string(),
+                });
+            })
+        });
+    }
+}
+
+criterion_group!(benches, validate, display);
 criterion_main!(benches);
