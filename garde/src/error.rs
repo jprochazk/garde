@@ -222,25 +222,6 @@ impl serde::Serialize for Path {
     }
 }
 
-#[doc(hidden)]
-#[macro_export]
-macro_rules! __select {
-    ($report:expr, $($component:ident).*) => {{
-        let report = &$report;
-        let needle = [$(stringify!($component)),*];
-        report.iter()
-            .filter(move |(path, _)| {
-                let components = path.__iter_components_rev();
-                let needle = needle.iter().rev();
-
-                components.map(|(_, v)| v.as_str()).zip(needle).all(|(a, b)| &a == b)
-            })
-            .map(|(_, error)| error)
-    }}
-}
-
-pub use crate::__select as select;
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -265,10 +246,16 @@ mod tests {
             Error::new("that seems wrong"),
         );
         report.append(Path::new("a").join("b").join("c"), Error::new("pog"));
+        report.append(Path::new("array").join("0").join("c"), Error::new("pog"));
 
         assert_eq!(
-            select!(report, a.b.c).collect::<Vec<_>>(),
+            crate::select!(report, a.b.c).collect::<Vec<_>>(),
             [&Error::new("that seems wrong"), &Error::new("pog")]
+        );
+
+        assert_eq!(
+            crate::select!(report, array[0].c).collect::<Vec<_>>(),
+            [&Error::new("pog")]
         );
     }
 }
