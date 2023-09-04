@@ -288,7 +288,8 @@ struct Bar {
 
 ### Integration with web frameworks
 
-- [`axum`](https://crates.io/crates/axum): https://crates.io/crates/axum_garde
+- [`axum`](https://crates.io/crates/axum): [`axum_garde`](https://crates.io/crates/axum_garde)
+- [`actix-web`](https://crates.io/crates/actix-web): [`garde-actix-web`](https://crates.io/crates/garde-actix-web)
 
 ### Feature flags
 
