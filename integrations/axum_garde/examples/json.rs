@@ -29,12 +29,20 @@ async fn insert_valid_person(
     Json(person.into_inner())
 }
 
+#[derive(Clone)]
+struct AppState;
+
+// This implementation is needed for most validators to work
+impl axum::extract::FromRef<AppState> for () {
+    fn from_ref(_: &AppState) {}
+}
+
 #[tokio::main]
 async fn main() {
     let app = Router::new()
         .route("/person", post(insert_valid_person))
         // Create the application state
-        .with_state(());
+        .with_state(AppState);
     println!("See example: http://127.0.0.1:8080/person");
     Server::bind(&([127, 0, 0, 1], 8080).into())
         .serve(app.into_make_service())
