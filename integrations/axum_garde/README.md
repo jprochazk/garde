@@ -8,6 +8,15 @@ Provide [garde](https://github.com/jprochazk/garde) validation on your
 The most important element on this library is [`WithValidation`], a composable
 [`extractor`] that performs validation over some payload contents.
 
+For most validators to work, the application state should implement [`FromRef`] for `()`:
+```rust
+impl axum::extract::FromRef<AppState> for () {
+    fn from_ref(_: &AppState) -> () {
+        ()
+    }
+}
+```
+
 # Features
 
 | Feature               | Description                                                                                    | Default? |
@@ -27,3 +36,4 @@ The most important element on this library is [`WithValidation`], a composable
 
 [`withvalidation`]: crate::WithValidation
 [`extractor`]: axum::extract
+[`FromRef`]: axum::extract::FromRef
