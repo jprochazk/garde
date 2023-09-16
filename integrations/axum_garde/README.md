@@ -11,9 +11,7 @@ The most important element on this library is [`WithValidation`], a composable
 For most validators to work, the application state should implement [`FromRef`] for `()`:
 ```rust
 impl axum::extract::FromRef<AppState> for () {
-    fn from_ref(_: &AppState) -> () {
-        ()
-    }
+    fn from_ref(_: &AppState) {}
 }
 ```
 

@@ -34,9 +34,7 @@ struct AppState;
 
 // This implementation is needed for most validators to work
 impl axum::extract::FromRef<AppState> for () {
-    fn from_ref(_: &AppState) -> () {
-        ()
-    }
+    fn from_ref(_: &AppState) {}
 }
 
 #[tokio::main]
