@@ -10,6 +10,8 @@
 //!
 //! The entrypoint is the [`Inner`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(inner(..))]` rule.
 
+use crate::error::{NoKey, PathComponentKind};
+
 pub fn apply<T, U, K, F>(field: &T, f: F)
 where
     T: Inner<U, Key = K>,
@@ -19,7 +21,7 @@ where
 }
 
 pub trait Inner<T> {
-    type Key;
+    type Key: PathComponentKind;
 
     fn validate_inner<F>(&self, f: F)
     where
@@ -57,6 +59,19 @@ impl<'a, T> Inner<T> for &'a [T] {
     {
         for (index, item) in self.iter().enumerate() {
             f(item, &index);
+        }
+    }
+}
+
+impl<T> Inner<T> for Option<T> {
+    type Key = NoKey;
+
+    fn validate_inner<F>(&self, mut f: F)
+    where
+        F: FnMut(&T, &Self::Key),
+    {
+        if let Some(item) = self {
+            f(item, &NoKey::default())
         }
     }
 }
