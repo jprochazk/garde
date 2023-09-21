@@ -12,7 +12,7 @@ A Rust validation library
 - [Inner type validation](#inner-type-validation)
 - [Handling Option](#handling-option)
 - [Custom validation](#custom-validation)
-- [Custom validation with containers](#custom-validation)
+- [Custom validation with containers](#custom-validation-with-containers)
 - [Context/Self access](#contextself-access)
 - [Implementing rules](#implementing-rules)
 - [Implementing `Validate`](#implementing-validate)
