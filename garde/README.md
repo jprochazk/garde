@@ -12,6 +12,7 @@ A Rust validation library
 - [Inner type validation](#inner-type-validation)
 - [Handling Option](#handling-option)
 - [Custom validation](#custom-validation)
+- [Custom validation with containers](#custom-validation)
 - [Context/Self access](#contextself-access)
 - [Implementing rules](#implementing-rules)
 - [Implementing `Validate`](#implementing-validate)
@@ -201,6 +202,42 @@ user.validate(&ctx)?;
 
 The validator function may accept the value as a reference to any type which it derefs to.
 In the above example, it is possible to use `&str`, because `password` is a `String`, and `String` derefs to `&str`.
+
+### Custom validation with containers
+
+When working with custom validators, if the type is a container such as `Vec<T>` or `Option<T>`, the validation function will get a reference to that container instead of the underlying data. This is in contrast with built-in validators that are able to extract the type from some container types such as `Option<T>`.
+To validate the underlying data of a container when using a custom validator, use the `inner` modifier:
+
+```rust,ignore
+#[derive(garde::Validate)]
+#[garde(context(PasswordContext))]
+struct User {
+    #[garde(inner(custom(is_strong_password)))] // wrap the rule in `inner`
+    password: Option<String>, // this field will only be validated if it is the `Some` variant
+}
+
+struct PasswordContext {
+    min_entropy: f32,
+    entropy: cracken::password_entropy::EntropyEstimator,
+}
+
+fn is_strong_password(value: &str, context: &PasswordContext) -> garde::Result {
+    let bits = context.entropy.estimate_password_entropy(value.as_bytes())
+        .map(|e| e.mask_entropy)
+        .unwrap_or(0.0);
+    if bits < context.min_entropy {
+        return Err(garde::Error::new("password is not strong enough"));
+    }
+    Ok(())
+}
+
+let ctx = PasswordContext { /* ... */ };
+let user = User { /* ... */ };
+user.validate(&ctx)?;
+```
+
+The above type will always pass validation if the `password` field is `None`.
+This allows you to use the same validation function for `T` as you do for `Option<T>` or `Vec<T>`.
 
 ### Context/Self access
 
