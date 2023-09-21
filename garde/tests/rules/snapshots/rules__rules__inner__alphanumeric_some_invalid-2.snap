@@ -1,0 +1,15 @@
+---
+source: garde/tests/./rules/inner.rs
+assertion_line: 90
+expression: snapshot
+---
+NestedSliceInsideOption {
+    inner: Some(
+        [
+            "!!!!",
+        ],
+    ),
+}
+inner[0]: not alphanumeric
+
+

@@ -1,0 +1,13 @@
+---
+source: garde/tests/./rules/inner.rs
+assertion_line: 84
+expression: snapshot
+---
+NotNestedOption {
+    inner: Some(
+        "!!!!",
+    ),
+}
+inner: not alphanumeric
+
+

@@ -92,8 +92,19 @@ pub struct Path {
 #[doc(hidden)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Kind {
+    None,
     Key,
     Index,
+}
+
+#[doc(hidden)]
+#[derive(Default)]
+pub struct NoKey(());
+
+impl std::fmt::Display for NoKey {
+    fn fmt(&self, _: &mut std::fmt::Formatter) -> std::fmt::Result {
+        Ok(())
+    }
 }
 
 pub trait PathComponentKind: std::fmt::Display + ToCompactString + private::Sealed {
@@ -116,6 +127,7 @@ impl_path_component_kind!(@'a; &'a str => Key);
 impl_path_component_kind!(@'a; Cow<'a, str> => Key);
 impl_path_component_kind!(String => Key);
 impl_path_component_kind!(CompactString => Key);
+impl_path_component_kind!(NoKey => None);
 
 impl<'a, T: PathComponentKind> private::Sealed for &'a T {}
 impl<'a, T: PathComponentKind> PathComponentKind for &'a T {
@@ -204,6 +216,7 @@ impl std::fmt::Display for Path {
             }
             if let Some((kind, _)) = components.peek() {
                 match kind {
+                    Kind::None => {}
                     Kind::Key => f.write_str(".")?,
                     Kind::Index => f.write_str("[")?,
                 }
