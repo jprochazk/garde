@@ -1,0 +1,17 @@
+---
+source: garde/tests/./rules/inner.rs
+assertion_line: 96
+expression: snapshot
+---
+DoubleNestedSliceInsideOption {
+    inner: Some(
+        [
+            [
+                "!!!!",
+            ],
+        ],
+    ),
+}
+inner[0][0]: not alphanumeric
+
+
