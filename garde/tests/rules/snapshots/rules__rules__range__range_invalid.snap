@@ -8,8 +8,10 @@ Test {
     inner: [
         9,
     ],
+    float_field: -12.0,
 }
 field: lower than 10
+float_field: lower than 0
 inner[0]: lower than 10
 refers_to_field: greater than 9
 
@@ -19,8 +21,10 @@ Test {
     inner: [
         101,
     ],
+    float_field: 1204.0,
 }
 field: greater than 100
+float_field: greater than 100
 inner[0]: greater than 100
 refers_to_field: greater than 101
 
