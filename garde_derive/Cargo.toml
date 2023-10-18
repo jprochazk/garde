@@ -1,6 +1,6 @@
 [package]
 name = "garde_derive"
-version = "0.15.0"
+version = "0.16.0"
 edition = "2021"
 repository = "https://github.com/jprochazk/garde"
 license = "MIT OR Apache-2.0"
