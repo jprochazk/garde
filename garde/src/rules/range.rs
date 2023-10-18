@@ -77,7 +77,7 @@ macro_rules! impl_for_int {
     };
 }
 
-impl_for_int!(u8, u16, u32, u64, usize, u128, i8, i16, i32, i64, isize, i128);
+impl_for_int!(u8, u16, u32, u64, usize, u128, i8, i16, i32, i64, isize, i128, f32, f64);
 
 impl<T: Bounds> Bounds for Option<T> {
     type Size = T::Size;
