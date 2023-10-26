@@ -97,7 +97,10 @@ pub enum Kind {
     Index,
 }
 
-#[doc(hidden)]
+/// Represents a path component without a key. This is useful when the container
+/// only ever holds a single key, which is the case for any 1-tuple struct.
+///
+/// For an example usage, see the implementation of [Inner][`crate::rules::inner::Inner`] for `Option`.
 #[derive(Default)]
 pub struct NoKey(());
 
