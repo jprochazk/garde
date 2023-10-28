@@ -46,9 +46,12 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
             let mut inner_error = None;
             let mut variants = Vec::new();
             for (ident, variant) in list {
-                match check_variant(variant, &options) {
-                    Ok(v) => variants.push((ident, v)),
-                    Err(e) => inner_error.maybe_fold(e),
+                match variant {
+                    Some(variant) => match check_variant(variant, &options) {
+                        Ok(v) => variants.push((ident, Some(v))),
+                        Err(e) => inner_error.maybe_fold(e),
+                    },
+                    None => variants.push((ident, None)),
                 }
             }
             if let Some(inner_error) = inner_error {

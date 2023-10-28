@@ -35,7 +35,7 @@ impl Attr {
 
 pub enum InputKind {
     Struct(Variant),
-    Enum(Vec<(Ident, Variant)>),
+    Enum(Vec<(Ident, Option<Variant>)>),
 }
 
 impl InputKind {
@@ -150,7 +150,7 @@ pub struct Options {
 
 pub enum ValidateKind {
     Struct(ValidateVariant),
-    Enum(Vec<(Ident, ValidateVariant)>),
+    Enum(Vec<(Ident, Option<ValidateVariant>)>),
 }
 
 pub struct ValidateField {

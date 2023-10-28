@@ -136,8 +136,7 @@ fn parse_enum(node: &syn::DataEnum) -> syn::Result<model::InputKind> {
 
     for variant in node.variants.iter() {
         match parse_variant(&variant.fields) {
-            Ok(Some(v)) => variants.push((variant.ident.clone(), v)),
-            Ok(None) => {}
+            Ok(v) => variants.push((variant.ident.clone(), v)),
             Err(e) => error.maybe_fold(e),
         }
     }

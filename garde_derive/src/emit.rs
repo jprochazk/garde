@@ -61,10 +61,14 @@ impl ToTokens for model::ValidateKind {
             }
             model::ValidateKind::Enum(variants) => {
                 let variants = variants.iter().map(|(name, variant)| {
-                    let bindings = Bindings(variant);
-                    let validation = Validation(variant);
+                    if let Some(variant) = variant {
+                        let bindings = Bindings(variant);
+                        let validation = Validation(variant);
 
-                    quote!(Self::#name #bindings => #validation)
+                        quote!(Self::#name #bindings => #validation)
+                    } else {
+                        quote!(Self::#name => {})
+                    }
                 });
 
                 quote! {{

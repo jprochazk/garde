@@ -15,6 +15,7 @@ struct Tuple<'a>(#[garde(url)] &'a str);
 
 #[derive(Debug, Validate)]
 enum Enum<'a> {
+    Unit,
     Struct {
         #[garde(url)]
         field: &'a str,
@@ -50,6 +51,7 @@ fn url_tuple_valid() {
 fn url_enum_valid() {
     util::check_ok(
         &[
+            Enum::Unit,
             Enum::Struct {
                 field: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
                 v: Struct {
