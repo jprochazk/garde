@@ -74,7 +74,7 @@ impl<T: Pattern> Pattern for Option<T> {
     all(feature = "js-sys", all(target_arch = "wasm32", target_os = "unknown"))
 ))]
 #[doc(hidden)]
-pub mod regex {
+pub mod regex_js_sys {
     pub use ::js_sys::RegExp;
 
     use super::*;
@@ -114,18 +114,15 @@ pub mod regex {
     pub type StaticPattern = RegExpInvoker;
 
     #[macro_export]
-    macro_rules! __init_pattern {
+    macro_rules! __init_js_sys_pattern {
         ($pat:literal) => {
-            $crate::rules::pattern::regex::StaticPattern::new($pat)
+            $crate::rules::pattern::regex_js_sys::StaticPattern::new($pat)
         };
     }
-    pub use crate::__init_pattern as init_pattern;
+    pub use crate::__init_js_sys_pattern as init_pattern;
 }
 
-#[cfg(all(
-    feature = "regex",
-    not(all(feature = "js-sys", all(target_arch = "wasm32", target_os = "unknown")))
-))]
+#[cfg(feature = "regex")]
 #[doc(hidden)]
 pub mod regex {
     pub use ::regex::Regex;
