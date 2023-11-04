@@ -69,7 +69,57 @@ impl<T: Pattern> Pattern for Option<T> {
     }
 }
 
-#[cfg(feature = "regex")]
+#[cfg(all(
+    feature = "regex",
+    all(feature = "js-sys", all(target_arch = "wasm32", target_os = "unknown"))
+))]
+#[doc(hidden)]
+pub mod regex {
+    pub use ::js_sys::RegExp;
+
+    use super::*;
+
+    impl Matcher for RegExp {
+        fn is_match(&self, haystack: &str) -> bool {
+            self.test(haystack)
+        }
+    }
+
+    impl<T: Matcher> Matcher for once_cell::sync::Lazy<T> {
+        fn is_match(&self, haystack: &str) -> bool {
+            once_cell::sync::Lazy::force(self).is_match(haystack)
+        }
+    }
+
+    impl AsStr for RegExp {
+        fn as_str(&self) -> &str {
+            "[Not supported in JS]"
+        }
+    }
+
+    impl<T: AsStr> AsStr for once_cell::sync::Lazy<T> {
+        fn as_str(&self) -> &str {
+            once_cell::sync::Lazy::force(self).as_str()
+        }
+    }
+
+    pub type StaticPattern = once_cell::sync::Lazy<RegExp>;
+
+    #[macro_export]
+    macro_rules! __init_pattern {
+        ($pat:literal) => {
+            $crate::rules::pattern::regex::StaticPattern::new(|| {
+                $crate::rules::pattern::regex::RegExp::new($pat, "u").unwrap()
+            })
+        };
+    }
+    pub use crate::__init_pattern as init_pattern;
+}
+
+#[cfg(all(
+    feature = "regex",
+    not(all(feature = "js-sys", all(target_arch = "wasm32", target_os = "unknown")))
+))]
 #[doc(hidden)]
 pub mod regex {
     pub use ::regex::Regex;
