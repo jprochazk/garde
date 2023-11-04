@@ -85,32 +85,38 @@ pub mod regex {
         }
     }
 
-    impl<T: Matcher> Matcher for once_cell::sync::Lazy<T> {
-        fn is_match(&self, haystack: &str) -> bool {
-            once_cell::sync::Lazy::force(self).is_match(haystack)
-        }
-    }
-
     impl AsStr for RegExp {
         fn as_str(&self) -> &str {
             "[Not supported in JS]"
         }
     }
 
-    impl<T: AsStr> AsStr for once_cell::sync::Lazy<T> {
-        fn as_str(&self) -> &str {
-            once_cell::sync::Lazy::force(self).as_str()
+    pub struct RegExpInvoker(&'static str);
+
+    impl RegExpInvoker {
+        pub const fn new(pattern: &'static str) -> Self {
+            Self(pattern)
         }
     }
 
-    pub type StaticPattern = once_cell::sync::Lazy<RegExp>;
+    impl Matcher for RegExpInvoker {
+        fn is_match(&self, haystack: &str) -> bool {
+            RegExp::new(self.0, "u").is_match(haystack)
+        }
+    }
+
+    impl AsStr for RegExpInvoker {
+        fn as_str(&self) -> &str {
+            "[Not supported in JS]"
+        }
+    }
+
+    pub type StaticPattern = RegExpInvoker;
 
     #[macro_export]
     macro_rules! __init_pattern {
         ($pat:literal) => {
-            $crate::rules::pattern::regex::StaticPattern::new(|| {
-                $crate::rules::pattern::regex::RegExp::new($pat, "u").unwrap()
-            })
+            $crate::rules::pattern::regex::StaticPattern::new($pat)
         };
     }
     pub use crate::__init_pattern as init_pattern;
