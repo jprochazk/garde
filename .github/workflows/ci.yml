@@ -36,6 +36,34 @@ permissions:
   contents: read
 
 jobs:
+  test-wasm:
+    name: Test WASM
+    runs-on: ubuntu-20.04
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "rust-stable-test"
+
+      - name: Install wasm-bindgen-cli
+        run: cargo install --locked wasm-bindgen-cli
+
+      - name: Build xtask
+        run: cargo build --manifest-path ./xtask/Cargo.toml
+
+      - name: Run tests
+        run: cargo x test --wasm
+
   test:
     name: Test
     runs-on: ${{ matrix.os }}

@@ -14,6 +14,11 @@ pub struct Test {
     targets: Vec<Target>,
     #[argp(switch, description = "Run insta with --review")]
     review: bool,
+    #[argp(
+        switch,
+        description = "Run the tests for the `wasm32-unknown-unknown` platform"
+    )]
+    wasm: bool,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -57,7 +62,9 @@ impl argp::FromArgValue for Target {
 impl Test {
     pub fn run(mut self) -> Result {
         let review = self.review;
-        let commands = if self.targets.is_empty() {
+        let mut commands = if self.targets.is_empty() && self.wasm {
+            vec![unit(), ui(review), rules(review)]
+        } else if self.targets.is_empty() {
             vec![unit(), ui(review), rules(review), axum()]
         } else {
             self.targets.sort();
@@ -72,6 +79,12 @@ impl Test {
                 })
                 .collect()
         };
+
+        if self.wasm {
+            commands.iter_mut().for_each(|cmd| {
+                cmd.args(["--target", "wasm32-unknown-unknown"]);
+            });
+        }
 
         for command in commands {
             command.run()?;
