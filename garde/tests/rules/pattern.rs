@@ -1,9 +1,11 @@
+use regex::Regex;
+
 use super::util;
 
-#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 mod sub {
     use once_cell::sync::Lazy;
-    use regex::Regex;
+
+    use super::*;
 
     pub static LAZY_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^abcd|efgh$").unwrap());
 }
@@ -13,8 +15,6 @@ struct Test<'a> {
     #[garde(pattern(r"^abcd|efgh$"))]
     field: &'a str,
 
-    // Lazy-statics aren't really possible with `js-sys` values since they are `!Sync`
-    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     #[garde(pattern(sub::LAZY_RE))]
     field_path: &'a str,
 
@@ -26,8 +26,8 @@ struct Test<'a> {
 }
 
 #[cfg(not(all(feature = "js-sys", target_arch = "wasm32", target_os = "unknown")))]
-fn create_regex() -> ::regex::Regex {
-    ::regex::Regex::new(r"^abcd|efgh$").unwrap()
+fn create_regex() -> Regex {
+    Regex::new(r"^abcd|efgh$").unwrap()
 }
 
 #[cfg(all(feature = "js-sys", target_arch = "wasm32", target_os = "unknown"))]
@@ -45,14 +45,12 @@ fn pattern_valid() {
         &[
             Test {
                 field: "abcd",
-                #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
                 field_path: "abcd",
                 field_call: "abcd",
                 inner: &["abcd"],
             },
             Test {
                 field: "efgh",
-                #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
                 field_path: "efgh",
                 field_call: "efgh",
                 inner: &["efgh"],
