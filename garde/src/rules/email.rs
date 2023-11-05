@@ -20,11 +20,11 @@ use crate::error::Error;
 
 macro_rules! init_regex {
     ($var:ident => $p:literal) => {
-        #[cfg(not(all(feature = "js-sys", all(target_arch = "wasm32", target_os = "unknown"))))]
+        #[cfg(not(all(feature = "js-sys", target_arch = "wasm32", target_os = "unknown")))]
         static $var: $crate::rules::pattern::regex::StaticPattern =
             $crate::rules::pattern::regex::init_pattern!($p);
 
-        #[cfg(all(feature = "js-sys", all(target_arch = "wasm32", target_os = "unknown")))]
+        #[cfg(all(feature = "js-sys", target_arch = "wasm32", target_os = "unknown"))]
         static $var: $crate::rules::pattern::regex_js_sys::StaticPattern =
             $crate::rules::pattern::regex_js_sys::init_pattern!($p);
     };

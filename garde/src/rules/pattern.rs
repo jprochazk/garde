@@ -71,7 +71,9 @@ impl<T: Pattern> Pattern for Option<T> {
 
 #[cfg(all(
     feature = "regex",
-    all(feature = "js-sys", all(target_arch = "wasm32", target_os = "unknown"))
+    feature = "js-sys",
+    target_arch = "wasm32",
+    target_os = "unknown"
 ))]
 #[doc(hidden)]
 pub mod regex_js_sys {
