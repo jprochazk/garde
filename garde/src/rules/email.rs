@@ -15,6 +15,7 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
+use super::pattern::Matcher;
 use super::AsStr;
 use crate::error::Error;
 

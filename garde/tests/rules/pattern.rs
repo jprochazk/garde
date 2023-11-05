@@ -1,11 +1,9 @@
-use once_cell::sync::Lazy;
-use regex::Regex;
-
 use super::util;
 
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 mod sub {
-    use super::*;
+    use once_cell::sync::Lazy;
+    use regex::Regex;
 
     pub static LAZY_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^abcd|efgh$").unwrap());
 }
@@ -27,12 +25,12 @@ struct Test<'a> {
     inner: &'a [&'a str],
 }
 
-#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
-fn create_regex() -> Regex {
-    Regex::new(r"^abcd|efgh$").unwrap()
+#[cfg(not(all(feature = "js-sys", target_arch = "wasm32", target_os = "unknown")))]
+fn create_regex() -> ::regex::Regex {
+    ::regex::Regex::new(r"^abcd|efgh$").unwrap()
 }
 
-#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+#[cfg(all(feature = "js-sys", target_arch = "wasm32", target_os = "unknown"))]
 fn create_regex() -> ::js_sys::RegExp {
     ::js_sys::RegExp::new(r"^abcd|efgh$", "u")
 }
