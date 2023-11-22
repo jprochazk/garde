@@ -15,11 +15,21 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
-
+use super::pattern::Matcher;
 use super::AsStr;
 use crate::error::Error;
+
+macro_rules! init_regex {
+    ($var:ident => $p:literal) => {
+        #[cfg(not(all(feature = "js-sys", target_arch = "wasm32", target_os = "unknown")))]
+        static $var: $crate::rules::pattern::regex::StaticPattern =
+            $crate::rules::pattern::regex::init_pattern!($p);
+
+        #[cfg(all(feature = "js-sys", target_arch = "wasm32", target_os = "unknown"))]
+        static $var: $crate::rules::pattern::regex_js_sys::StaticPattern =
+            $crate::rules::pattern::regex_js_sys::init_pattern!($p);
+    };
+}
 
 pub fn apply<T: Email>(v: &T, _: ()) -> Result<(), Error> {
     if let Err(e) = v.validate_email() {
@@ -90,8 +100,11 @@ pub fn parse_email(s: &str) -> Result<(), InvalidEmail> {
     if user.len() > 64 {
         return Err(InvalidEmail::UserLengthExceeded);
     }
-    static USER_RE: Lazy<Regex> =
-        Lazy::new(|| Regex::new(r"(?i-u)^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+\z").unwrap());
+
+    init_regex! {
+        USER_RE => r"(?i-u)^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+\z"
+    }
+
     if !USER_RE.is_match(user) {
         return Err(InvalidEmail::InvalidUser);
     }
@@ -123,9 +136,9 @@ pub fn parse_email(s: &str) -> Result<(), InvalidEmail> {
 }
 
 fn is_valid_domain(domain: &str) -> bool {
-    static DOMAIN_NAME_RE: Lazy<Regex> = Lazy::new(|| {
-        Regex::new(r"(?i-u)^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$").unwrap()
-    });
+    init_regex! {
+        DOMAIN_NAME_RE => r"(?i-u)^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$"
+    };
 
     if DOMAIN_NAME_RE.is_match(domain) {
         return true;

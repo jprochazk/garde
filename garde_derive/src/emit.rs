@@ -241,8 +241,22 @@ impl<'a> ToTokens for Rules<'a> {
                 Pattern(pat) => match pat {
                     model::ValidatePattern::Expr(expr) => quote_spanned!(expr.span() => (&#expr,)),
                     model::ValidatePattern::Lit(s) => quote!({
+                        #[cfg(not(all(
+                            feature = "js-sys",
+                            target_arch = "wasm32",
+                            target_os = "unknown"
+                        )))]
                         static PATTERN: ::garde::rules::pattern::regex::StaticPattern =
                             ::garde::rules::pattern::regex::init_pattern!(#s);
+
+                        #[cfg(all(
+                            feature = "js-sys",
+                            target_arch = "wasm32",
+                            target_os = "unknown"
+                        ))]
+                        static PATTERN: ::garde::rules::pattern::regex_js_sys::StaticPattern =
+                            ::garde::rules::pattern::regex_js_sys::init_pattern!(#s);
+
                         (&PATTERN,)
                     }),
                 },

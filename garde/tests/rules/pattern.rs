@@ -1,9 +1,10 @@
-use once_cell::sync::Lazy;
 use regex::Regex;
 
 use super::util;
 
 mod sub {
+    use once_cell::sync::Lazy;
+
     use super::*;
 
     pub static LAZY_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^abcd|efgh$").unwrap());
@@ -24,11 +25,21 @@ struct Test<'a> {
     inner: &'a [&'a str],
 }
 
+#[cfg(not(all(feature = "js-sys", target_arch = "wasm32", target_os = "unknown")))]
 fn create_regex() -> Regex {
     Regex::new(r"^abcd|efgh$").unwrap()
 }
 
-#[test]
+#[cfg(all(feature = "js-sys", target_arch = "wasm32", target_os = "unknown"))]
+fn create_regex() -> ::js_sys::RegExp {
+    ::js_sys::RegExp::new(r"^abcd|efgh$", "u")
+}
+
+#[cfg_attr(not(all(target_arch = "wasm32", target_os = "unknown")), test)]
+#[cfg_attr(
+    all(target_arch = "wasm32", target_os = "unknown"),
+    wasm_bindgen_test::wasm_bindgen_test
+)]
 fn pattern_valid() {
     util::check_ok(
         &[
@@ -49,6 +60,7 @@ fn pattern_valid() {
     )
 }
 
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 #[test]
 fn pattern_invalid() {
     util::check_fail!(
