@@ -4,7 +4,13 @@ use crate::util::{cargo, has_cargo_subcmd, rustup, CommandExt};
 use crate::Result;
 
 const COMPONENTS: &[&str] = &["rustfmt", "clippy"];
-const TOOLS: &[&str] = &["cargo-deny", "cargo-udeps", "cargo-pants", "cargo-insta"];
+const TOOLS: &[&str] = &[
+    "cargo-deny",
+    "cargo-udeps",
+    "cargo-pants",
+    "cargo-insta",
+    "wasm-bindgen-cli",
+];
 
 #[derive(FromArgs)]
 #[argp(subcommand, name = "setup")]
