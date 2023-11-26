@@ -29,7 +29,7 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         }
     };
 
-    let is_transparent = is_transparent(&attrs);
+    let transparent = get_transparent_attr(&attrs);
 
     let options = get_options(&attrs);
 
@@ -63,11 +63,13 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         }
     };
 
-    if is_transparent && !is_unary_tuple(&kind) {
-        error.maybe_fold(syn::Error::new(
-            Span::call_site(),
-            "transparent structs must have exactly one field",
-        ));
+    if let Some(span) = transparent {
+        if !is_unary_struct(&kind) {
+            error.maybe_fold(syn::Error::new(
+                span,
+                "transparent structs must have exactly one field",
+            ));
+        }
     }
 
     if let Some(error) = error {
@@ -78,7 +80,7 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         ident,
         generics,
         context,
-        is_transparent,
+        is_transparent: transparent.is_some(),
         kind,
         options,
     })
@@ -128,20 +130,28 @@ fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<(syn::Type, syn::Id
     }
 }
 
-fn is_transparent(attrs: &[(Span, model::Attr)]) -> bool {
-    for (_, attr) in attrs {
+fn get_transparent_attr(attrs: &[(Span, model::Attr)]) -> Option<Span> {
+    for (span, attr) in attrs {
         if let model::Attr::Transparent = attr {
-            return true;
+            return Some(*span);
         }
     }
 
-    false
+    None
 }
 
-fn is_unary_tuple(k: &model::ValidateKind) -> bool {
+fn is_unary_struct(k: &model::ValidateKind) -> bool {
     match k {
-        model::ValidateKind::Struct(model::ValidateVariant::Tuple(fields)) => fields.len() == 1,
-        model::ValidateKind::Struct(model::ValidateVariant::Struct(fields)) => fields.len() == 1,
+        model::ValidateKind::Struct(model::ValidateVariant::Tuple(fields)) => {
+            fields.iter().filter(|field| field.skip.is_none()).count() == 1
+        }
+        model::ValidateKind::Struct(model::ValidateVariant::Struct(fields)) => {
+            fields
+                .iter()
+                .filter(|(_, field)| field.skip.is_none())
+                .count()
+                == 1
+        }
         _ => false,
     }
 }
