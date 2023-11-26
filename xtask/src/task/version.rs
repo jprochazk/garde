@@ -28,31 +28,31 @@ impl Bump {
 
 impl argp::FromArgValue for Bump {
     fn from_arg_value(value: &std::ffi::OsStr) -> std::result::Result<Self, String> {
-        let options = [
+        [
             ("patch", Bump::Patch),
             ("minor", Bump::Minor),
             ("major", Bump::Major),
-        ];
-
-        options
-            .into_iter()
-            .find(|(name, _)| value.eq_ignore_ascii_case(name))
-            .map(|(_, bump)| bump)
-            .ok_or_else(|| "invalid bump kind, expected one of: major, minor, patch".into())
+        ]
+        .into_iter()
+        .find(|(name, _)| value.eq_ignore_ascii_case(name))
+        .map(|(_, bump)| bump)
+        .ok_or_else(|| "invalid bump kind, expected one of: major, minor, patch".into())
     }
 }
 
 impl Version {
     pub fn run(self) -> Result {
+        cargo("semver-checks")
+            .with_arg("--all-features")
+            .with_args(["-p", "garde"])
+            .with_args(["--release-type", self.bump.as_str()])
+            .run_async()?;
+
         // TODO: manually parse workspace and bump versions
         cargo("workspaces")
             .with_arg("version")
             .with_arg(self.bump.as_str())
             .with_args(["--force", "*"])
-            .run_async()?;
-
-        cargo("semver-checks")
-            .with_arg("--all-features")
             .run_async()?;
 
         Ok(())
