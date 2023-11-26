@@ -10,6 +10,7 @@ A Rust validation library
 - [Basic usage example](#basic-usage-example)
 - [Validation rules](#available-validation-rules)
 - [Inner type validation](#inner-type-validation)
+- [Newtypes](#newtypes)
 - [Handling Option](#handling-option)
 - [Custom validation](#custom-validation)
 - [Context/Self access](#contextself-access)
@@ -147,6 +148,46 @@ The above type would fail validation if:
 - the `Vec` is empty
 - any of the inner `String` elements is empty
 - any of the inner `String` elements contains non-ASCII characters
+
+### Newtypes
+
+The best way to re-use validation rules on a field is to use the [newtype idiom](https://doc.rust-lang.org/rust-by-example/generics/new_types.html)
+with `#[garde(transparent)]`:
+
+```rust
+#[derive(garde::Validate)]
+#[garde(transparent)]
+struct Username(#[garde(length(min = 3, max = 20))] String);
+
+#[derive(garde::Validate)]
+struct User {
+    // later used with `dive`:
+    #[garde(dive)]
+    username: Username,
+}
+```
+
+The `username` field in the above example will inherit all the validation rules from the `String` field on `Username`. The result is that the error path will be flattened by one level, resulting in cleaner error messages:
+
+```rust,ignore
+User {
+  username: Username("")
+}.validate(&())
+
+"username: length is lower than 3"
+```
+
+Without the `#[garde(transparent)]` attribute, it would instead be:
+
+```rust,ignore
+User {
+  username: Username("")
+}.validate(&())
+
+"username[0]: length is lower than 3"
+```
+
+Structs with the `#[garde(transparent)]` attribute may have more than one field, but there must be only one unskipped field. That means every field other than the one you wish to validate must be `#[garde(skip)]`.
 
 ### Handling Option
 
