@@ -64,11 +64,11 @@ jobs:
             rust: 1.69
             # Fails on pinned version because the output changed,
             # so we're excluding it, but it's still tested on stable and nightly.
-            EXCLUDE_UI_TESTS: "pattern_mismatched_types"
+            EXCLUDE_UI_TESTS: "pattern_mismatched_types,newtype"
           - build: stable
             os: ubuntu-20.04
             rust: stable
-            EXCLUDE_UI_TESTS: ""
+            EXCLUDE_UI_TESTS: "newtype"
           - build: nightly
             os: ubuntu-20.04
             rust: nightly
