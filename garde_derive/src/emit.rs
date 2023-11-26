@@ -10,21 +10,15 @@ pub fn emit(input: model::Validate) -> TokenStream2 {
     input.to_token_stream()
 }
 
-/*
-fn validate_into<F: FnMut() -> Path>(
-        &self,
-        ctx: &Self::Context,
-        parent: F,
-        report: &mut Report,
-    );
-*/
-
 impl ToTokens for model::Validate {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let ident = &self.ident;
         let (context_ty, context_ident) = &self.context;
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
-        let kind = &self.kind;
+        let ty = Type {
+            is_transparent: self.is_transparent,
+            kind: &self.kind,
+        };
 
         quote! {
             impl #impl_generics ::garde::Validate for #ident #ty_generics #where_clause {
@@ -39,7 +33,7 @@ impl ToTokens for model::Validate {
                 ) {
                     let __garde_user_ctx = &#context_ident;
 
-                    #kind
+                    #ty
                 }
             }
         }
@@ -47,12 +41,21 @@ impl ToTokens for model::Validate {
     }
 }
 
-impl ToTokens for model::ValidateKind {
+struct Type<'a> {
+    is_transparent: bool,
+    kind: &'a model::ValidateKind,
+}
+
+impl<'a> ToTokens for Type<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
-        match self {
+        let is_transparent = self.is_transparent;
+        match &self.kind {
             model::ValidateKind::Struct(variant) => {
                 let bindings = Bindings(variant);
-                let validation = Validation(variant);
+                let validation = Variant {
+                    is_transparent,
+                    variant,
+                };
 
                 quote! {{
                     let Self #bindings = self;
@@ -63,7 +66,10 @@ impl ToTokens for model::ValidateKind {
                 let variants = variants.iter().map(|(name, variant)| {
                     if let Some(variant) = variant {
                         let bindings = Bindings(variant);
-                        let validation = Validation(variant);
+                        let validation = Variant {
+                            is_transparent,
+                            variant,
+                        };
 
                         quote!(Self::#name #bindings => #validation)
                     } else {
@@ -82,17 +88,27 @@ impl ToTokens for model::ValidateKind {
     }
 }
 
-struct Validation<'a>(&'a model::ValidateVariant);
+struct Variant<'a> {
+    is_transparent: bool,
+    variant: &'a model::ValidateVariant,
+}
 
-impl<'a> ToTokens for Validation<'a> {
+impl<'a> ToTokens for Variant<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
-        match &self.0 {
+        let is_transparent = self.is_transparent;
+        match &self.variant {
             model::ValidateVariant::Struct(fields) => {
-                let fields = Struct(fields);
+                let fields = Struct {
+                    is_transparent,
+                    fields,
+                };
                 quote! {{#fields}}
             }
             model::ValidateVariant::Tuple(fields) => {
-                let fields = Tuple(fields);
+                let fields = Tuple {
+                    is_transparent,
+                    fields,
+                };
                 quote! {{#fields}}
             }
         }
@@ -100,39 +116,51 @@ impl<'a> ToTokens for Validation<'a> {
     }
 }
 
-struct Struct<'a>(&'a [(Ident, model::ValidateField)]);
+struct Struct<'a> {
+    is_transparent: bool,
+    fields: &'a [(Ident, model::ValidateField)],
+}
 
 impl<'a> ToTokens for Struct<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         Fields::new(
-            self.0
+            self.fields
                 .iter()
                 .map(|(key, field)| (Binding::Ident(key), field, key.to_string())),
-            |key, value| {
-                quote! {{
+            |key, value| match self.is_transparent {
+                true => quote! {{
+                    #value
+                }},
+                false => quote! {{
                     let mut __garde_path = ::garde::util::nested_path!(__garde_path, #key);
                     #value
-                }}
+                }},
             },
         )
         .to_tokens(tokens)
     }
 }
 
-struct Tuple<'a>(&'a [model::ValidateField]);
+struct Tuple<'a> {
+    is_transparent: bool,
+    fields: &'a [model::ValidateField],
+}
 
 impl<'a> ToTokens for Tuple<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         Fields::new(
-            self.0
+            self.fields
                 .iter()
                 .enumerate()
                 .map(|(index, field)| (Binding::Index(index), field, index)),
-            |index, value| {
-                quote! {{
+            |index, value| match self.is_transparent {
+                true => quote! {{
+                    #value
+                }},
+                false => quote! {{
                     let mut __garde_path = ::garde::util::nested_path!(__garde_path, #index);
                     #value
-                }}
+                }},
             },
         )
         .to_tokens(tokens)

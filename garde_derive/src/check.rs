@@ -29,6 +29,8 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         }
     };
 
+    let is_transparent = is_transparent(&attrs);
+
     let options = get_options(&attrs);
 
     let kind = match kind {
@@ -61,6 +63,13 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         }
     };
 
+    if is_transparent && !is_unary_tuple(&kind) {
+        error.maybe_fold(syn::Error::new(
+            Span::call_site(),
+            "transparent structs must have exactly one field",
+        ));
+    }
+
     if let Some(error) = error {
         return Err(error);
     }
@@ -69,6 +78,7 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         ident,
         generics,
         context,
+        is_transparent,
         kind,
         options,
     })
@@ -118,6 +128,24 @@ fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<(syn::Type, syn::Id
     }
 }
 
+fn is_transparent(attrs: &[(Span, model::Attr)]) -> bool {
+    for (_, attr) in attrs {
+        if let model::Attr::Transparent = attr {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn is_unary_tuple(k: &model::ValidateKind) -> bool {
+    match k {
+        model::ValidateKind::Struct(model::ValidateVariant::Tuple(fields)) => fields.len() == 1,
+        model::ValidateKind::Struct(model::ValidateVariant::Struct(fields)) => fields.len() == 1,
+        _ => false,
+    }
+}
+
 fn get_options(attrs: &[(Span, model::Attr)]) -> model::Options {
     let mut options = model::Options {
         allow_unvalidated: false,
@@ -127,6 +155,7 @@ fn get_options(attrs: &[(Span, model::Attr)]) -> model::Options {
         match attr {
             model::Attr::Context(..) => {}
             model::Attr::AllowUnvalidated => options.allow_unvalidated = true,
+            _ => {}
         }
     }
 
