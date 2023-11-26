@@ -1,4 +1,5 @@
 use super::util;
+
 #[derive(Debug, garde::Validate)]
 struct Test<'a> {
     #[garde(range(min = 10, max = 100))]
