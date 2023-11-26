@@ -14,7 +14,7 @@ pub enum Task {
     Test(test::Test),
     Check(check::Check),
     Setup(setup::Setup),
-    // Version(Version),
+    Version(version::Version),
     // Release(Release),
 }
 
@@ -24,6 +24,7 @@ impl Task {
             Task::Test(cmd) => cmd.run(),
             Task::Check(cmd) => cmd.run(),
             Task::Setup(cmd) => cmd.run(),
+            Task::Version(cmd) => cmd.run(),
         }
     }
 }

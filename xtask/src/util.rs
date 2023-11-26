@@ -43,6 +43,8 @@ pub trait CommandExt {
         K: AsRef<OsStr>,
         V: AsRef<OsStr>;
 
+    fn run_async(self) -> Result;
+
     fn run(self) -> Result;
 
     fn run_with_output(self) -> Result<String>;
@@ -73,6 +75,10 @@ impl CommandExt for Command {
     {
         self.env(key, val);
         self
+    }
+
+    fn run_async(mut self) -> Result {
+        self.spawn()?.wait_async()
     }
 
     fn run(mut self) -> Result {
@@ -109,5 +115,21 @@ impl CheckStatus for std::process::ExitStatus {
 impl CheckStatus for std::process::Output {
     fn check(&self) -> Result {
         self.status.check()
+    }
+}
+
+pub trait WaitAsync {
+    /// Wait with inherited IO
+    fn wait_async(self) -> Result;
+}
+
+impl WaitAsync for std::process::Child {
+    fn wait_async(mut self) -> Result {
+        loop {
+            if let Some(status) = self.try_wait()? {
+                status.check()?;
+                return Ok(());
+            }
+        }
     }
 }

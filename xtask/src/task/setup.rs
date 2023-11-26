@@ -9,6 +9,8 @@ const TOOLS: &[&str] = &[
     "cargo-udeps",
     "cargo-pants",
     "cargo-insta",
+    "cargo-semver-checks",
+    "cargo-workspaces",
     "wasm-bindgen-cli",
 ];
 
