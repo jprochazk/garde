@@ -1,4 +1,5 @@
 use super::util;
+
 #[derive(Debug, garde::Validate)]
 struct TestIpAny<'a> {
     #[garde(ip)]

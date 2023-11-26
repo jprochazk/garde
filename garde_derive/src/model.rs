@@ -14,6 +14,7 @@ pub struct Input {
 pub enum Attr {
     Context(Box<Type>, Ident),
     AllowUnvalidated,
+    Transparent,
 }
 
 impl Attr {
@@ -29,6 +30,7 @@ impl Attr {
         match self {
             Attr::Context(..) => "context",
             Attr::AllowUnvalidated => "allow_unvalidated",
+            Attr::Transparent => "transparent",
         }
     }
 }
@@ -140,6 +142,7 @@ pub struct Validate {
     pub ident: Ident,
     pub generics: Generics,
     pub context: (Type, Ident),
+    pub is_transparent: bool,
     pub kind: ValidateKind,
     pub options: Options,
 }

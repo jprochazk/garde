@@ -100,6 +100,7 @@ impl Parse for model::Attr {
                 Ok(model::Attr::Context(Box::new(ty), ident))
             }
             "allow_unvalidated" => Ok(model::Attr::AllowUnvalidated),
+            "transparent" => Ok(model::Attr::Transparent),
             _ => Err(syn::Error::new(ident.span(), "unrecognized attribute")),
         }
     }

@@ -1,4 +1,5 @@
 use super::util;
+
 #[allow(dead_code)]
 #[derive(Debug, garde::Validate)]
 struct Struct {

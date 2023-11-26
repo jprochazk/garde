@@ -29,6 +29,8 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         }
     };
 
+    let transparent = get_transparent_attr(&attrs);
+
     let options = get_options(&attrs);
 
     let kind = match kind {
@@ -61,6 +63,15 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         }
     };
 
+    if let Some(span) = transparent {
+        if !is_unary_struct(&kind) {
+            error.maybe_fold(syn::Error::new(
+                span,
+                "transparent structs must have exactly one field",
+            ));
+        }
+    }
+
     if let Some(error) = error {
         return Err(error);
     }
@@ -69,6 +80,7 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         ident,
         generics,
         context,
+        is_transparent: transparent.is_some(),
         kind,
         options,
     })
@@ -118,6 +130,32 @@ fn get_context(attrs: &[(Span, model::Attr)]) -> syn::Result<(syn::Type, syn::Id
     }
 }
 
+fn get_transparent_attr(attrs: &[(Span, model::Attr)]) -> Option<Span> {
+    for (span, attr) in attrs {
+        if let model::Attr::Transparent = attr {
+            return Some(*span);
+        }
+    }
+
+    None
+}
+
+fn is_unary_struct(k: &model::ValidateKind) -> bool {
+    match k {
+        model::ValidateKind::Struct(model::ValidateVariant::Tuple(fields)) => {
+            fields.iter().filter(|field| field.skip.is_none()).count() == 1
+        }
+        model::ValidateKind::Struct(model::ValidateVariant::Struct(fields)) => {
+            fields
+                .iter()
+                .filter(|(_, field)| field.skip.is_none())
+                .count()
+                == 1
+        }
+        _ => false,
+    }
+}
+
 fn get_options(attrs: &[(Span, model::Attr)]) -> model::Options {
     let mut options = model::Options {
         allow_unvalidated: false,
@@ -127,6 +165,7 @@ fn get_options(attrs: &[(Span, model::Attr)]) -> model::Options {
         match attr {
             model::Attr::Context(..) => {}
             model::Attr::AllowUnvalidated => options.allow_unvalidated = true,
+            _ => {}
         }
     }
 

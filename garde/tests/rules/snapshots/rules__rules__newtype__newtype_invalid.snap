@@ -1,0 +1,16 @@
+---
+source: garde/tests/./rules/newtype.rs
+expression: snapshot
+---
+Test {
+    a: NonEmptyStr_Struct {
+        v: "",
+    },
+    b: NonEmptyStr_Tuple(
+        "",
+    ),
+}
+a: length is lower than 1
+b: length is lower than 1
+
+
