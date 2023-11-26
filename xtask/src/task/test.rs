@@ -43,19 +43,17 @@ impl std::fmt::Display for InvalidTarget {
 
 impl argp::FromArgValue for Target {
     fn from_arg_value(value: &std::ffi::OsStr) -> std::result::Result<Self, String> {
-        let options = [
+        [
             ("unit", Self::Unit),
             ("doc", Self::Doc),
             ("ui", Self::Ui),
             ("rules", Self::Rules),
             ("axum", Self::Axum),
-        ];
-
-        options
-            .into_iter()
-            .find(|(name, _)| value.eq_ignore_ascii_case(std::ffi::OsStr::new(name)))
-            .map(|(_, target)| target)
-            .ok_or_else(|| "invalid target, expected one of: unit, doc, ui, rules, axum".into())
+        ]
+        .into_iter()
+        .find(|(name, _)| value.eq_ignore_ascii_case(std::ffi::OsStr::new(name)))
+        .map(|(_, target)| target)
+        .ok_or_else(|| "invalid target, expected one of: unit, doc, ui, rules, axum".into())
     }
 }
 
