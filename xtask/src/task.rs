@@ -1,5 +1,5 @@
 mod check;
-mod release;
+mod publish;
 mod setup;
 mod test;
 mod version;
@@ -15,7 +15,7 @@ pub enum Task {
     Check(check::Check),
     Setup(setup::Setup),
     Version(version::Version),
-    // Release(Release),
+    Publish(publish::Publish),
 }
 
 impl Task {
@@ -25,6 +25,7 @@ impl Task {
             Task::Check(cmd) => cmd.run(),
             Task::Setup(cmd) => cmd.run(),
             Task::Version(cmd) => cmd.run(),
+            Task::Publish(cmd) => cmd.run(),
         }
     }
 }

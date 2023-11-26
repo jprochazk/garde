@@ -1,6 +1,6 @@
 use argp::FromArgs;
 
-use crate::util::{cargo, CommandExt};
+use crate::util::{cargo, CommandExt as _};
 use crate::Result;
 
 #[derive(FromArgs)]
