@@ -110,13 +110,12 @@ impl std::fmt::Display for NoKey {
     }
 }
 
-pub trait PathComponentKind: std::fmt::Display + ToCompactString + private::Sealed {
+pub trait PathComponentKind: std::fmt::Display + ToCompactString {
     fn component_kind() -> Kind;
 }
 
 macro_rules! impl_path_component_kind {
     ($(@$($G:lifetime)*;)? $T:ty => $which:ident) => {
-        impl $(<$($G),*>)? private::Sealed for $T {}
         impl $(<$($G),*>)? PathComponentKind for $T {
             fn component_kind() -> Kind {
                 Kind::$which
@@ -132,15 +131,10 @@ impl_path_component_kind!(String => Key);
 impl_path_component_kind!(CompactString => Key);
 impl_path_component_kind!(NoKey => None);
 
-impl<'a, T: PathComponentKind> private::Sealed for &'a T {}
 impl<'a, T: PathComponentKind> PathComponentKind for &'a T {
     fn component_kind() -> Kind {
         T::component_kind()
     }
-}
-
-mod private {
-    pub trait Sealed {}
 }
 
 impl Path {
