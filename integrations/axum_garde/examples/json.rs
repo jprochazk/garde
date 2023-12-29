@@ -7,10 +7,11 @@
 //! ```
 use axum::response::IntoResponse;
 use axum::routing::post;
-use axum::{Json, Router, Server};
+use axum::{Json, Router};
 use axum_garde::WithValidation;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
+use tokio::net::TcpListener;
 
 // Define your valid scheme
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -43,9 +44,16 @@ async fn main() {
         .route("/person", post(insert_valid_person))
         // Create the application state
         .with_state(AppState);
+    
     println!("See example: http://127.0.0.1:8080/person");
-    Server::bind(&([127, 0, 0, 1], 8080).into())
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    
+    axum::serve(
+        TcpListener::bind("127.0.0.1:8080")
+            .await
+            .expect("Failed to bind the address"),
+            
+        app.into_make_service(),
+    )
+    .await
+    .expect("Failed to start axum serve");
 }
