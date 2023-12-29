@@ -58,7 +58,6 @@ async fn main() {
         TcpListener::bind("127.0.0.1:8080")
             .await
             .expect("Failed to bind the address"),
-            
         app.into_make_service(),
     )
     .await

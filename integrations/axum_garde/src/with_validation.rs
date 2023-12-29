@@ -30,19 +30,19 @@ use super::{IntoInner, WithValidationRejection};
 /// use serde::{Serialize,Deserialize};
 /// use garde::Validate;
 /// use axum_garde::WithValidation;
-/// 
+///
 /// #[derive(Debug, Serialize, Deserialize, Validate)]
 /// struct Person {
 ///     #[garde(length(min = 1, max = 10))]
 ///     name: String
 /// }
-/// 
+///
 /// async fn handler(
 ///     WithValidation(valid_person): WithValidation<Json<Person>>,
 /// ) -> String{
 ///     format!("{valid_person:?}")
 /// }
-/// 
+///
 /// # // Assert that handler compiles
 /// # axum::Router::new()
 /// #   .route("/", axum::routing::post(handler))

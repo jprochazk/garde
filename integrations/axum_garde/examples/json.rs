@@ -44,14 +44,13 @@ async fn main() {
         .route("/person", post(insert_valid_person))
         // Create the application state
         .with_state(AppState);
-    
+
     println!("See example: http://127.0.0.1:8080/person");
-    
+
     axum::serve(
         TcpListener::bind("127.0.0.1:8080")
             .await
             .expect("Failed to bind the address"),
-            
         app.into_make_service(),
     )
     .await
