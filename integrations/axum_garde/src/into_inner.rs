@@ -22,7 +22,8 @@ macro_rules! impl_into_inner_simple {
         }
     };
 }
-#[allow(unused_macros)]
+
+#[cfg(feature = "axum-extra")]
 macro_rules! impl_into_inner_wrapper {
     (
         $name:ty,

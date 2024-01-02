@@ -2,6 +2,7 @@ use std::fmt::Debug;
 use std::ops::Deref;
 
 use axum::async_trait;
+use axum::body::Body;
 use axum::extract::{FromRef, FromRequest, FromRequestParts};
 use axum::http::request::Parts;
 use axum::http::Request;
@@ -22,34 +23,32 @@ use super::{IntoInner, WithValidationRejection};
 /// The desired validation context ([`garde::Validate::Context`](garde::Validate))
 /// must be provided as router state
 ///
-#[cfg_attr(
-    feature = "json",
-    doc = r#"
-### Example
-
-```
-use axum::Json;
-use serde::{Serialize,Deserialize};
-use garde::Validate;
-use axum_garde::WithValidation;
-#[derive(Debug, Serialize, Deserialize, Validate)]
-struct Person {
-    #[garde(length(min = 1, max = 10))]
-    name: String
-}
-async fn handler(
-    WithValidation(valid_person): WithValidation<Json<Person>>,
-) -> String{
-    format!("{valid_person:?}")
-}
-# // Assert that handler compiles
-# axum::Router::<_, axum::body::BoxBody>::new()
-#   .route("/", axum::routing::post(handler))
-#   .with_state(())
-#   .into_make_service();
-```
-"#
-)]
+/// ### Example
+#[cfg_attr(feature = "json", doc = "```rust")]
+#[cfg_attr(not(feature = "json"), doc = "```compile_fail")]
+/// use axum::Json;
+/// use serde::{Serialize,Deserialize};
+/// use garde::Validate;
+/// use axum_garde::WithValidation;
+///
+/// #[derive(Debug, Serialize, Deserialize, Validate)]
+/// struct Person {
+///     #[garde(length(min = 1, max = 10))]
+///     name: String
+/// }
+///
+/// async fn handler(
+///     WithValidation(valid_person): WithValidation<Json<Person>>,
+/// ) -> String{
+///     format!("{valid_person:?}")
+/// }
+///
+/// # // Assert that handler compiles
+/// # axum::Router::new()
+/// #   .route("/", axum::routing::post(handler))
+/// #   .with_state(())
+/// #   .into_make_service();
+/// ```
 /// [`FromRequestParts`]: axum::extract::FromRequestParts
 /// [`FromRequest`]: axum::extract::FromRequest
 /// [`IntoInner`]: crate::IntoInner
@@ -73,21 +72,20 @@ where
         let value = Extractor::from_request_parts(parts, state)
             .await
             .map_err(WithValidationRejection::ExtractionError)?;
+
         let ctx = FromRef::from_ref(state);
         let value = value.into_inner();
-        let value = Unvalidated::new(value)
-            .validate(&ctx)
-            .map_err(WithValidationRejection::ValidationError)?;
+        let value = Unvalidated::new(value).validate(&ctx)?;
+
         Ok(WithValidation(value))
     }
 }
 
 #[async_trait]
-impl<State, Body, Extractor, Context> FromRequest<State, Body> for WithValidation<Extractor>
+impl<State, Extractor, Context> FromRequest<State> for WithValidation<Extractor>
 where
-    Body: Send + 'static,
     State: Send + Sync,
-    Extractor: FromRequest<State, Body> + IntoInner,
+    Extractor: FromRequest<State> + IntoInner,
     Extractor::Inner: Validate<Context = Context>,
     Context: FromRef<State>,
 {
@@ -97,11 +95,11 @@ where
         let value = Extractor::from_request(req, state)
             .await
             .map_err(WithValidationRejection::ExtractionError)?;
+
         let ctx = FromRef::from_ref(state);
         let value = value.into_inner();
-        let value = Unvalidated::new(value)
-            .validate(&ctx)
-            .map_err(WithValidationRejection::ValidationError)?;
+        let value = Unvalidated::new(value).validate(&ctx)?;
+
         Ok(WithValidation(value))
     }
 }
