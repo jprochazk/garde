@@ -72,11 +72,11 @@ where
         let value = Extractor::from_request_parts(parts, state)
             .await
             .map_err(WithValidationRejection::ExtractionError)?;
+
         let ctx = FromRef::from_ref(state);
         let value = value.into_inner();
-        let value = Unvalidated::new(value)
-            .validate(&ctx)
-            .map_err(WithValidationRejection::ValidationError)?;
+        let value = Unvalidated::new(value).validate(&ctx)?;
+
         Ok(WithValidation(value))
     }
 }
@@ -95,11 +95,11 @@ where
         let value = Extractor::from_request(req, state)
             .await
             .map_err(WithValidationRejection::ExtractionError)?;
+
         let ctx = FromRef::from_ref(state);
         let value = value.into_inner();
-        let value = Unvalidated::new(value)
-            .validate(&ctx)
-            .map_err(WithValidationRejection::ValidationError)?;
+        let value = Unvalidated::new(value).validate(&ctx)?;
+
         Ok(WithValidation(value))
     }
 }

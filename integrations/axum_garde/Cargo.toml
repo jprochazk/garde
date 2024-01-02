@@ -23,8 +23,8 @@ axum-extra-query = ["axum-extra/query"]
 [dependencies]
 axum = { version = "0.7", default-features = false }
 axum-extra = { version = "0.9", default-features = false, optional = true }
-axum-yaml = { version = "0.3", default-features = false, optional = true }
-axum-msgpack = { version = "0.3", default-features = false, optional = true }
+axum-yaml = { version = "0.4", default-features = false, optional = true }
+axum-msgpack = { version = "0.4", default-features = false, optional = true }
 garde = { path = "../../garde", default-features = false }
 thiserror = { version = "1.0", default-features = false }
 

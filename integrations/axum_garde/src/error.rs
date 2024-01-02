@@ -11,6 +11,7 @@ pub enum WithValidationRejection<T> {
     /// Variant for the extractor's rejection
     #[error(transparent)]
     ExtractionError(T),
+
     /// Variant for the payload's validation errors. Responds with status code
     /// `422 Unprocessable Content`
     #[error(transparent)]
