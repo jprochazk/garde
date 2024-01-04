@@ -1,11 +1,12 @@
 mod check;
+mod check_deprecated;
 mod emit;
 mod model;
 mod syntax;
 mod util;
 
 use proc_macro::{Delimiter, Literal, Span, TokenStream, TokenTree};
-use quote::quote;
+use quote::{quote, ToTokens, TokenStreamExt};
 use syn::DeriveInput;
 
 #[proc_macro_derive(Validate, attributes(garde))]
@@ -15,11 +16,17 @@ pub fn derive_validate(input: TokenStream) -> TokenStream {
         Ok(v) => v,
         Err(e) => return e.into_compile_error().into(),
     };
+
+    let deprecated = check_deprecated::check(&input);
+
     let input = match check::check(input) {
         Ok(v) => v,
         Err(e) => return e.into_compile_error().into(),
     };
-    emit::emit(input).into()
+
+    let mut stream = emit::emit(input);
+    stream.append_all(deprecated.into_token_stream());
+    stream.into()
 }
 
 #[proc_macro]

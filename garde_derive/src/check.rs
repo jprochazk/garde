@@ -350,13 +350,7 @@ fn check_rule(
         CreditCard => apply!(rule_set, CreditCard(), span),
         PhoneNumber => apply!(rule_set, PhoneNumber(), span),
         Length(v) => apply!(rule_set, Length(check_range_generic(v)?), span),
-        ByteLength(v) => {
-            #[deprecated = "the `byte_length` attribute is deprecated. Use `length` instead. (See https://github.com/jprochazk/garde/issues/84)"]
-            fn byte_length_deprecated() {}
-            byte_length_deprecated();
-
-            apply!(rule_set, ByteLength(check_range_generic(v)?), span);
-        }
+        ByteLength(v) => apply!(rule_set, ByteLength(check_range_generic(v)?), span),
         Range(v) => apply!(rule_set, Range(check_range_not_ord(v)?), span),
         Contains(v) => apply!(rule_set, Contains(v), span),
         Prefix(v) => apply!(rule_set, Prefix(v), span),

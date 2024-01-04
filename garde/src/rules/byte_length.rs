@@ -31,6 +31,7 @@
 use super::AsStr;
 use crate::error::Error;
 
+#[deprecated = "the `byte_length` attribute is deprecated. Use `length` instead. (See https://github.com/jprochazk/garde/issues/84)"]
 pub fn apply<T: ByteLength>(v: &T, (min, max): (usize, usize)) -> Result<(), Error> {
     if let Err(e) = v.validate_byte_length(min, max) {
         match e {
