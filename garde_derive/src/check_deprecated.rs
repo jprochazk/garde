@@ -16,12 +16,12 @@ pub fn check(input: &model::Input) -> DeprecatedWarningSpans {
     let mut spans = Vec::new();
     match kind {
         model::InputKind::Struct(variant) => {
-            spans.append(&mut check_variant(variant));
+            check_variant(variant, &mut spans);
         }
         model::InputKind::Enum(list) => {
             for (_, variant) in list {
                 if let Some(variant) = variant {
-                    spans.append(&mut check_variant(variant));
+                    check_variant(variant, &mut spans);
                 }
             }
         }
@@ -33,38 +33,31 @@ pub fn check(input: &model::Input) -> DeprecatedWarningSpans {
     }
 }
 
-fn check_variant(variant: &model::Variant) -> Vec<Span> {
-    let mut spans = Vec::new();
-
+fn check_variant(variant: &model::Variant, spans: &mut Vec<Span>) {
     match variant {
         model::Variant::Struct(map) => {
             for field in map.values() {
-                spans.append(&mut check_field(field));
+                check_field(field, spans);
             }
         }
         model::Variant::Tuple(list) => {
             for field in list {
-                spans.append(&mut check_field(field));
+                check_field(field, spans);
             }
         }
-    };
-
-    spans
+    }
 }
 
-fn check_field(field: &model::Field) -> Vec<Span> {
+fn check_field(field: &model::Field, spans: &mut Vec<Span>) {
     let model::Field {
         rules: raw_rules, ..
     } = field;
 
-    let mut spans = Vec::new();
     for RawRule { span, kind } in raw_rules {
         if let model::RawRuleKind::ByteLength(_) = kind {
             spans.push(*span);
         }
     }
-
-    spans
 }
 
 impl ToTokens for DeprecatedWarningSpans {
