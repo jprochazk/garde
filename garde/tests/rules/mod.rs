@@ -2,6 +2,7 @@ mod allow_unvalidated;
 mod alphanumeric;
 mod ascii;
 mod byte_length;
+mod char_count;
 mod contains;
 mod credit_card;
 mod custom;

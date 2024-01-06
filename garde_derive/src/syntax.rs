@@ -290,6 +290,7 @@ impl Parse for model::RawRule {
                 "phone_number" => PhoneNumber,
                 "length" => Length(content),
                 "byte_length" => ByteLength(content),
+                "char_count" => CharCount(content),
                 "range" => Range(content),
                 "contains" => Contains(content),
                 "prefix" => Prefix(content),

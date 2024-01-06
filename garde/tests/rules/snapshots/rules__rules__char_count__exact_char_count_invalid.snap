@@ -1,0 +1,50 @@
+---
+source: garde/tests/./rules/char_count.rs
+expression: snapshot
+---
+Exact {
+    field: "",
+    inner: [
+        "",
+    ],
+}
+field: character count is lower than 5
+inner[0]: character count is lower than 5
+
+Exact {
+    field: "a",
+    inner: [
+        "a",
+    ],
+}
+field: character count is lower than 5
+inner[0]: character count is lower than 5
+
+Exact {
+    field: "aaa",
+    inner: [
+        "aaa",
+    ],
+}
+field: character count is lower than 5
+inner[0]: character count is lower than 5
+
+Exact {
+    field: "😂",
+    inner: [
+        "😂",
+    ],
+}
+field: character count is lower than 5
+inner[0]: character count is lower than 5
+
+Exact {
+    field: "👨\u{200d}👩\u{200d}👦👨\u{200d}👩\u{200d}👦",
+    inner: [
+        "👨\u{200d}👩\u{200d}👦👨\u{200d}👩\u{200d}👦",
+    ],
+}
+field: character count is greater than 5
+inner[0]: character count is greater than 5
+
+

@@ -351,6 +351,7 @@ fn check_rule(
         PhoneNumber => apply!(rule_set, PhoneNumber(), span),
         Length(v) => apply!(rule_set, Length(check_range_generic(v)?), span),
         ByteLength(v) => apply!(rule_set, ByteLength(check_range_generic(v)?), span),
+        CharCount(v) => apply!(rule_set, CharCount(check_range_generic(v)?), span),
         Range(v) => apply!(rule_set, Range(check_range_not_ord(v)?), span),
         Contains(v) => apply!(rule_set, Contains(v), span),
         Prefix(v) => apply!(rule_set, Prefix(v), span),

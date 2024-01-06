@@ -33,10 +33,10 @@ pattern = ["regex"] # for backward compatibility with <0.14.0
 js-sys = ["dep:js-sys"]
 
 [dependencies]
-garde_derive = { version = "0.16.0", path = "../garde_derive", optional = true, default-features = false }
+garde_derive = { path = "../garde_derive", optional = true, default-features = false }
 
-smallvec = { version = "1.11.0", default-features = false }
-compact_str = { version = "0.7.1", default-features = false }
+smallvec = { version = "1.11", default-features = false }
+compact_str = { version = "0.7", default-features = false }
 
 serde = { version = "1", features = ["derive"], optional = true }
 url = { version = "2", optional = true }
@@ -46,7 +46,7 @@ regex = { version = "1", default-features = false, features = [
     "std",
 ], optional = true }
 once_cell = { version = "1", optional = true }
-idna = { version = "0.3", optional = true }
+idna = { version = "0.5", optional = true }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 js-sys = { version = "0.3", optional = true }
@@ -54,14 +54,14 @@ js-sys = { version = "0.3", optional = true }
 [dev-dependencies]
 trybuild = { version = "1.0" }
 insta = { version = "1.29" }
-owo-colors = { version = "3.5.0" }
-glob = "0.3.1"
+owo-colors = { version = "4.0" }
+glob = "0.3"
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
-wasm-bindgen-test = "0.3.38"
+wasm-bindgen-test = "0.3"
 
 [target.'cfg(not(all(target_arch = "wasm32", target_os = "unknown")))'.dev-dependencies]
-criterion = "0.4"
+criterion = "0.5"
 
 [[bench]]
 name = "validation"

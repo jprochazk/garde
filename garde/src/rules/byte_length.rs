@@ -14,7 +14,6 @@
 //! [`ByteLength`] is implemented for any `T: HasByteLength`.
 //!
 //! In case of string types, [`HasByteLength::byte_length`] should return the number of _bytes_ as opposed to the number of _characters_.
-//! For validation of length counted in _characters_, see the [`crate::rules::length`] rule.
 //!
 //! Here's what implementing the trait for a custom string-like type might look like:
 //! ```rust
