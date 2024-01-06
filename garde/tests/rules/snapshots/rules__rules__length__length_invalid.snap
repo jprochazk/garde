@@ -20,4 +20,13 @@ Test {
 field: length is greater than 100
 inner[0]: length is greater than 100
 
+Test {
+    field: "a😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂",
+    inner: [
+        "a😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂",
+    ],
+}
+field: length is greater than 100
+inner[0]: length is greater than 100
+
 

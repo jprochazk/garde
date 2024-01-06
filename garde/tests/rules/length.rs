@@ -14,12 +14,18 @@ fn length_valid() {
         Test {
             // 'a' * 10
             field: "aaaaaaaaaa",
-            inner: &["aaaaaaaaaa"]
+            inner: &["aaaaaaaaaa"],
         },
         Test {
             // 'a' * 100
             field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            inner: &["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
+            inner: &["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
+        },
+        Test {
+            // "😂" = 4 bytes
+            // "😂" * 25 = 100 bytes
+            field: "😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂",
+            inner: &["😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂"]
         },
     ], &())
 }
@@ -30,32 +36,45 @@ fn length_invalid() {
         Test {
             // 'a' * 9
             field: "aaaaaaaaa",
-            inner: &["aaaaaaaaa"]
+            inner: &["aaaaaaaaa"],
         },
         Test {
             // 'a' * 101
             field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            inner: &["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
+            inner: &["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
+        },
+        Test {
+            // "😂" = 4 bytes
+            // 'a' * 1 + "😂" * 25 = 101 bytes
+            field: "a😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂",
+            inner: &["a😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂"],
         },
     ], &())
 }
 
 #[derive(Debug, garde::Validate)]
 struct Exact<'a> {
-    #[garde(length(min = 2, max = 2))]
+    #[garde(length(min = 4, max = 4))]
     field: &'a str,
-    #[garde(inner(length(min = 2, max = 2)))]
+    #[garde(inner(length(min = 4, max = 4)))]
     inner: &'a [&'a str],
 }
 
 #[test]
 fn exact_length_valid() {
     util::check_ok(
-        &[Exact {
-            // 'a' * 2
-            field: "aa",
-            inner: &["aa"],
-        }],
+        &[
+            Exact {
+                // 'a' * 2
+                field: "aaaa",
+                inner: &["aaaa"],
+            },
+            Exact {
+                // '😂' = 4 bytes
+                field: "😂",
+                inner: &["😂"],
+            },
+        ],
         &(),
     )
 }
@@ -77,6 +96,11 @@ fn exact_length_invalid() {
                 // 'a' * 3
                 field: "aaa",
                 inner: &["aaa"]
+            },
+            Exact {
+                // '😂' * 2 = 8
+                field: "😂😂",
+                inner: &["😂😂"]
             },
         ],
         &()

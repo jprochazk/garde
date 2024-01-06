@@ -9,7 +9,7 @@ Test {
     ],
 }
 field: byte length is lower than 10
-inner[0]: length is lower than 10
+inner[0]: byte length is lower than 10
 
 Test {
     field: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -18,7 +18,7 @@ Test {
     ],
 }
 field: byte length is greater than 100
-inner[0]: length is greater than 100
+inner[0]: byte length is greater than 100
 
 Test {
     field: "a😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂",
@@ -27,5 +27,6 @@ Test {
     ],
 }
 field: byte length is greater than 100
+inner[0]: byte length is greater than 100
 
 

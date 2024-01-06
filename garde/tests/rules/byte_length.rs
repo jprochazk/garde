@@ -7,7 +7,7 @@ struct Test<'a> {
     #[garde(byte_length(min = 10, max = UWU - 1))]
     field: &'a str,
 
-    #[garde(inner(length(min = 10, max = 100)))]
+    #[garde(inner(byte_length(min = 10, max = 100)))]
     inner: &'a [&'a str],
 }
 
