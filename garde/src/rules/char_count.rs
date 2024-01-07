@@ -99,6 +99,6 @@ impl<'a> HasCharCount for &'a str {
 
 impl<'a> HasCharCount for std::borrow::Cow<'a, str> {
     fn char_count(&self) -> usize {
-        self.len()
+        self.chars().count()
     }
 }
