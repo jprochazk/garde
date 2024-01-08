@@ -253,11 +253,13 @@ impl<'a> ToTokens for Rules<'a> {
                 IpV6 => {
                     quote!((::garde::rules::ip::IpKind::V6,))
                 }
-                Length(range) | ByteLength(range) | CharCount(range) => match range {
-                    model::ValidateRange::GreaterThan(min) => quote!((#min, usize::MAX)),
-                    model::ValidateRange::LowerThan(max) => quote!((0usize, #max)),
-                    model::ValidateRange::Between(min, max) => quote!((#min, #max)),
-                },
+                Length(range) | ByteLength(range) | CharCount(range) | GraphemeCount(range) => {
+                    match range {
+                        model::ValidateRange::GreaterThan(min) => quote!((#min, usize::MAX)),
+                        model::ValidateRange::LowerThan(max) => quote!((0usize, #max)),
+                        model::ValidateRange::Between(min, max) => quote!((#min, #max)),
+                    }
+                }
                 Range(range) => match range {
                     model::ValidateRange::GreaterThan(min) => quote!((Some(#min), None)),
                     model::ValidateRange::LowerThan(max) => quote!((None, Some(#max))),

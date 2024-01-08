@@ -291,6 +291,7 @@ impl Parse for model::RawRule {
                 "length" => Length(content),
                 "byte_length" => ByteLength(content),
                 "char_count" => CharCount(content),
+                "grapheme_count" => GraphemeCount(content),
                 "range" => Range(content),
                 "contains" => Contains(content),
                 "prefix" => Prefix(content),

@@ -1,0 +1,50 @@
+---
+source: garde/tests/./rules/grapheme_count.rs
+expression: snapshot
+---
+Exact {
+    field: "",
+    inner: [
+        "",
+    ],
+}
+field: grapheme count is lower than 5
+inner[0]: grapheme count is lower than 5
+
+Exact {
+    field: "a",
+    inner: [
+        "a",
+    ],
+}
+field: grapheme count is lower than 5
+inner[0]: grapheme count is lower than 5
+
+Exact {
+    field: "aaa",
+    inner: [
+        "aaa",
+    ],
+}
+field: grapheme count is lower than 5
+inner[0]: grapheme count is lower than 5
+
+Exact {
+    field: "😂😂😂😂",
+    inner: [
+        "😂😂😂😂",
+    ],
+}
+field: grapheme count is lower than 5
+inner[0]: grapheme count is lower than 5
+
+Exact {
+    field: "你ह\u{942}\u{901}אਲ\u{a4b}😂ア",
+    inner: [
+        "你ह\u{942}\u{901}אਲ\u{a4b}😂ア",
+    ],
+}
+field: grapheme count is greater than 5
+inner[0]: grapheme count is greater than 5
+
+

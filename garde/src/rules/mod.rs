@@ -9,6 +9,8 @@ pub mod contains;
 pub mod credit_card;
 #[cfg(feature = "email")]
 pub mod email;
+#[cfg(feature = "unicode")]
+pub mod grapheme_count;
 pub mod inner;
 pub mod ip;
 pub mod length;

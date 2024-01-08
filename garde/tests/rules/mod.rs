@@ -9,6 +9,7 @@ mod custom;
 mod dive;
 mod dive_with_rules;
 mod email;
+mod grapheme_count;
 mod inner;
 mod ip;
 mod length;

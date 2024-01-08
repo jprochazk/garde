@@ -20,6 +20,7 @@ default = [
     "email",
     "email-idna",
     "regex",
+    "unicode",
 ]
 serde = ["dep:serde", "compact_str/serde"]
 derive = ["dep:garde_derive"]
@@ -31,9 +32,10 @@ email-idna = ["dep:idna"]
 regex = ["dep:regex", "dep:once_cell", "garde_derive?/regex"]
 pattern = ["regex"] # for backward compatibility with <0.14.0
 js-sys = ["dep:js-sys"]
+unicode = ["dep:unicode-segmentation"]
 
 [dependencies]
-garde_derive = { path = "../garde_derive", optional = true, default-features = false }
+garde_derive = { version = "0.16", path = "../garde_derive", optional = true, default-features = false }
 
 smallvec = { version = "1.11", default-features = false }
 compact_str = { version = "0.7", default-features = false }
@@ -47,6 +49,7 @@ regex = { version = "1", default-features = false, features = [
 ], optional = true }
 once_cell = { version = "1", optional = true }
 idna = { version = "0.5", optional = true }
+unicode-segmentation = { version = "1.10", optional = true }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 js-sys = { version = "0.3", optional = true }
