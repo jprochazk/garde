@@ -1,6 +1,6 @@
 [package]
 name = "garde"
-version = "0.16.3"
+version = "0.17.0"
 edition = "2021"
 repository = "https://github.com/jprochazk/garde"
 license = "MIT OR Apache-2.0"
@@ -35,7 +35,7 @@ js-sys = ["dep:js-sys"]
 unicode = ["dep:unicode-segmentation"]
 
 [dependencies]
-garde_derive = { version = "0.16", path = "../garde_derive", optional = true, default-features = false }
+garde_derive = { version = "0.17.0", path = "../garde_derive", optional = true, default-features = false }
 
 smallvec = { version = "1.11", default-features = false }
 compact_str = { version = "0.7", default-features = false }
