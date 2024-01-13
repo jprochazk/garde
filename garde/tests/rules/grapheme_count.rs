@@ -112,8 +112,8 @@ fn exact_grapheme_count_valid() {
             },
             // '你हूँאਲੋ😂' = 5 graphemes
             Exact {
-                field: "你हूँאਲੋ😂".to_owned(),
-                inner: &["你हूँאਲੋ😂".to_owned()],
+                field: "你हूँאਲੋ😂".into(),
+                inner: &["你हूँאਲੋ😂".into()],
             },
         ],
         &(),
@@ -125,12 +125,12 @@ fn exact_grapheme_count_invalid() {
     util::check_fail!(
         &[
             Exact {
-                field: "".to_owned(),
-                inner: &["".to_owned()],
+                field: "".into(),
+                inner: &["".into()],
             },
             Exact {
-                field: "a".to_owned(),
-                inner: &["a".to_owned()],
+                field: "a".into(),
+                inner: &["a".into()],
             },
             Exact {
                 field: "a".repeat(3),
@@ -142,8 +142,8 @@ fn exact_grapheme_count_invalid() {
             },
             // '你हूँאਲੋ😂ア' = 6 graphemes
             Exact {
-                field: "你हूँאਲੋ😂ア".to_owned(),
-                inner: &["你हूँאਲੋ😂ア".to_owned()],
+                field: "你हूँאਲੋ😂ア".into(),
+                inner: &["你हूँאਲੋ😂ア".into()],
             },
         ],
         &()
