@@ -52,6 +52,7 @@ impl Version {
         cargo("workspaces")
             .with_arg("version")
             .with_arg(self.bump.as_str())
+            .with_args(["--no-git-commit"])
             .with_args(["--force", "*"])
             .run_async()?;
 
