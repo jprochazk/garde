@@ -102,3 +102,21 @@ impl<'a> HasCharCount for std::borrow::Cow<'a, str> {
         self.chars().count()
     }
 }
+
+impl<'a, 'b> HasCharCount for &'a std::borrow::Cow<'b, str> {
+    fn char_count(&self) -> usize {
+        self.chars().count()
+    }
+}
+
+impl HasCharCount for Box<str> {
+    fn char_count(&self) -> usize {
+        self.chars().count()
+    }
+}
+
+impl<'a> HasCharCount for &'a Box<str> {
+    fn char_count(&self) -> usize {
+        self.chars().count()
+    }
+}

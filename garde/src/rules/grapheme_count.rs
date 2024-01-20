@@ -102,3 +102,21 @@ impl<'a> HasGraphemeCount for std::borrow::Cow<'a, str> {
         self.graphemes(true).count()
     }
 }
+
+impl<'a, 'b> HasGraphemeCount for &'a std::borrow::Cow<'b, str> {
+    fn grapheme_count(&self) -> usize {
+        self.graphemes(true).count()
+    }
+}
+
+impl HasGraphemeCount for Box<str> {
+    fn grapheme_count(&self) -> usize {
+        self.graphemes(true).count()
+    }
+}
+
+impl<'a> HasGraphemeCount for &'a Box<str> {
+    fn grapheme_count(&self) -> usize {
+        self.graphemes(true).count()
+    }
+}

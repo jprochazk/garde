@@ -101,6 +101,24 @@ impl<'a> HasLength for std::borrow::Cow<'a, str> {
     }
 }
 
+impl<'a, 'b> HasLength for &'a std::borrow::Cow<'b, str> {
+    fn length(&self) -> usize {
+        self.len()
+    }
+}
+
+impl HasLength for Box<str> {
+    fn length(&self) -> usize {
+        self.len()
+    }
+}
+
+impl<'a> HasLength for &'a Box<str> {
+    fn length(&self) -> usize {
+        self.len()
+    }
+}
+
 impl<T> HasLength for Vec<T> {
     fn length(&self) -> usize {
         self.len()
