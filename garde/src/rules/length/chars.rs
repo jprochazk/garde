@@ -12,6 +12,12 @@ pub trait Chars {
     fn validate_num_chars(&self, min: usize, max: usize) -> Result<(), Error>;
 }
 
+impl<T: HasChars> Chars for T {
+    fn validate_num_chars(&self, min: usize, max: usize) -> Result<(), Error> {
+        super::check_len(self.num_chars(), min, max)
+    }
+}
+
 impl<T: Chars> Chars for Option<T> {
     fn validate_num_chars(&self, min: usize, max: usize) -> Result<(), Error> {
         match self {
