@@ -45,15 +45,20 @@
 //!
 
 pub mod bytes;
-pub mod chars;
-pub mod graphemes;
-pub mod simple;
-pub mod utf16;
-
 pub use bytes::HasBytes;
+
+pub mod chars;
 pub use chars::HasChars;
+
+#[cfg(feature = "unicode")]
+pub mod graphemes;
+#[cfg(feature = "unicode")]
 pub use graphemes::HasGraphemes;
+
+pub mod simple;
 pub use simple::HasSimpleLength;
+
+pub mod utf16;
 pub use utf16::HasUtf16CodeUnits;
 
 use crate::error::Error;
