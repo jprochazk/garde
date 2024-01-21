@@ -8,10 +8,12 @@ SpecialLengthTest {
     chars: "y\u{306}",
     graphemes: "áá",
     utf16: "😂",
+    multi: "áá",
 }
 bytes: length is greater than 1
 chars: length is greater than 1
 graphemes: length is greater than 1
+multi: length is greater than 1
 simple: length is greater than 1
 utf16: length is greater than 1
 

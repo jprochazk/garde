@@ -95,6 +95,9 @@ struct SpecialLengthTest<'a> {
     graphemes: &'a str,
     #[garde(length(utf16, max = 1))]
     utf16: &'a str,
+
+    #[garde(length(bytes, max = 4), length(graphemes, max = 1))]
+    multi: &'a str,
 }
 
 #[test]
@@ -106,6 +109,8 @@ fn char_length_valid() {
             chars: "á",
             graphemes: "á",
             utf16: "á",
+
+            multi: "😂", // 4 bytes, 1 grapheme
         }],
         &(),
     )
@@ -119,7 +124,9 @@ fn char_length_invalid() {
             bytes: "ab",     // 2 bytes
             chars: "y̆",      // 2 USVs
             graphemes: "áá", // 2 graphemes
-            utf16: "😂"      // 2 units
+            utf16: "😂",     // 2 units
+
+            multi: "áá", // 4 bytes, 2 graphemes
         }],
         &()
     )
