@@ -87,7 +87,6 @@ if let Err(e) = data.validate(&()) {
 | credit card  | `#[garde(credit_card)]`                          | a credit card number                                 | `credit-card`  |
 | phone number | `#[garde(phone_number)]`                         | a phone number                                       | `phone-number` |
 | length       | `#[garde(length(min=<usize>, max=<usize>)]`      | a container with length in `min..=max`               | -              |
-| byte_length  | `#[garde(byte_length(min=<usize>, max=<usize>)]` | a byte sequence with length in `min..=max`           | -              |
 | range        | `#[garde(range(min=<expr>, max=<expr>))]`        | a number in the range `min..=max`                    | -              |
 | contains     | `#[garde(contains(<string>))]`                   | a string-like value containing a substring           | -              |
 | prefix       | `#[garde(prefix(<string>))]`                     | a string-like value prefixed by some string          | -              |

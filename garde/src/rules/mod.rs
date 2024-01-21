@@ -2,7 +2,6 @@
 
 pub mod alphanumeric;
 pub mod ascii;
-pub mod byte_length;
 pub mod contains;
 #[cfg(feature = "credit-card")]
 pub mod credit_card;
