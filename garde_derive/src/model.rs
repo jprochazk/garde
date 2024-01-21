@@ -88,7 +88,7 @@ pub enum RawRuleKind {
     IpV6,
     CreditCard,
     PhoneNumber,
-    Length(Range<Either<usize, Expr>>),
+    Length(RawLength),
     Range(Range<Expr>),
     Contains(Expr),
     Prefix(Expr),
@@ -96,6 +96,21 @@ pub enum RawRuleKind {
     Pattern(Pattern),
     Custom(Expr),
     Inner(List<RawRule>),
+}
+
+pub struct RawLength {
+    pub mode: LengthMode,
+    pub range: Range<Either<usize, Expr>>,
+}
+
+#[derive(Clone, Copy, Default)]
+pub enum LengthMode {
+    #[default]
+    Simple,
+    Bytes,
+    Chars,
+    Graphemes,
+    Utf16,
 }
 
 pub enum Either<L, R> {
@@ -217,13 +232,19 @@ pub enum ValidateRule {
     IpV6,
     CreditCard,
     PhoneNumber,
-    Length(ValidateRange<Either<usize, Expr>>),
+    LengthSimple(LengthRange),
+    LengthBytes(LengthRange),
+    LengthChars(LengthRange),
+    LengthGraphemes(LengthRange),
+    LengthUtf16(LengthRange),
     Range(ValidateRange<Expr>),
     Contains(Expr),
     Prefix(Expr),
     Suffix(Expr),
     Pattern(ValidatePattern),
 }
+
+type LengthRange = ValidateRange<Either<usize, Expr>>;
 
 impl ValidateRule {
     pub fn name(&self) -> &'static str {
@@ -238,8 +259,12 @@ impl ValidateRule {
             ValidateRule::IpV6 => "ip",
             ValidateRule::CreditCard => "credit_card",
             ValidateRule::PhoneNumber => "phone_number",
-            ValidateRule::Length { .. } => "length",
-            ValidateRule::Range { .. } => "range",
+            ValidateRule::LengthSimple(_) => "length::simple",
+            ValidateRule::LengthBytes(_) => "length::bytes",
+            ValidateRule::LengthChars(_) => "length::chars",
+            ValidateRule::LengthGraphemes(_) => "length::graphemes",
+            ValidateRule::LengthUtf16(_) => "length::utf16",
+            ValidateRule::Range(_) => "range",
             ValidateRule::Contains(_) => "contains",
             ValidateRule::Prefix(_) => "prefix",
             ValidateRule::Suffix(_) => "suffix",

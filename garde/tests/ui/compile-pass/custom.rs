@@ -17,7 +17,7 @@ fn custom_validate_fn(_: &str, _: &()) -> Result<(), garde::Error> {
 #[repr(transparent)]
 pub struct MyString(String);
 
-impl garde::rules::length::HasLength for MyString {
+impl garde::rules::length::HasSimpleLength for MyString {
     fn length(&self) -> usize {
         self.0.len()
     }

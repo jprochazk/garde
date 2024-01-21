@@ -261,13 +261,14 @@ struct User {
 ### Implementing rules
 
 Say you want to implement length checking for a custom string-like type.
-To do this, you would implement the `garde::rules::length::HasLength` trait for it.
+To do this, you would implement one of the `length` traits for it, depending
+on what kind of validation you are looking for.
 
 ```rust
 #[repr(transparent)]
 pub struct MyString(String);
 
-impl garde::rules::length::HasLength for MyString {
+impl garde::rules::length::HasSimpleLength for MyString {
     fn length(&self) -> usize {
         self.0.len()
     }

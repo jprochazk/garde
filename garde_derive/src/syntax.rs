@@ -330,6 +330,83 @@ impl Parse for model::Message {
     }
 }
 
+impl Parse for model::RawLength {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let span = input.span();
+
+        let args = Punctuated::<RawLengthArgument, Token![,]>::parse_terminated(input)?;
+
+        let mut error = None;
+
+        let mut mode = None;
+        let mut min = None;
+        let mut max = None;
+
+        for arg in args {
+            match arg {
+                RawLengthArgument::Min(span, v) => {
+                    if min.is_some() {
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"));
+                        continue;
+                    }
+                    min = Some(v);
+                }
+                RawLengthArgument::Max(span, v) => {
+                    if max.is_some() {
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"));
+                        continue;
+                    }
+                    max = Some(v);
+                }
+                RawLengthArgument::Mode(span, v) => {
+                    if mode.is_some() {
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"));
+                        continue;
+                    }
+                    mode = Some(v);
+                }
+            }
+        }
+
+        Ok(model::RawLength {
+            mode: mode.unwrap_or_default(),
+            range: model::Range { span, min, max },
+        })
+    }
+}
+
+enum RawLengthArgument {
+    Min(Span, model::Either<usize, syn::Expr>),
+    Max(Span, model::Either<usize, syn::Expr>),
+    Mode(Span, model::LengthMode),
+}
+
+impl Parse for RawLengthArgument {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let ident = Ident::parse_any(input)?;
+        let span = ident.span();
+        let v = match ident.to_string().as_str() {
+            "simple" => RawLengthArgument::Mode(span, model::LengthMode::Simple),
+            "bytes" => RawLengthArgument::Mode(span, model::LengthMode::Bytes),
+            "chars" => RawLengthArgument::Mode(span, model::LengthMode::Chars),
+            "graphemes" => RawLengthArgument::Mode(span, model::LengthMode::Graphemes),
+            "utf16" => RawLengthArgument::Mode(span, model::LengthMode::Utf16),
+            "min" => {
+                let _ = input.parse::<Token![=]>()?;
+                let v = input.parse::<syn::Expr>()?;
+                RawLengthArgument::Min(span, FromExpr::from_expr(v)?)
+            }
+            "max" => {
+                let _ = input.parse::<Token![=]>()?;
+                let v = input.parse::<syn::Expr>()?;
+                RawLengthArgument::Max(span, FromExpr::from_expr(v)?)
+            }
+            _ => return Err(syn::Error::new(span, "invalid argument")),
+        };
+        Ok(v)
+    }
+}
+
 impl<T> Parse for model::Range<T>
 where
     T: FromExpr,
@@ -337,8 +414,7 @@ where
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let span = input.span();
 
-        let pairs =
-            syn::punctuated::Punctuated::<syn::MetaNameValue, Token![,]>::parse_terminated(input)?;
+        let pairs = Punctuated::<syn::MetaNameValue, Token![,]>::parse_terminated(input)?;
 
         let mut error = None;
 
