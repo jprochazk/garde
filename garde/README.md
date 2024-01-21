@@ -102,7 +102,6 @@ Additional notes:
 - `required` is only available for `Option` fields.
 - For `length` and `range`, either `min` or `max` may be omitted, but not both.
 - `length` and `range` use an *inclusive* upper bound (`min..=max`).
-- `length` uses `.chars().count()` for UTF-8 strings instead of `.len()`.
 - For `contains`, `prefix`, and `suffix`, the pattern must be a string literal, because the `Pattern` API [is currently unstable](https://github.com/rust-lang/rust/issues/27721).
 - Garde does not enable the default features of the `regex` crate - if you need extra regex features (e.g. Unicode) or better performance, add a dependency on `regex = "1"` to your `Cargo.toml`.
 
@@ -267,11 +266,11 @@ To do this, you would implement the `garde::rules::length::HasLength` trait for 
 
 ```rust
 #[repr(transparent)]
-pub struct MyString(pub String);
+pub struct MyString(String);
 
 impl garde::rules::length::HasLength for MyString {
     fn length(&self) -> usize {
-        self.0.chars().count()
+        self.0.len()
     }
 }
 #[derive(garde::Validate)]

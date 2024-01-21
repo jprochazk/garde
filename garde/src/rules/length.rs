@@ -13,9 +13,6 @@
 //! The [`Length`] has a companion trait [`HasLength`], which may be implemented for any container with a known length.
 //! [`Length`] is implemented for any `T: HasLength`.
 //!
-//! In case of string types, [`HasLength::length`] should return the number of _characters_ as opposed to the number of _bytes_.
-//! For validation of length counted in _bytes_, see the [`crate::rules::byte_length`] rule.
-//!
 //! Here's what implementing the trait for a custom string-like type might look like:
 //! ```rust
 //! #[repr(transparent)]
@@ -23,7 +20,7 @@
 //!
 //! impl garde::rules::length::HasLength for MyString {
 //!     fn length(&self) -> usize {
-//!         self.0.chars().count()
+//!         self.0.len()
 //!     }
 //! }
 //! ```
@@ -79,19 +76,19 @@ impl<T: Length> Length for Option<T> {
 
 impl HasLength for String {
     fn length(&self) -> usize {
-        self.chars().count()
+        self.len()
     }
 }
 
 impl<'a> HasLength for &'a String {
     fn length(&self) -> usize {
-        self.chars().count()
+        self.len()
     }
 }
 
 impl<'a> HasLength for &'a str {
     fn length(&self) -> usize {
-        self.chars().count()
+        self.len()
     }
 }
 
