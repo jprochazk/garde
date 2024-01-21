@@ -1,0 +1,18 @@
+---
+source: garde/tests/./rules/length.rs
+expression: snapshot
+---
+SpecialLengthTest {
+    simple: "ab",
+    bytes: "ab",
+    chars: "y\u{306}",
+    graphemes: "áá",
+    utf16: "😂",
+}
+bytes: length is greater than 1
+chars: length is greater than 1
+graphemes: length is greater than 1
+simple: length is greater than 1
+utf16: length is greater than 1
+
+

@@ -334,7 +334,8 @@ impl Parse for model::RawLength {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let span = input.span();
 
-        let args = Punctuated::<RawLengthArgument, Token![,]>::parse_terminated(input)?;
+        let args =
+            Punctuated::<ContinueOnFail<RawLengthArgument>, Token![,]>::parse_terminated(input)?;
 
         let mut error = None;
 
@@ -343,6 +344,13 @@ impl Parse for model::RawLength {
         let mut max = None;
 
         for arg in args {
+            let arg = match arg {
+                ContinueOnFail::Ok(arg) => arg,
+                ContinueOnFail::Err(e) => {
+                    error.maybe_fold(e);
+                    continue;
+                }
+            };
             match arg {
                 RawLengthArgument::Min(span, v) => {
                     if min.is_some() {
@@ -366,6 +374,10 @@ impl Parse for model::RawLength {
                     mode = Some(v);
                 }
             }
+        }
+
+        if let Some(error) = error {
+            return Err(error);
         }
 
         Ok(model::RawLength {
@@ -401,7 +413,15 @@ impl Parse for RawLengthArgument {
                 let v = input.parse::<syn::Expr>()?;
                 RawLengthArgument::Max(span, FromExpr::from_expr(v)?)
             }
-            _ => return Err(syn::Error::new(span, "invalid argument")),
+            _ => {
+                if input.peek(Token![=]) {
+                    let _ = input.parse::<Token![=]>()?;
+                }
+                if !input.peek(Token![,]) {
+                    let _ = input.parse::<syn::Expr>()?;
+                }
+                return Err(syn::Error::new(span, "invalid argument"));
+            }
         };
         Ok(v)
     }
