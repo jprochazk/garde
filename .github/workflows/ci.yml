@@ -88,10 +88,10 @@ jobs:
           shared-key: "rust-${{ matrix.build }}-test"
 
       - name: Build xtask
-        run: cargo build --manifest-path ./xtask/Cargo.toml
+        run: cargo build-xtask
 
       - name: Build docs
-        run: cargo doc --all-features
+        run: cargo doc --frozen --all-features
 
       - name: Run tests
         run: cargo x test
@@ -124,7 +124,7 @@ jobs:
           shared-key: "rust-checks"
 
       - name: Build xtask
-        run: cargo build --manifest-path ./xtask/Cargo.toml
+        run: cargo build-xtask
 
       - name: Run checks
         run: cargo x check
