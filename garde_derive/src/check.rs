@@ -227,6 +227,7 @@ fn check_field(field: model::Field, options: &model::Options) -> syn::Result<mod
 
     let mut field = model::ValidateField {
         ty,
+        adapter: None,
         skip: None,
         alias: None,
         message: None,
@@ -303,21 +304,21 @@ fn check_rule(
     is_inner: bool,
 ) -> syn::Result<()> {
     macro_rules! apply {
-        ($is_inner:expr, $field:ident, $name:ident, $value:expr, $span:expr) => {{
-            if $is_inner {
+        ($name:ident = $value:expr, $span:expr) => {{
+            if is_inner {
                 return Err(syn::Error::new(
                     $span,
                     concat!("rule `", stringify!($name), "` may not be used in `inner`")
                 ));
             }
-            match $field.$name {
+            match field.$name {
                 Some(_) => {
                     return Err(syn::Error::new(
                         $span,
                         concat!("duplicate rule `", stringify!($name), "`"),
                     ))
                 }
-                None => $field.$name = Some($value),
+                None => field.$name = Some($value),
             }
         }};
 
@@ -333,11 +334,12 @@ fn check_rule(
     let span = raw_rule.span;
     use model::RawRuleKind::*;
     match raw_rule.kind {
-        Skip => apply!(is_inner, field, skip, span, span),
-        Rename(alias) => apply!(is_inner, field, alias, alias.value, span),
-        Message(message) => apply!(is_inner, field, message, message, span),
-        Code(code) => apply!(is_inner, field, code, code.value, span),
-        Dive => apply!(is_inner, field, dive, span, span),
+        Skip => apply!(skip = span, span),
+        Adapt(path) => apply!(adapter = path, span),
+        Rename(alias) => apply!(alias = alias.value, span),
+        Message(message) => apply!(message = message, span),
+        Code(code) => apply!(code = code.value, span),
+        Dive => apply!(dive = span, span),
         Custom(custom) => rule_set.custom_rules.push(custom),
         Required => apply!(Required(), span),
         Ascii => apply!(Ascii(), span),

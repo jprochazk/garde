@@ -168,20 +168,32 @@ impl<'a> ToTokens for Tuple<'a> {
     }
 }
 
-struct Inner<'a>(&'a model::RuleSet);
+struct Inner<'a> {
+    rules_mod: &'a TokenStream2,
+    rule_set: &'a model::RuleSet,
+}
 
 impl<'a> ToTokens for Inner<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
-        let Inner(rule_set) = self;
+        let Inner {
+            rules_mod,
+            rule_set,
+        } = self;
 
         let outer = match rule_set.has_top_level_rules() {
             true => {
-                let rules = Rules(rule_set);
+                let rules = Rules {
+                    rules_mod,
+                    rule_set,
+                };
                 Some(quote! {#rules})
             }
             false => None,
         };
-        let inner = rule_set.inner.as_deref().map(Inner);
+        let inner = rule_set.inner.as_deref().map(|rule_set| Inner {
+            rules_mod,
+            rule_set,
+        });
 
         let value = match (outer, inner) {
             (Some(outer), Some(inner)) => quote! {
@@ -196,7 +208,7 @@ impl<'a> ToTokens for Inner<'a> {
         };
 
         quote! {
-            ::garde::rules::inner::apply(
+            #rules_mod::inner::apply(
                 &*__garde_binding,
                 |__garde_binding, __garde_inner_key| {
                     let mut __garde_path = ::garde::util::nested_path!(__garde_path, __garde_inner_key);
@@ -208,7 +220,10 @@ impl<'a> ToTokens for Inner<'a> {
     }
 }
 
-struct Rules<'a>(&'a model::RuleSet);
+struct Rules<'a> {
+    rules_mod: &'a TokenStream2,
+    rule_set: &'a model::RuleSet,
+}
 
 #[derive(Clone, Copy)]
 enum Binding<'a> {
@@ -227,7 +242,10 @@ impl<'a> ToTokens for Binding<'a> {
 
 impl<'a> ToTokens for Rules<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
-        let Rules(rule_set) = self;
+        let Rules {
+            rules_mod,
+            rule_set,
+        } = self;
 
         for custom_rule in rule_set.custom_rules.iter() {
             quote! {
@@ -246,13 +264,13 @@ impl<'a> ToTokens for Rules<'a> {
                     quote!(())
                 }
                 Ip => {
-                    quote!((::garde::rules::ip::IpKind::Any,))
+                    quote!((#rules_mod::ip::IpKind::Any,))
                 }
                 IpV4 => {
-                    quote!((::garde::rules::ip::IpKind::V4,))
+                    quote!((#rules_mod::ip::IpKind::V4,))
                 }
                 IpV6 => {
-                    quote!((::garde::rules::ip::IpKind::V6,))
+                    quote!((#rules_mod::ip::IpKind::V6,))
                 }
                 LengthSimple(range)
                 | LengthBytes(range)
@@ -285,16 +303,16 @@ impl<'a> ToTokens for Rules<'a> {
                             target_arch = "wasm32",
                             target_os = "unknown"
                         )))]
-                        static PATTERN: ::garde::rules::pattern::regex::StaticPattern =
-                            ::garde::rules::pattern::regex::init_pattern!(#s);
+                        static PATTERN: #rules_mod::pattern::regex::StaticPattern =
+                            #rules_mod::pattern::regex::init_pattern!(#s);
 
                         #[cfg(all(
                             feature = "js-sys",
                             target_arch = "wasm32",
                             target_os = "unknown"
                         ))]
-                        static PATTERN: ::garde::rules::pattern::regex_js_sys::StaticPattern =
-                            ::garde::rules::pattern::regex_js_sys::init_pattern!(#s);
+                        static PATTERN: #rules_mod::pattern::regex_js_sys::StaticPattern =
+                            #rules_mod::pattern::regex_js_sys::init_pattern!(#s);
 
                         (&PATTERN,)
                     }),
@@ -302,7 +320,7 @@ impl<'a> ToTokens for Rules<'a> {
             };
 
             quote! {
-                if let Err(__garde_error) = (::garde::rules::#name::apply)(&*__garde_binding, #args) {
+                if let Err(__garde_error) = (#rules_mod::#name::apply)(&*__garde_binding, #args) {
                     __garde_report.append(__garde_path(), __garde_error);
                 }
             }
@@ -330,8 +348,21 @@ where
             None => return,
         };
         let fields = fields.filter(|(_, field, _)| field.skip.is_none());
+        let default_rules_mod = quote!(::garde::rules);
         for (binding, field, extra) in fields {
-            let rules = Rules(&field.rule_set);
+            let field_adapter = field
+                .adapter
+                .as_ref()
+                .map(|p| p.to_token_stream())
+                .unwrap_or_default();
+            let rules_mod = match field.adapter.as_ref() {
+                Some(_) => &field_adapter,
+                None => &default_rules_mod,
+            };
+            let rules = Rules {
+                rules_mod,
+                rule_set: &field.rule_set,
+            };
             let outer = match field.has_top_level_rules() {
                 true => Some(quote! {{#rules}}),
                 false => None,
@@ -345,7 +376,13 @@ where
                         __garde_report,
                     );
                 }),
-                (None, Some(inner)) => Some(Inner(inner).to_token_stream()),
+                (None, Some(inner)) => Some(
+                    Inner {
+                        rules_mod,
+                        rule_set: inner,
+                    }
+                    .to_token_stream(),
+                ),
                 (None, None) => None,
                 // TODO: encode this via the type system instead?
                 _ => unreachable!("`dive` and `inner` are mutually exclusive"),

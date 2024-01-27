@@ -1,0 +1,10 @@
+---
+source: garde/tests/./rules/adapt.rs
+expression: snapshot
+---
+Test {
+    v: "",
+}
+v: my custom error message
+
+

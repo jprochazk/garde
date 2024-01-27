@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use proc_macro2::{Ident, Span};
-use syn::{Expr, Generics, Type};
+use syn::{Expr, Generics, Path, Type};
 
 pub struct Input {
     pub ident: Ident,
@@ -74,6 +74,7 @@ pub struct RawRule {
 
 pub enum RawRuleKind {
     Skip,
+    Adapt(Path),
     Rename(Str),
     Message(Message),
     Code(Str),
@@ -173,6 +174,7 @@ pub enum ValidateKind {
 pub struct ValidateField {
     pub ty: Type,
 
+    pub adapter: Option<Path>,
     pub skip: Option<Span>,
     pub alias: Option<String>,
     pub message: Option<Message>,
