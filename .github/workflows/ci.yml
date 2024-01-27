@@ -41,7 +41,7 @@ jobs:
           shared-key: "rust-stable-test"
 
       - name: Install wasm-bindgen-cli
-        run: cargo install --locked wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli
 
       - name: Build xtask
         run: cargo build --manifest-path ./xtask/Cargo.toml
@@ -91,7 +91,7 @@ jobs:
         run: cargo build-xtask
 
       - name: Build docs
-        run: cargo doc --locked --all-features
+        run: cargo doc --all-features
 
       - name: Run tests
         run: cargo x test

@@ -1,7 +1,7 @@
 [alias]
-build-xtask = "build --locked --manifest-path ./xtask/Cargo.toml"
-xtask = "run --locked --quiet --manifest-path ./xtask/Cargo.toml --"
-x = "run --locked --quiet --manifest-path ./xtask/Cargo.toml --"
+build-xtask = "build --manifest-path ./xtask/Cargo.toml"
+xtask = "run --quiet --manifest-path ./xtask/Cargo.toml --"
+x = "run --quiet --manifest-path ./xtask/Cargo.toml --"
 
 [target.wasm32-unknown-unknown]
 runner = 'wasm-bindgen-test-runner'
