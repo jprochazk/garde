@@ -180,6 +180,14 @@ impl<'a> ToTokens for Inner<'a> {
             rule_set,
         } = self;
 
+        let key = rule_set.keys.as_deref().map(|rule_set| Keys {
+            rules_mod,
+            rule_set,
+        });
+        let inner = rule_set.inner.as_deref().map(|rule_set| Inner {
+            rules_mod,
+            rule_set,
+        });
         let outer = match rule_set.has_top_level_rules() {
             true => {
                 let rules = Rules {
@@ -190,29 +198,61 @@ impl<'a> ToTokens for Inner<'a> {
             }
             false => None,
         };
-        let inner = rule_set.inner.as_deref().map(|rule_set| Inner {
-            rules_mod,
-            rule_set,
-        });
-
-        let value = match (outer, inner) {
-            (Some(outer), Some(inner)) => quote! {
-                #outer
-                #inner
-            },
-            (None, Some(inner)) => quote! {
-                #inner
-            },
-            (Some(outer), None) => outer,
-            (None, None) => return,
-        };
 
         quote! {
             #rules_mod::inner::apply(
                 &*__garde_binding,
                 |__garde_binding, __garde_inner_key| {
                     let mut __garde_path = ::garde::util::nested_path!(__garde_path, __garde_inner_key);
-                    #value
+                    #key
+                    #inner
+                    #outer
+                }
+            );
+        }
+        .to_tokens(tokens)
+    }
+}
+
+struct Keys<'a> {
+    rules_mod: &'a TokenStream2,
+    rule_set: &'a model::RuleSet,
+}
+
+impl<'a> ToTokens for Keys<'a> {
+    fn to_tokens(&self, tokens: &mut TokenStream2) {
+        let Keys {
+            rules_mod,
+            rule_set,
+        } = self;
+
+        let keys = rule_set.keys.as_deref().map(|rule_set| Keys {
+            rules_mod,
+            rule_set,
+        });
+        let inner = rule_set.inner.as_deref().map(|rule_set| Inner {
+            rules_mod,
+            rule_set,
+        });
+        let outer = match rule_set.has_top_level_rules() {
+            true => {
+                let rules = Rules {
+                    rules_mod,
+                    rule_set,
+                };
+                Some(quote! {#rules})
+            }
+            false => None,
+        };
+
+        quote! {
+            #rules_mod::keys::apply(
+                &*__garde_binding,
+                |__garde_binding| {
+                    let mut __garde_path = ::garde::util::nested_path!(__garde_path, __garde_binding);
+                    #keys
+                    #inner
+                    #outer
                 }
             );
         }
@@ -363,10 +403,10 @@ where
                 rules_mod,
                 rule_set: &field.rule_set,
             };
-            let outer = match field.has_top_level_rules() {
-                true => Some(quote! {{#rules}}),
-                false => None,
-            };
+            let keys = field.rule_set.keys.as_ref().map(|rule_set| Keys {
+                rules_mod,
+                rule_set,
+            });
             let inner = match (&field.dive, &field.rule_set.inner) {
                 (Some(..), None) => Some(quote! {
                     ::garde::validate::Validate::validate_into(
@@ -387,22 +427,16 @@ where
                 // TODO: encode this via the type system instead?
                 _ => unreachable!("`dive` and `inner` are mutually exclusive"),
             };
+            let outer = match field.has_top_level_rules() {
+                true => Some(quote! {{#rules}}),
+                false => None,
+            };
 
-            let value = match (outer, inner) {
-                (Some(outer), Some(inner)) => quote! {
-                    let __garde_binding = &*#binding;
-                    #inner
-                    #outer
-                },
-                (None, Some(inner)) => quote! {
-                    let __garde_binding = &*#binding;
-                    #inner
-                },
-                (Some(outer), None) => quote! {
-                    let __garde_binding = &*#binding;
-                    #outer
-                },
-                (None, None) => unreachable!("field should already be skipped"),
+            let value = quote! {
+                let __garde_binding = &*#binding;
+                #keys
+                #inner
+                #outer
             };
 
             let add = &self.1;

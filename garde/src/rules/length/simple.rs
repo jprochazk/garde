@@ -44,7 +44,6 @@ macro_rules! impl_via_bytes {
 }
 
 impl_via_bytes!(std::string::String);
-impl_via_bytes!(in<'a> &'a std::string::String);
 impl_via_bytes!(in<'a> &'a str);
 impl_via_bytes!(in<'a> std::borrow::Cow<'a, str>);
 impl_via_bytes!(std::rc::Rc<str>);
@@ -83,7 +82,6 @@ macro_rules! impl_via_len {
 }
 
 impl_via_len!(in<T> Vec<T>);
-impl_via_len!(in<'a, T> &'a Vec<T>);
 impl_via_len!(in<'a, T> &'a [T]);
 
 impl<const N: usize, T> Simple for [T; N] {
@@ -105,10 +103,3 @@ impl_via_len!(in<T> std::collections::BTreeSet<T>);
 impl_via_len!(in<T> std::collections::VecDeque<T>);
 impl_via_len!(in<T> std::collections::BinaryHeap<T>);
 impl_via_len!(in<T> std::collections::LinkedList<T>);
-impl_via_len!(in<'a, K, V, S> &'a std::collections::HashMap<K, V, S>);
-impl_via_len!(in<'a, T, S> &'a std::collections::HashSet<T, S>);
-impl_via_len!(in<'a, K, V> &'a std::collections::BTreeMap<K, V>);
-impl_via_len!(in<'a, T> &'a std::collections::BTreeSet<T>);
-impl_via_len!(in<'a, T> &'a std::collections::VecDeque<T>);
-impl_via_len!(in<'a, T> &'a std::collections::BinaryHeap<T>);
-impl_via_len!(in<'a, T> &'a std::collections::LinkedList<T>);

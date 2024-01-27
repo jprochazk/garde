@@ -44,7 +44,6 @@ macro_rules! impl_str {
 }
 
 impl_str!(std::string::String);
-impl_str!(in<'a> &'a std::string::String);
 impl_str!(in<'a> &'a str);
 impl_str!(in<'a> std::borrow::Cow<'a, str>);
 impl_str!(std::rc::Rc<str>);

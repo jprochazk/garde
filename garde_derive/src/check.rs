@@ -367,14 +367,27 @@ fn check_rule(
         Suffix(v) => apply!(Suffix(v), span),
         Pattern(v) => apply!(Pattern(check_regex(v)?), span),
         Inner(v) => {
+            let mut error = None;
             if rule_set.inner.is_none() {
                 rule_set.inner = Some(Box::new(model::RuleSet::empty()));
             }
-
-            let mut error = None;
             for raw_rule in v.contents {
                 if let Err(e) = check_rule(field, raw_rule, rule_set.inner.as_mut().unwrap(), true)
                 {
+                    error.maybe_fold(e);
+                }
+            }
+            if let Some(error) = error {
+                return Err(error);
+            }
+        }
+        Keys(v) => {
+            let mut error = None;
+            if rule_set.keys.is_none() {
+                rule_set.keys = Some(Box::new(model::RuleSet::empty()));
+            }
+            for raw_rule in v.contents {
+                if let Err(e) = check_rule(field, raw_rule, rule_set.keys.as_mut().unwrap(), true) {
                     error.maybe_fold(e);
                 }
             }

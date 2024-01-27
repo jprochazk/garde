@@ -301,6 +301,7 @@ impl Parse for model::RawRule {
             "pattern" => Pattern(content),
             "custom" => Custom(content),
             "inner" => Inner(content),
+            "keys" => Keys(content),
         }
     }
 }

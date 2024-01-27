@@ -9,6 +9,7 @@ pub mod credit_card;
 pub mod email;
 pub mod inner;
 pub mod ip;
+pub mod keys;
 pub mod length;
 pub mod pattern;
 #[cfg(feature = "phone-number")]
