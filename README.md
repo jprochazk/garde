@@ -9,6 +9,7 @@ A Rust validation library
 
 - [Basic usage example](#basic-usage-example)
 - [Validation rules](#available-validation-rules)
+- [Length modes](#length-modes)
 - [Inner type validation](#inner-type-validation)
 - [Newtypes](#newtypes)
 - [Handling Option](#handling-option)
@@ -74,33 +75,34 @@ if let Err(e) = data.validate(&()) {
 
 ### Available validation rules
 
-| name         | format                                           | validation                                           | feature flag   |
-| ------------ | ------------------------------------------------ | ---------------------------------------------------- | -------------- |
-| required     | `#[garde(required)]`                             | is value set                                         | -              |
-| ascii        | `#[garde(ascii)]`                                | only contains ASCII                                  | -              |
-| alphanumeric | `#[garde(alphanumeric)]`                         | only letters and digits                              | -              |
-| email        | `#[garde(email)]`                                | an email according to the HTML5 spec[^1]             | `email`        |
-| url          | `#[garde(url)]`                                  | a URL                                                | `url`          |
-| ip           | `#[garde(ip)]`                                   | an IP address (either IPv4 or IPv6)                  | -              |
-| ipv4         | `#[garde(ipv4)]`                                 | an IPv4 address                                      | -              |
-| ipv6         | `#[garde(ipv6)]`                                 | an IPv6 address                                      | -              |
-| credit card  | `#[garde(credit_card)]`                          | a credit card number                                 | `credit-card`  |
-| phone number | `#[garde(phone_number)]`                         | a phone number                                       | `phone-number` |
-| length       | `#[garde(length(min=<usize>, max=<usize>)]`      | a container with length in `min..=max`               | -              |
-| range        | `#[garde(range(min=<expr>, max=<expr>))]`        | a number in the range `min..=max`                    | -              |
-| contains     | `#[garde(contains(<string>))]`                   | a string-like value containing a substring           | -              |
-| prefix       | `#[garde(prefix(<string>))]`                     | a string-like value prefixed by some string          | -              |
-| suffix       | `#[garde(suffix(<string>))]`                     | a string-like value suffixed by some string          | -              |
-| pattern      | `#[garde(pattern("<regex>"))]`                   | a string-like value matching some regular expression | `regex`        |
-| pattern      | `#[garde(pattern(<matcher>))]`                   | a string-like value matched by some [Matcher](https://docs.rs/garde/latest/garde/rules/pattern/trait.Matcher.html) | - |
-| dive         | `#[garde(dive)]`                                 | nested validation, calls `validate` on the value     | -              |
-| skip         | `#[garde(skip)]`                                 | skip validation                                      | -              |
-| custom       | `#[garde(custom(<function or closure>))]`        | a custom validator                                   | -              |
+| name         | format                                              | validation                                                                                                         | feature flag   |
+| ------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------- |
+| required     | `#[garde(required)]`                                | is value set                                                                                                       | -              |
+| ascii        | `#[garde(ascii)]`                                   | only contains ASCII                                                                                                | -              |
+| alphanumeric | `#[garde(alphanumeric)]`                            | only letters and digits                                                                                            | -              |
+| email        | `#[garde(email)]`                                   | an email according to the HTML5 spec[^1]                                                                           | `email`        |
+| url          | `#[garde(url)]`                                     | a URL                                                                                                              | `url`          |
+| ip           | `#[garde(ip)]`                                      | an IP address (either IPv4 or IPv6)                                                                                | -              |
+| ipv4         | `#[garde(ipv4)]`                                    | an IPv4 address                                                                                                    | -              |
+| ipv6         | `#[garde(ipv6)]`                                    | an IPv6 address                                                                                                    | -              |
+| credit card  | `#[garde(credit_card)]`                             | a credit card number                                                                                               | `credit-card`  |
+| phone number | `#[garde(phone_number)]`                            | a phone number                                                                                                     | `phone-number` |
+| length       | `#[garde(length(<mode>, min=<usize>, max=<usize>)]` | a container with length in `min..=max`                                                                             | -              |
+| range        | `#[garde(range(min=<expr>, max=<expr>))]`           | a number in the range `min..=max`                                                                                  | -              |
+| contains     | `#[garde(contains(<string>))]`                      | a string-like value containing a substring                                                                         | -              |
+| prefix       | `#[garde(prefix(<string>))]`                        | a string-like value prefixed by some string                                                                        | -              |
+| suffix       | `#[garde(suffix(<string>))]`                        | a string-like value suffixed by some string                                                                        | -              |
+| pattern      | `#[garde(pattern("<regex>"))]`                      | a string-like value matching some regular expression                                                               | `regex`        |
+| pattern      | `#[garde(pattern(<matcher>))]`                      | a string-like value matched by some [Matcher](https://docs.rs/garde/latest/garde/rules/pattern/trait.Matcher.html) | -              |
+| dive         | `#[garde(dive)]`                                    | nested validation, calls `validate` on the value                                                                   | -              |
+| skip         | `#[garde(skip)]`                                    | skip validation                                                                                                    | -              |
+| custom       | `#[garde(custom(<function or closure>))]`           | a custom validator                                                                                                 | -              |
 
 Additional notes:
 - `required` is only available for `Option` fields.
 - For `length` and `range`, either `min` or `max` may be omitted, but not both.
 - `length` and `range` use an *inclusive* upper bound (`min..=max`).
+- The `<mode>` argument for `length` is [explained here](#length-modes)
 - For `contains`, `prefix`, and `suffix`, the pattern must be a string literal, because the `Pattern` API [is currently unstable](https://github.com/rust-lang/rust/issues/27721).
 - Garde does not enable the default features of the `regex` crate - if you need extra regex features (e.g. Unicode) or better performance, add a dependency on `regex = "1"` to your `Cargo.toml`.
 
@@ -124,6 +126,55 @@ struct Bar<'a> {
 
     b: &'a str, // this field will not be validated
                 // note the lack of `#[garde(skip)]`
+}
+```
+
+### Length modes
+
+The `length` rule accepts an optional `mode` argument, which determines what _kind_ of length it will validate.
+
+The options are:
+- `simple`
+- `bytes`
+- `graphemes`
+- `utf16`
+- `chars`
+
+The `simple` is the default used when the `mode` argument is omitted. The meaning of "simple length"
+depends on the type. It is currently implemented for strings, where it validates the number of bytes,
+and `std::collections`, where it validates the number of items.
+
+```rust
+#[derive(garde::Validate)]
+struct Foo {
+    #[garde(length(min = 1, max = 100))]
+    string: String,
+
+    #[garde(length(min = 1, max = 100))]
+    collection: Vec<u32>
+}
+```
+
+The `bytes`, `graphemes`, `utf16`, and `chars` exist mostly for string validation:
+- `bytes` validates the number of _bytes_
+- `graphemens` uses the [`unicode-segmentation`](https://docs.rs/unicode-segmentation) crate, and validates the number of _graphemes_
+- `utf16` uses [`encode_utf16`](https://doc.rust-lang.org/stable/std/primitive.str.html#method.encode_utf16), and validates the number of UTF-16 _code points_
+- `chars` uses [`chars`](https://doc.rust-lang.org/stable/std/primitive.str.html#method.chars), and validates the number of _unicode scalar values_
+
+```rust
+#[derive(garde::Validate)]
+struct Foo {
+    #[garde(length(bytes, min = 1, max = 100))]
+    a: String, // `a.len()`
+    
+    #[garde(length(graphemes, min = 1, max = 100))]
+    b: String, // `b.graphemes().count()`
+    
+    #[garde(length(utf16, min = 1, max = 100))]
+    c: String, // `c.encode_utf16().count()`
+    
+    #[garde(length(chars, min = 1, max = 100))]
+    d: String, // `d.chars().count()`
 }
 ```
 
@@ -334,16 +385,16 @@ struct Bar {
 ### Feature flags
 
 
-| name                     | description                                                                                                                       | extra dependencies                                                                           |
-|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| `derive`                 | Enables the usage of the `derive(Validate)` macro                                                                                 | [`garde_derive`](https://crates.io/crates/garde_derive)                                      |
-| `url`                    | Validation of URLs via the `url` crate.                                                                                           | [`url`](https://crates.io/crates/url)                                                        |
-| `email`                  | Validation of emails according to [HTML5](https://html.spec.whatwg.org/multipage/forms.html#valid-e-mail-address)                 | [`regex`](https://crates.io/crates/regex), [`once_cell`](https://crates.io/crates/once_cell) |
-| `email-idna`             | Support for [Internationalizing Domain Names for Applications](https://url.spec.whatwg.org/#idna) in email addresses              | [`idna`](https://crates.io/crates/idna)                                                      |
-| `regex`                  | Support for regular expressions in `pattern` via the `regex` crate                                                                | [`regex`](https://crates.io/crates/regex), [`once_cell`](https://crates.io/crates/once_cell) |
-| `credit-card`            | Validation of credit card numbers via the `card-validate` crate                                                                   | [`card-validate`](https://crates.io/crates/card-validate)                                    |
-| `phone-number`           | Validation of phone numbers via the `phonenumber` crate                                                                           | [`phonenumber`](https://crates.io/crates/phonenumber)                                        |
-
+| name           | description                                                                                                          | extra dependencies                                                                           |
+| -------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `derive`       | Enables the usage of the `derive(Validate)` macro                                                                    | [`garde_derive`](https://crates.io/crates/garde_derive)                                      |
+| `url`          | Validation of URLs via the `url` crate.                                                                              | [`url`](https://crates.io/crates/url)                                                        |
+| `email`        | Validation of emails according to [HTML5](https://html.spec.whatwg.org/multipage/forms.html#valid-e-mail-address)    | [`regex`](https://crates.io/crates/regex), [`once_cell`](https://crates.io/crates/once_cell) |
+| `email-idna`   | Support for [Internationalizing Domain Names for Applications](https://url.spec.whatwg.org/#idna) in email addresses | [`idna`](https://crates.io/crates/idna)                                                      |
+| `regex`        | Support for regular expressions in `pattern` via the `regex` crate                                                   | [`regex`](https://crates.io/crates/regex), [`once_cell`](https://crates.io/crates/once_cell) |
+| `credit-card`  | Validation of credit card numbers via the `card-validate` crate                                                      | [`card-validate`](https://crates.io/crates/card-validate)                                    |
+| `phone-number` | Validation of phone numbers via the `phonenumber` crate                                                              | [`phonenumber`](https://crates.io/crates/phonenumber)                                        |
+| `unicode`      | Validation of grapheme count via the `unicode-segmentation` crate                                                    | [`unicode-segmentation`](https://docs.rs/unicode-segmentation)                               |
 
 ### Why `garde`?
 
