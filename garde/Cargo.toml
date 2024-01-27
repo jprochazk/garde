@@ -64,7 +64,7 @@ glob = "0.3.1"
 wasm-bindgen-test = "0.3.38"
 
 [target.'cfg(not(all(target_arch = "wasm32", target_os = "unknown")))'.dev-dependencies]
-criterion = "0.4"
+criterion = "0.5"
 
 [[bench]]
 name = "validation"
