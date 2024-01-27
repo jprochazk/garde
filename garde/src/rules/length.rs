@@ -8,8 +8,6 @@
 //! }
 //! ```
 //!
-//! The entrypoint is the [`Length`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(length(...))]` rule.
-//!
 //! The concept of "length" is somewhat complicated, especially for strings. Therefore, the [`Length`] trait currently supports different modes:
 //! - [`Simple`][simple::Simple], which is the default
 //! - [`Bytes`][bytes::Bytes]
@@ -29,8 +27,6 @@
 //! }
 //! ```
 //!
-//! See each trait for more information.
-//!
 //! Here's what implementing the trait for a custom string-like type might look like:
 //! ```rust
 //! #[repr(transparent)]
@@ -42,6 +38,8 @@
 //!     }
 //! }
 //! ```
+//!
+//! See each trait for more information.
 //!
 
 pub mod bytes;
