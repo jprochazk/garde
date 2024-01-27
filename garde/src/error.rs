@@ -17,7 +17,7 @@ use self::rc_list::List;
 /// It is a flat list of `(Path, Error)`.
 /// A single field or list item may have any number of errors attached to it.
 ///
-/// It is possible to extract all errors for specific field using the [`select`] macro.
+/// It is possible to extract all errors for specific field using the [`select`][`crate::select`] macro.
 #[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct Report {
