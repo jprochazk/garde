@@ -17,6 +17,7 @@ A Rust validation library
 - [Context/Self access](#contextself-access)
 - [Implementing rules](#implementing-rules)
 - [Implementing `Validate`](#implementing-validate)
+- [Rule adapters](#rule-adapters)
 - [Integration with web frameworks](#integration-with-web-frameworks)
 - [Feature flags](#feature-flags)
 - [Why `garde`?](#why-garde)
@@ -376,6 +377,55 @@ struct Bar {
   value: u32,
 }
 ```
+
+### Rule adapters
+
+Adapters allow you to implement validation for third-party types without using a newtype.
+
+An adapter may look like this:
+```rust
+mod my_str_adapter {
+    #![allow(unused_imports)]
+    pub use garde::rules::*; // re-export garde's rules
+
+    pub mod length {
+        pub use garde::rules::length::*; // re-export `length` rules
+
+        pub mod simple {
+            // re-implement `simple`, but _only_ for the concrete type &str!
+            pub fn apply(v: &str, (min, max): (usize, usize)) -> garde::Result {
+                if !(min..=max).contains(&v.len()) {
+                    Err(garde::Error::new("my custom error message"))
+                } else {
+                    Ok(())
+                }
+            }
+        }
+    }
+}
+```
+
+You create a module, add a public glob re-export of `garde::rules` inside of it,
+and then re-implement the specific rule you're interested in. This is a form of
+[duck typing](https://en.wikipedia.org/wiki/Duck_typing). Any rule which you have
+not re-implemented is simply delegated to `garde`'s impl.
+
+It's quite verbose, but in exchange it is maximally flexible. To use the adapter,
+add an `adapt` attribute to a field:
+```rust,ignore
+#[derive(garde::Validate)]
+struct Stuff<'a> {
+    #[garde(
+        adapt(my_str_adapter),
+        length(min = 1),
+        ascii,
+    )]
+    v: &'a str,
+}
+```
+
+The `length` rule will now use your custom implementation, but the `ascii` rule
+will continue to use `garde`'s implementation.
 
 ### Integration with web frameworks
 
