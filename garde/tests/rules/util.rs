@@ -13,8 +13,8 @@ pub fn check_ok<T: Validate + Debug>(cases: &[T], ctx: &T::Context) {
                 "{} input: {case:?}, errors: [{}]",
                 "FAIL".red(),
                 report
-                    .iter()
-                    .map(|(path, error)| format!("{path}: {error}"))
+                    .to_string()
+                    .split('\n')
                     .collect::<Vec<_>>()
                     .join("; ")
             );
@@ -34,9 +34,7 @@ pub fn __check_fail<T: Validate + Debug>(cases: &[T], ctx: &T::Context) -> Strin
     for case in cases {
         if let Err(report) = case.validate(ctx) {
             writeln!(&mut snapshot, "{case:#?}").unwrap();
-            for (path, error) in report.iter() {
-                writeln!(&mut snapshot, "{path}: {error}").unwrap();
-            }
+            write!(&mut snapshot, "{report}").unwrap();
             writeln!(&mut snapshot).unwrap();
         } else {
             eprintln!("{} input: {case:?}", "SUCCESS".red());

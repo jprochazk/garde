@@ -1,0 +1,10 @@
+---
+source: garde/tests/./rules/newtype.rs
+expression: snapshot
+---
+NonEmptyStr_Tuple(
+    "",
+)
+length is lower than 1
+
+
