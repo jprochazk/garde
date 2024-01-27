@@ -91,7 +91,7 @@ jobs:
         run: cargo build-xtask
 
       - name: Build docs
-        run: cargo doc --frozen --all-features
+        run: cargo doc --locked --all-features
 
       - name: Run tests
         run: cargo x test
