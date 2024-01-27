@@ -1,0 +1,11 @@
+error: invalid argument
+ --> tests/ui/compile-fail/length_bad_arg.rs
+  |
+  |     #[garde(length(min = 10, invalid_arg, max = 50))]
+  |                              ^^^^^^^^^^^
+
+error: invalid argument
+ --> tests/ui/compile-fail/length_bad_arg.rs
+  |
+  |     #[garde(length(min = 10, invalid_arg = 10, max = 50))]
+  |                              ^^^^^^^^^^^

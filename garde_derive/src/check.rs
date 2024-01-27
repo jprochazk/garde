@@ -5,6 +5,7 @@ use syn::parse_quote;
 use syn::spanned::Spanned;
 
 use crate::model;
+use crate::model::LengthMode;
 use crate::util::{default_ctx_name, MaybeFoldError};
 
 pub fn check(input: model::Input) -> syn::Result<model::Validate> {
@@ -301,7 +302,6 @@ fn check_rule(
     rule_set: &mut model::RuleSet,
     is_inner: bool,
 ) -> syn::Result<()> {
-    // TODO: can this be simplified via a macro? there's a ton of duplicated code
     macro_rules! apply {
         ($is_inner:expr, $field:ident, $name:ident, $value:expr, $span:expr) => {{
             if $is_inner {
@@ -321,10 +321,10 @@ fn check_rule(
             }
         }};
 
-        ($rule_set:ident, $rule:ident($($inner:expr)?), $span:expr) => {{
+        ($rule:ident($($inner:expr)?), $span:expr) => {{
             let rule = model::ValidateRule::$rule$(($inner))?;
             let name = rule.name();
-            if !$rule_set.rules.insert(rule) {
+            if !rule_set.rules.insert(rule) {
                 return Err(syn::Error::new($span, format!("duplicate rule `{name}`")));
             }
         }};
@@ -339,23 +339,31 @@ fn check_rule(
         Code(code) => apply!(is_inner, field, code, code.value, span),
         Dive => apply!(is_inner, field, dive, span, span),
         Custom(custom) => rule_set.custom_rules.push(custom),
-        Required => apply!(rule_set, Required(), span),
-        Ascii => apply!(rule_set, Ascii(), span),
-        Alphanumeric => apply!(rule_set, Alphanumeric(), span),
-        Email => apply!(rule_set, Email(), span),
-        Url => apply!(rule_set, Url(), span),
-        Ip => apply!(rule_set, Ip(), span),
-        IpV4 => apply!(rule_set, IpV4(), span),
-        IpV6 => apply!(rule_set, IpV6(), span),
-        CreditCard => apply!(rule_set, CreditCard(), span),
-        PhoneNumber => apply!(rule_set, PhoneNumber(), span),
-        Length(v) => apply!(rule_set, Length(check_range_generic(v)?), span),
-        ByteLength(v) => apply!(rule_set, ByteLength(check_range_generic(v)?), span),
-        Range(v) => apply!(rule_set, Range(check_range_not_ord(v)?), span),
-        Contains(v) => apply!(rule_set, Contains(v), span),
-        Prefix(v) => apply!(rule_set, Prefix(v), span),
-        Suffix(v) => apply!(rule_set, Suffix(v), span),
-        Pattern(v) => apply!(rule_set, Pattern(check_regex(v)?), span),
+        Required => apply!(Required(), span),
+        Ascii => apply!(Ascii(), span),
+        Alphanumeric => apply!(Alphanumeric(), span),
+        Email => apply!(Email(), span),
+        Url => apply!(Url(), span),
+        Ip => apply!(Ip(), span),
+        IpV4 => apply!(IpV4(), span),
+        IpV6 => apply!(IpV6(), span),
+        CreditCard => apply!(CreditCard(), span),
+        PhoneNumber => apply!(PhoneNumber(), span),
+        Length(v) => {
+            let range = check_range_generic(v.range)?;
+            match v.mode {
+                LengthMode::Simple => apply!(LengthSimple(range), span),
+                LengthMode::Bytes => apply!(LengthBytes(range), span),
+                LengthMode::Chars => apply!(LengthChars(range), span),
+                LengthMode::Graphemes => apply!(LengthGraphemes(range), span),
+                LengthMode::Utf16 => apply!(LengthUtf16(range), span),
+            }
+        }
+        Range(v) => apply!(Range(check_range_not_ord(v)?), span),
+        Contains(v) => apply!(Contains(v), span),
+        Prefix(v) => apply!(Prefix(v), span),
+        Suffix(v) => apply!(Suffix(v), span),
+        Pattern(v) => apply!(Pattern(check_regex(v)?), span),
         Inner(v) => {
             if rule_set.inner.is_none() {
                 rule_set.inner = Some(Box::new(model::RuleSet::empty()));

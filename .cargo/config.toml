@@ -1,4 +1,5 @@
 [alias]
+build-xtask = "build --manifest-path ./xtask/Cargo.toml"
 xtask = "run --quiet --manifest-path ./xtask/Cargo.toml --"
 x = "run --quiet --manifest-path ./xtask/Cargo.toml --"
 

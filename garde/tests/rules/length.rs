@@ -82,3 +82,52 @@ fn exact_length_invalid() {
         &()
     )
 }
+
+#[derive(Debug, garde::Validate)]
+struct SpecialLengthTest<'a> {
+    #[garde(length(simple, max = 1))]
+    simple: &'a str,
+    #[garde(length(bytes, max = 1))]
+    bytes: &'a str,
+    #[garde(length(chars, max = 1))]
+    chars: &'a str,
+    #[garde(length(graphemes, max = 1))]
+    graphemes: &'a str,
+    #[garde(length(utf16, max = 1))]
+    utf16: &'a str,
+
+    #[garde(length(bytes, max = 4), length(graphemes, max = 1))]
+    multi: &'a str,
+}
+
+#[test]
+fn char_length_valid() {
+    util::check_ok(
+        &[SpecialLengthTest {
+            simple: "a",
+            bytes: "a",
+            chars: "á",
+            graphemes: "á",
+            utf16: "á",
+
+            multi: "😂", // 4 bytes, 1 grapheme
+        }],
+        &(),
+    )
+}
+
+#[test]
+fn char_length_invalid() {
+    util::check_fail!(
+        &[SpecialLengthTest {
+            simple: "ab",    // 2 bytes
+            bytes: "ab",     // 2 bytes
+            chars: "y̆",      // 2 USVs
+            graphemes: "áá", // 2 graphemes
+            utf16: "😂",     // 2 units
+
+            multi: "áá", // 4 bytes, 2 graphemes
+        }],
+        &()
+    )
+}

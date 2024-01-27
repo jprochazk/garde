@@ -9,10 +9,7 @@ Test {
     ascii: Some(
         "😂",
     ),
-    byte_length_min1_str: Some(
-        "",
-    ),
-    byte_length_min1_u8_slice: Some(
+    length_min1_u8_slice: Some(
         [],
     ),
     contains_a: Some(
@@ -52,13 +49,12 @@ Test {
 }
 alphanumeric: not alphanumeric
 ascii: not ascii
-byte_length_min1_str: byte length is lower than 1
-byte_length_min1_u8_slice: byte length is lower than 1
 contains_a: does not contain "a"
 credit_card: not a valid credit card number: invalid format
 email: not a valid email: value is missing `@`
 ip: not a valid IP address
 length_min1: length is lower than 1
+length_min1_u8_slice: length is lower than 1
 pat_a_or_b: does not match pattern /a|b/
 phone_number: not a valid phone number: not a number
 prefix_a: value does not begin with "a"
@@ -70,8 +66,7 @@ url: not a valid url: relative URL without a base
 Test {
     alphanumeric: None,
     ascii: None,
-    byte_length_min1_str: None,
-    byte_length_min1_u8_slice: None,
+    length_min1_u8_slice: None,
     contains_a: None,
     credit_card: None,
     email: None,

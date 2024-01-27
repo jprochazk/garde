@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::str::FromStr as _;
 
 use proc_macro2::{Ident, TokenStream as TokenStream2};
 use quote::{format_ident, quote, quote_spanned, ToTokens};
@@ -238,7 +239,7 @@ impl<'a> ToTokens for Rules<'a> {
         }
 
         for rule in rule_set.rules.iter() {
-            let name = format_ident!("{}", rule.name());
+            let name = TokenStream2::from_str(rule.name()).unwrap();
             use model::ValidateRule::*;
             let args = match rule {
                 Ascii | Alphanumeric | Email | Url | CreditCard | PhoneNumber | Required => {
@@ -253,10 +254,20 @@ impl<'a> ToTokens for Rules<'a> {
                 IpV6 => {
                     quote!((::garde::rules::ip::IpKind::V6,))
                 }
-                Length(range) | ByteLength(range) => match range {
-                    model::ValidateRange::GreaterThan(min) => quote!((#min, usize::MAX)),
-                    model::ValidateRange::LowerThan(max) => quote!((0usize, #max)),
-                    model::ValidateRange::Between(min, max) => quote!((#min, #max)),
+                LengthSimple(range)
+                | LengthBytes(range)
+                | LengthChars(range)
+                | LengthGraphemes(range)
+                | LengthUtf16(range) => match range {
+                    model::ValidateRange::GreaterThan(min) => {
+                        quote!((#min, usize::MAX))
+                    }
+                    model::ValidateRange::LowerThan(max) => {
+                        quote!((0usize, #max))
+                    }
+                    model::ValidateRange::Between(min, max) => {
+                        quote!((#min, #max))
+                    }
                 },
                 Range(range) => match range {
                     model::ValidateRange::GreaterThan(min) => quote!((Some(#min), None)),

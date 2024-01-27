@@ -8,7 +8,7 @@ pub struct UserIdentifier {
 
 #[derive(Validate)]
 pub struct UserRole {
-    #[garde(ascii, byte_length(min = 10))]
+    #[garde(ascii, length(min = 10))]
     pub name: String,
     #[garde(dive)]
     pub identifiers: Vec<UserIdentifier>,
@@ -32,6 +32,6 @@ fn select_macro() {
         let errors: Vec<String> = garde::select!(report, name)
             .map(|e| e.to_string())
             .collect();
-        assert_eq!(errors, ["not ascii", "byte length is lower than 10"])
+        assert_eq!(errors, ["not ascii", "length is lower than 10"])
     }
 }

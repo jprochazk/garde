@@ -6,10 +6,8 @@ struct Test<'a> {
     alphanumeric: Option<&'a str>,
     #[garde(ascii)]
     ascii: Option<&'a str>,
-    #[garde(byte_length(min = 1))]
-    byte_length_min1_str: Option<&'a str>,
-    #[garde(byte_length(min = 1))]
-    byte_length_min1_u8_slice: Option<&'a [u8]>,
+    #[garde(length(min = 1))]
+    length_min1_u8_slice: Option<&'a [u8]>,
     #[garde(contains("a"))]
     contains_a: Option<&'a str>,
     #[garde(credit_card)]
@@ -42,8 +40,7 @@ fn option_valid() {
         &[Test {
             alphanumeric: Some("a"),
             ascii: Some("a"),
-            byte_length_min1_str: Some("a"),
-            byte_length_min1_u8_slice: Some(&[0]),
+            length_min1_u8_slice: Some(&[0]),
             contains_a: Some("a"),
             credit_card: Some("4539571147647251"),
             email: Some("test@mail.com"),
@@ -68,8 +65,7 @@ fn option_invalid() {
             Test {
                 alphanumeric: Some("😂"),
                 ascii: Some("😂"),
-                byte_length_min1_str: Some(""),
-                byte_length_min1_u8_slice: Some(&[]),
+                length_min1_u8_slice: Some(&[]),
                 contains_a: Some("😂"),
                 credit_card: Some("😂"),
                 email: Some("😂"),
@@ -86,8 +82,7 @@ fn option_invalid() {
             Test {
                 alphanumeric: None,
                 ascii: None,
-                byte_length_min1_str: None,
-                byte_length_min1_u8_slice: None,
+                length_min1_u8_slice: None,
                 contains_a: None,
                 credit_card: None,
                 email: None,
