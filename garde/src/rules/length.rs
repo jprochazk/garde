@@ -14,7 +14,7 @@
 //! - [`Simple`][simple::Simple], which is the default
 //! - [`Bytes`][bytes::Bytes]
 //! - [`Chars`][chars::Chars]
-//! - [`Graphemes`][unicode::Graphemes]
+//! - [`Graphemes`][graphemes::Graphemes]
 //! - [`Utf16CodeUnits`][utf16::Utf16CodeUnits]
 //!
 //! The mode is configured on the `length` rule:
