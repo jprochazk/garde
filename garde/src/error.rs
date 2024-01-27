@@ -19,7 +19,7 @@ use self::rc_list::List;
 ///
 /// It is possible to extract all errors for specific field using the [`select`][`crate::select`] macro.
 #[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Report {
     errors: Vec<(Path, Error)>,
 }
@@ -59,7 +59,7 @@ impl std::fmt::Display for Report {
 impl std::error::Error for Report {}
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Error {
     message: CompactString,
 }
@@ -91,6 +91,8 @@ pub struct Path {
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "snake_case"))]
 pub enum Kind {
     None,
     Key,
@@ -167,7 +169,9 @@ impl Path {
     }
 
     #[doc(hidden)]
-    pub fn __iter(&self) -> impl DoubleEndedIterator<Item = (Kind, &CompactString)> {
+    pub fn __iter(
+        &self,
+    ) -> impl DoubleEndedIterator<Item = (Kind, &CompactString)> + ExactSizeIterator {
         let mut components = TempComponents::with_capacity(self.components.len());
         for (kind, component) in self.components.iter() {
             components.push((*kind, component));
@@ -230,8 +234,28 @@ impl serde::Serialize for Path {
     where
         S: serde::Serializer,
     {
-        let str = self.to_compact_string();
-        serializer.serialize_str(str.as_str())
+        use serde::ser::SerializeSeq as _;
+
+        let components = self.__iter().rev();
+        let mut seq = serializer.serialize_seq(Some(components.len()))?;
+        for component in components {
+            seq.serialize_element(&component)?;
+        }
+        seq.end()
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Path {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let mut components = List::new();
+        for v in SmallVec::<[(Kind, CompactString); 8]>::deserialize(deserializer)? {
+            components = components.append(v);
+        }
+        Ok(Path { components })
     }
 }
 
@@ -270,5 +294,24 @@ mod tests {
             crate::select!(report, array[0].c).collect::<Vec<_>>(),
             [&Error::new("pog")]
         );
+    }
+
+    #[cfg(feature = "serde")]
+    mod serde {
+        use super::*;
+
+        #[test]
+        fn roundtrip_serde() {
+            let mut report = Report::new();
+            report.append(Path::new("a").join(0), Error::new("lorem"));
+            report.append(Path::new("a").join(1), Error::new("ispum"));
+            report.append(Path::new("a").join(2), Error::new("dolor"));
+            report.append(Path::new("b").join("c"), Error::new("dolor"));
+
+            let de: Report =
+                serde_json::from_str(&serde_json::to_string(&report).unwrap()).unwrap();
+
+            assert_eq!(report.errors, de.errors);
+        }
     }
 }
