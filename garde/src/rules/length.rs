@@ -8,7 +8,7 @@
 //! }
 //! ```
 //!
-//! The concept of "length" is somewhat complicated, especially for strings. Therefore, the [`Length`] trait currently supports different modes:
+//! The concept of "length" is somewhat complicated, especially for strings. Therefore, the `length` rule currently supports different modes:
 //! - [`Simple`][simple::Simple], which is the default
 //! - [`Bytes`][bytes::Bytes]
 //! - [`Chars`][chars::Chars]
