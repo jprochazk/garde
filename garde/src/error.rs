@@ -18,7 +18,7 @@ use self::rc_list::List;
 /// A single field or list item may have any number of errors attached to it.
 ///
 /// It is possible to extract all errors for specific field using the [`select`][`crate::select`] macro.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Report {
     errors: Vec<(Path, Error)>,
@@ -58,7 +58,7 @@ impl std::fmt::Display for Report {
 
 impl std::error::Error for Report {}
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Error {
     message: CompactString,
