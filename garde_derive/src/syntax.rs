@@ -274,6 +274,7 @@ impl Parse for model::RawRule {
         rules! {
             (input, ident) {
                 "skip" => Skip,
+                "adapt" => Adapt(content),
                 "rename" => Rename(content),
                 "message" => Message(content),
                 "code" => Code(content),
