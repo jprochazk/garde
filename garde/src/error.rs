@@ -50,7 +50,11 @@ impl Report {
 impl std::fmt::Display for Report {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for (path, error) in self.iter() {
-            writeln!(f, "{path}: {error}")?;
+            if path.is_empty() {
+                writeln!(f, "{error}")?;
+            } else {
+                writeln!(f, "{path}: {error}")?;
+            }
         }
         Ok(())
     }
