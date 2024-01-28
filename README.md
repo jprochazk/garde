@@ -29,7 +29,7 @@ To get started, install `garde`:
 cargo add garde -F full
 ```
 
-And attach the `Validate` drive to your type. `garde` will generate an implementation of the `Validate` trait for you,
+And attach the `Validate` derive to your type. `garde` will generate an implementation of the `Validate` trait for you,
 allowing you to call the `validate` method.
 
 Here's what that looks like in full:
