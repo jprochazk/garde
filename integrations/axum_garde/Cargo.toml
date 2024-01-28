@@ -32,7 +32,7 @@ thiserror = { version = "1.0", default-features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 garde = { version = "0.17.0", path = "../../garde", features = [
-  "default",
+  "full",
   "derive",
 ] }
 axum = { version = "0.7", features = ["default", "macros"] }

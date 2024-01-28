@@ -11,7 +11,7 @@ readme = "../README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = [
+full = [
     "derive",
     "serde",
     "url",
@@ -22,6 +22,7 @@ default = [
     "regex",
     "unicode",
 ]
+
 serde = ["dep:serde", "compact_str/serde", "smallvec/serde"]
 derive = ["dep:garde_derive"]
 url = ["dep:url"]
