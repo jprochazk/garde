@@ -10,9 +10,11 @@ pub struct Check {}
 impl Check {
     pub fn run(self) -> Result {
         cargo("fmt").with_args(["--all", "--", "--check"]).run()?;
-        cargo("clippy").with_args(["--", "-D", "warnings"]).run()?;
-        cargo("deny").with_arg("check").run()?;
-        cargo("udeps").run()?;
+        cargo("clippy")
+            .with_args(["--all-features", "--", "-D", "warnings"])
+            .run()?;
+        cargo("deny").with_args(["--all-features", "check"]).run()?;
+        cargo("udeps").with_arg("--all-features").run()?;
         cargo("pants").with_arg("--dev").run()?;
 
         // TODO:
