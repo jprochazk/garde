@@ -1,3 +1,4 @@
 {
-  "rust-analyzer.linkedProjects": ["xtask/Cargo.toml", "Cargo.toml"]
+  "rust-analyzer.linkedProjects": ["xtask/Cargo.toml", "Cargo.toml"],
+  "rust-analyzer.cargo.features": "all",
 }
