@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use proc_macro2::{Ident, Span};
+use proc_macro2::{Ident, Span, TokenStream};
 use syn::ext::IdentExt;
 use syn::parse::Parse;
 use syn::punctuated::Punctuated;
@@ -250,54 +250,58 @@ impl Parse for model::RawRule {
         let ident = Ident::parse_any(input)?;
 
         macro_rules! rules {
-            (($input:ident, $ident:ident) {
-                $($name:literal => $rule:ident $(($content:ident))?,)*
-            }) => {
-                match $ident.to_string().as_str() {
+            ($($name:literal => $rule:ident $(($content:ident))?,)*) => {
+                match ident.to_string().as_str() {
                     $(
                         $name => {
                             $(
                                 let $content;
-                                syn::parenthesized!($content in $input);
+                                syn::parenthesized!($content in input);
                             )?
                             Ok(model::RawRule {
-                                span: $ident.span(),
+                                span: ident.span(),
                                 kind: model::RawRuleKind::$rule $(($content.parse()?))?
                             })
                         }
                     )*
-                    _ => Err(syn::Error::new($ident.span(), "unrecognized validation rule")),
+                    _ => {
+                        if input.peek(syn::token::Paren) {
+                            let _content;
+                            syn::parenthesized!(_content in input);
+                            let _ = _content.parse::<TokenStream>()?;
+                        }
+                        Err(syn::Error::new(ident.span(), "unrecognized validation rule"))
+                    },
                 }
             };
         }
 
         rules! {
-            (input, ident) {
-                "skip" => Skip,
-                "adapt" => Adapt(content),
-                "rename" => Rename(content),
-                "message" => Message(content),
-                "code" => Code(content),
-                "dive" => Dive,
-                "required" => Required,
-                "ascii" => Ascii,
-                "alphanumeric" => Alphanumeric,
-                "email" => Email,
-                "url" => Url,
-                "ip" => Ip,
-                "ipv4" => IpV4,
-                "ipv6" => IpV6,
-                "credit_card" => CreditCard,
-                "phone_number" => PhoneNumber,
-                "length" => Length(content),
-                "range" => Range(content),
-                "contains" => Contains(content),
-                "prefix" => Prefix(content),
-                "suffix" => Suffix(content),
-                "pattern" => Pattern(content),
-                "custom" => Custom(content),
-                "inner" => Inner(content),
-            }
+            "skip" => Skip,
+            "adapt" => Adapt(content),
+            "rename" => Rename(content),
+            "message" => Message(content),
+            "code" => Code(content),
+            "dive" => Dive,
+            "required" => Required,
+            "ascii" => Ascii,
+            "alphanumeric" => Alphanumeric,
+            "email" => Email,
+            "url" => Url,
+            "ip" => Ip,
+            "ipv4" => IpV4,
+            "ipv6" => IpV6,
+            "credit_card" => CreditCard,
+            "phone_number" => PhoneNumber,
+            "length" => Length(content),
+            "range" => Range(content),
+            "contains" => Contains(content),
+            "prefix" => Prefix(content),
+            "suffix" => Suffix(content),
+            "pattern" => Pattern(content),
+            "custom" => Custom(content),
+            "inner" => Inner(content),
+            "keys" => Keys(content),
         }
     }
 }

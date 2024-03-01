@@ -97,6 +97,7 @@ pub enum RawRuleKind {
     Pattern(Pattern),
     Custom(Expr),
     Inner(List<RawRule>),
+    Keys(List<RawRule>),
 }
 
 pub struct RawLength {
@@ -198,6 +199,7 @@ pub struct RuleSet {
     pub rules: BTreeSet<ValidateRule>,
     pub custom_rules: Vec<Expr>,
     pub inner: Option<Box<RuleSet>>,
+    pub keys: Option<Box<RuleSet>>,
 }
 
 impl RuleSet {
@@ -206,6 +208,7 @@ impl RuleSet {
             rules: BTreeSet::new(),
             custom_rules: Vec::new(),
             inner: None,
+            keys: None,
         }
     }
 

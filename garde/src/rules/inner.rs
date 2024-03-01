@@ -28,41 +28,6 @@ pub trait Inner<T> {
         F: FnMut(&T, &Self::Key);
 }
 
-impl<T> Inner<T> for Vec<T> {
-    type Key = usize;
-
-    fn validate_inner<F>(&self, f: F)
-    where
-        F: FnMut(&T, &Self::Key),
-    {
-        self.as_slice().validate_inner(f)
-    }
-}
-
-impl<const N: usize, T> Inner<T> for [T; N] {
-    type Key = usize;
-
-    fn validate_inner<F>(&self, f: F)
-    where
-        F: FnMut(&T, &Self::Key),
-    {
-        self.as_slice().validate_inner(f)
-    }
-}
-
-impl<'a, T> Inner<T> for &'a [T] {
-    type Key = usize;
-
-    fn validate_inner<F>(&self, mut f: F)
-    where
-        F: FnMut(&T, &Self::Key),
-    {
-        for (index, item) in self.iter().enumerate() {
-            f(item, &index);
-        }
-    }
-}
-
 impl<T> Inner<T> for Option<T> {
     type Key = NoKey;
 
@@ -72,6 +37,78 @@ impl<T> Inner<T> for Option<T> {
     {
         if let Some(item) = self {
             f(item, &NoKey::default())
+        }
+    }
+}
+
+macro_rules! impl_via_iter {
+    (in<const $N:ident, $($lifetime:lifetime,)? $V:ident $(, $S:ident)?> $T:ty) => {
+        impl<const $N: usize, $($lifetime,)? $V $(, $S)?> Inner<$V> for $T {
+            type Key = usize;
+
+            fn validate_inner<F>(&self, mut f: F)
+            where
+                F: FnMut(&$V, &Self::Key),
+            {
+                for (index, item) in self.iter().enumerate() {
+                    f(item, &index);
+                }
+            }
+        }
+    };
+    (in<$($lifetime:lifetime,)? $V:ident $(, $S:ident)?> $T:ty) => {
+        impl<$($lifetime,)? $V $(, $S)?> Inner<$V> for $T {
+            type Key = usize;
+
+            fn validate_inner<F>(&self, mut f: F)
+            where
+                F: FnMut(&$V, &Self::Key),
+            {
+                for (index, item) in self.iter().enumerate() {
+                    f(item, &index);
+                }
+            }
+        }
+    };
+}
+
+impl_via_iter!(in<'a, T> &'a [T]);
+impl_via_iter!(in<const N, T> [T; N]);
+impl_via_iter!(in<T> Vec<T>);
+impl_via_iter!(in<T> std::collections::VecDeque<T>);
+impl_via_iter!(in<T> std::collections::BinaryHeap<T>);
+impl_via_iter!(in<T> std::collections::LinkedList<T>);
+impl_via_iter!(in<T, S> std::collections::HashSet<T, S>);
+impl_via_iter!(in<T> std::collections::BTreeSet<T>);
+
+impl<K, V, S> Inner<V> for std::collections::HashMap<K, V, S>
+where
+    K: PathComponentKind,
+{
+    type Key = K;
+
+    fn validate_inner<F>(&self, mut f: F)
+    where
+        F: FnMut(&V, &Self::Key),
+    {
+        for (key, value) in self.iter() {
+            f(value, key)
+        }
+    }
+}
+
+impl<K, V> Inner<V> for std::collections::BTreeMap<K, V>
+where
+    K: PathComponentKind,
+{
+    type Key = K;
+
+    fn validate_inner<F>(&self, mut f: F)
+    where
+        F: FnMut(&V, &Self::Key),
+    {
+        for (key, value) in self.iter() {
+            f(value, key)
         }
     }
 }

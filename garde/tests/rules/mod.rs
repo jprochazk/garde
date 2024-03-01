@@ -10,6 +10,7 @@ mod dive_with_rules;
 mod email;
 mod inner;
 mod ip;
+mod keys;
 mod length;
 mod multi_rule;
 mod newtype;
