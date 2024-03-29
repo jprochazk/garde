@@ -62,10 +62,10 @@ pub struct Field {
     pub rules: Vec<RawRule>,
 }
 
-pub enum Message {
-    Fmt(Str),
-    Func(Expr),
-}
+// pub enum Message {
+//     Fmt(Str),
+//     Func(Expr),
+// }
 
 pub struct RawRule {
     pub span: Span,
@@ -76,7 +76,7 @@ pub enum RawRuleKind {
     Skip,
     Adapt(Path),
     Rename(Str),
-    Message(Message),
+    // Message(Message),
     Code(Str),
     Dive,
     Required,
@@ -149,7 +149,6 @@ pub struct Range<T> {
 }
 
 pub struct List<T> {
-    pub span: Span,
     pub contents: Vec<T>,
 }
 
@@ -159,6 +158,9 @@ pub struct Validate {
     pub context: (Type, Ident),
     pub is_transparent: bool,
     pub kind: ValidateKind,
+    // I don't know why Rust thinks this is unused.
+    // It's both read and written, grep for `.allow_unvalidated`.
+    #[allow(dead_code)]
     pub options: Options,
 }
 
@@ -177,7 +179,7 @@ pub struct ValidateField {
     pub adapter: Option<Path>,
     pub skip: Option<Span>,
     pub alias: Option<String>,
-    pub message: Option<Message>,
+    // pub message: Option<Message>,
     pub code: Option<String>,
 
     pub dive: Option<Span>,
@@ -276,6 +278,7 @@ impl ValidateRule {
 }
 
 pub enum ValidatePattern {
+    #[cfg(feature = "regex")]
     Lit(String),
     Expr(Expr),
 }

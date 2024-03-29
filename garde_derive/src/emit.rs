@@ -297,6 +297,7 @@ impl<'a> ToTokens for Rules<'a> {
                 }
                 Pattern(pat) => match pat {
                     model::ValidatePattern::Expr(expr) => quote_spanned!(expr.span() => (&#expr,)),
+                    #[cfg(feature = "regex")]
                     model::ValidatePattern::Lit(s) => quote!({
                         #[cfg(not(all(
                             feature = "js-sys",

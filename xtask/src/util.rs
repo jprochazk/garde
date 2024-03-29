@@ -82,6 +82,7 @@ impl CommandExt for Command {
     }
 
     fn run(mut self) -> Result {
+        println!("> {self:?}");
         self.spawn()?.wait()?.check()
     }
 

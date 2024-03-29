@@ -230,7 +230,7 @@ fn check_field(field: model::Field, options: &model::Options) -> syn::Result<mod
         adapter: None,
         skip: None,
         alias: None,
-        message: None,
+        // message: None,
         code: None,
         dive: None,
         rule_set: model::RuleSet::empty(),
@@ -337,7 +337,7 @@ fn check_rule(
         Skip => apply!(skip = span, span),
         Adapt(path) => apply!(adapter = path, span),
         Rename(alias) => apply!(alias = alias.value, span),
-        Message(message) => apply!(message = message, span),
+        // Message(message) => apply!(message = message, span),
         Code(code) => apply!(code = code.value, span),
         Dive => apply!(dive = span, span),
         Custom(custom) => rule_set.custom_rules.push(custom),
@@ -385,10 +385,6 @@ fn check_rule(
     };
 
     Ok(())
-}
-
-trait CheckRange: Sized {
-    fn check_range(self) -> syn::Result<model::ValidateRange<Self>>;
 }
 
 fn check_range_generic<L, R>(
