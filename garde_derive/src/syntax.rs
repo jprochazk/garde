@@ -276,7 +276,7 @@ impl Parse for model::RawRule {
                 "skip" => Skip,
                 "adapt" => Adapt(content),
                 "rename" => Rename(content),
-                "message" => Message(content),
+                // "message" => Message(content),
                 "code" => Code(content),
                 "dive" => Dive,
                 "required" => Required,
@@ -321,15 +321,15 @@ impl Parse for model::Str {
     }
 }
 
-impl Parse for model::Message {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        if input.peek(syn::LitStr) {
-            Ok(Self::Fmt(model::Str::parse(input)?))
-        } else {
-            Ok(Self::Func(syn::Expr::parse(input)?))
-        }
-    }
-}
+// impl Parse for model::Message {
+//     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+//         if input.peek(syn::LitStr) {
+//             Ok(Self::Fmt(model::Str::parse(input)?))
+//         } else {
+//             Ok(Self::Func(syn::Expr::parse(input)?))
+//         }
+//     }
+// }
 
 impl Parse for model::RawLength {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
@@ -485,14 +485,12 @@ where
 
 impl<T: Parse> Parse for List<T> {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let span = input.span();
-
         type CommaSeparated<T> = Punctuated<T, Token![,]>;
         let contents: Vec<_> = CommaSeparated::parse_terminated(input)?
             .into_iter()
             .collect();
 
-        Ok(Self { span, contents })
+        Ok(Self { contents })
     }
 }
 
