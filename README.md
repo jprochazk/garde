@@ -297,6 +297,36 @@ user.validate(&ctx)?;
 The validator function may accept the value as a reference to any type which it derefs to.
 In the above example, it is possible to use `&str`, because `password` is a `String`, and `String` derefs to `&str`.
 
+The `#[garde(custom(...))]` attribute accepts any expression which evalutes to a something which implements the following trait:
+
+```rust
+FnOnce(&T, &<T as Validate>::Context) -> garde::Result
+```
+
+That means it's possible to use higher order functions:
+
+```rust
+// Returns a function which does the actual validation.
+fn my_equals(other: &str) -> impl FnOnce(&str, &()) -> garde::Result + '_ {
+    move |value, _| {
+        if value != other {
+            return Err(garde::Error::new(format!("not equal to {other}")));
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(garde::Validate)]
+struct User {
+    #[garde(length(min = 1, max = 255))]
+    password: String,
+    // Combined with `self` access in rules:
+    #[garde(custom(my_equals(&self.password2)))]
+    password2: String,
+}
+```
+
 ### Context/Self access
 
 It's generally possible to also access the context and `self`, because they are in scope in the output of the proc macro:
