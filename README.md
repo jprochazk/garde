@@ -50,7 +50,7 @@ let user = User {
     password: "not_a_very_good_password",
 };
 
-if let Err(e) = user.validate(&()) {
+if let Err(e) = user.validate() {
     println!("invalid user: {e}");
 }
 ```
@@ -73,7 +73,7 @@ enum Data {
 }
 
 let data = Data::Struct { field: 100 };
-if let Err(e) = data.validate(&()) {
+if let Err(e) = data.validate() {
     println!("invalid data: {e}");
 }
 ```
@@ -226,7 +226,7 @@ The `username` field in the above example will inherit all the validation rules 
 ```rust,ignore
 User {
   username: Username("")
-}.validate(&())
+}.validate()
 
 "username: length is lower than 3"
 ```
@@ -236,7 +236,7 @@ Without the `#[garde(transparent)]` attribute, it would instead be:
 ```rust,ignore
 User {
   username: Username("")
-}.validate(&())
+}.validate()
 
 "username[0]: length is lower than 3"
 ```
