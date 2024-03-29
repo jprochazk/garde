@@ -21,7 +21,7 @@ fn select_macro() {
         identifiers: vec![UserIdentifier { id: 10 }, UserIdentifier { id: 20 }],
     };
 
-    let report = v.validate(&()).unwrap_err();
+    let report = v.validate().unwrap_err();
     {
         let errors: Vec<String> = garde::select!(report, identifiers[0])
             .map(|e| e.to_string())

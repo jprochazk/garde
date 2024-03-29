@@ -75,7 +75,7 @@ where
 
         let ctx = FromRef::from_ref(state);
         let value = value.into_inner();
-        let value = Unvalidated::new(value).validate(&ctx)?;
+        let value = Unvalidated::new(value).validate_with(&ctx)?;
 
         Ok(WithValidation(value))
     }
@@ -98,7 +98,7 @@ where
 
         let ctx = FromRef::from_ref(state);
         let value = value.into_inner();
-        let value = Unvalidated::new(value).validate(&ctx)?;
+        let value = Unvalidated::new(value).validate_with(&ctx)?;
 
         Ok(WithValidation(value))
     }
