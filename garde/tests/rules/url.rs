@@ -107,5 +107,5 @@ fn url_valid_wrapper() {
         field: "htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ",
         inner: &["htt ps://www.youtube.com/watch?v=dQw4w9WgXcQ"],
     };
-    println!("{:?}", value.validate(&()).unwrap_err());
+    println!("{:?}", value.validate().unwrap_err());
 }

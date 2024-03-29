@@ -20,7 +20,20 @@ pub trait Validate {
     ///
     /// This method should not be implemented manually. Implement [`Validate::validate_into`] instead,
     /// because [`Validate::validate`] has a default implementation that calls [`Validate::validate_into`].
-    fn validate(&self, ctx: &Self::Context) -> Result<(), Report> {
+    fn validate(&self) -> Result<(), Report>
+    where
+        Self::Context: Default,
+    {
+        let ctx = Self::Context::default();
+        self.validate_with(&ctx)
+    }
+
+    /// Validates `Self`, returning an `Err` with an aggregate of all errors if
+    /// the validation failed.
+    ///
+    /// This method should not be implemented manually. Implement [`Validate::validate_into`] instead,
+    /// because [`Validate::validate_with`] has a default implementation that calls [`Validate::validate_into`].
+    fn validate_with(&self, ctx: &Self::Context) -> Result<(), Report> {
         let mut report = Report::new();
         self.validate_into(ctx, &mut Path::empty, &mut report);
         match report.is_empty() {
@@ -79,8 +92,8 @@ impl<T: Validate> Unvalidated<T> {
 
     /// Validates `self`, transforming it into a `Valid<T>`.
     /// This is the only way to create an instance of `Valid<T>`.
-    pub fn validate(self, ctx: &<T as Validate>::Context) -> Result<Valid<T>, Report> {
-        self.0.validate(ctx)?;
+    pub fn validate_with(self, ctx: &<T as Validate>::Context) -> Result<Valid<T>, Report> {
+        self.0.validate_with(ctx)?;
         Ok(Valid(self.0))
     }
 }

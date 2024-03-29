@@ -8,7 +8,7 @@ use owo_colors::OwoColorize;
 pub fn check_ok<T: Validate + Debug>(cases: &[T], ctx: &T::Context) {
     let mut some_failed = false;
     for case in cases {
-        if let Err(report) = case.validate(ctx) {
+        if let Err(report) = case.validate_with(ctx) {
             eprintln!(
                 "{} input: {case:?}, errors: [{}]",
                 "FAIL".red(),
@@ -32,7 +32,7 @@ pub fn __check_fail<T: Validate + Debug>(cases: &[T], ctx: &T::Context) -> Strin
     let mut some_success = false;
     let mut snapshot = String::new();
     for case in cases {
-        if let Err(report) = case.validate(ctx) {
+        if let Err(report) = case.validate_with(ctx) {
             writeln!(&mut snapshot, "{case:#?}").unwrap();
             write!(&mut snapshot, "{report}").unwrap();
             writeln!(&mut snapshot).unwrap();
