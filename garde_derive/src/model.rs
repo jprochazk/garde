@@ -276,6 +276,7 @@ impl ValidateRule {
 }
 
 pub enum ValidatePattern {
+    #[cfg(feature = "regex")]
     Lit(String),
     Expr(Expr),
 }

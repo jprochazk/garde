@@ -387,10 +387,6 @@ fn check_rule(
     Ok(())
 }
 
-trait CheckRange: Sized {
-    fn check_range(self) -> syn::Result<model::ValidateRange<Self>>;
-}
-
 fn check_range_generic<L, R>(
     range: model::Range<model::Either<L, R>>,
 ) -> syn::Result<model::ValidateRange<model::Either<L, R>>>

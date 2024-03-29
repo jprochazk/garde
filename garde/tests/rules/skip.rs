@@ -27,11 +27,3 @@ fn skip_valid() {
     util::check_ok(&[Tuple(50)], &());
     util::check_ok(&[Enum::Struct { field: 50 }, Enum::Tuple(50)], &());
 }
-
-#[derive(garde::Validate)]
-struct Foo {
-    #[garde(skip)]
-    a: u32,
-    #[garde(range(min=self.a+1))]
-    b: u32,
-}
