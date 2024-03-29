@@ -92,6 +92,16 @@ impl<T: Validate> Unvalidated<T> {
 
     /// Validates `self`, transforming it into a `Valid<T>`.
     /// This is the only way to create an instance of `Valid<T>`.
+    pub fn validate(self) -> Result<Valid<T>, Report>
+    where
+        <T as Validate>::Context: Default,
+    {
+        self.0.validate()?;
+        Ok(Valid(self.0))
+    }
+
+    /// Validates `self`, transforming it into a `Valid<T>`.
+    /// This is the only way to create an instance of `Valid<T>`.
     pub fn validate_with(self, ctx: &<T as Validate>::Context) -> Result<Valid<T>, Report> {
         self.0.validate_with(ctx)?;
         Ok(Valid(self.0))
