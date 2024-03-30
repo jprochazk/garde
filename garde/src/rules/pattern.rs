@@ -37,10 +37,10 @@ use crate::error::Error;
 
 pub fn apply<T: Pattern, M: Matcher>(v: &T, (pat,): (&M,)) -> Result<(), Error> {
     if !v.validate_pattern(pat) {
-        return Err(Error::new(format!(
-            "does not match pattern /{}/",
-            pat.as_str()
-        )));
+        return Err(Error::new(
+            "PATTERN_MISMATCH",
+            format!("does not match pattern /{}/", pat.as_str()),
+        ));
     }
     Ok(())
 }

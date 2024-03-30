@@ -21,7 +21,10 @@ use crate::error::Error;
 
 pub fn apply<T: Prefix>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
     if !v.validate_prefix(pat) {
-        return Err(Error::new(format!("value does not begin with \"{pat}\"")));
+        return Err(Error::new(
+            "INVALID_PREFIX",
+            format!("value does not begin with \"{pat}\""),
+        ));
     }
     Ok(())
 }

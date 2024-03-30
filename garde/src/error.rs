@@ -65,14 +65,20 @@ impl std::error::Error for Report {}
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Error {
+    code: CompactString,
     message: CompactString,
 }
 
 impl Error {
-    pub fn new(message: impl ToCompactString) -> Self {
+    pub fn new(code: impl ToCompactString, message: impl ToCompactString) -> Self {
         Self {
+            code: code.to_compact_string(),
             message: message.to_compact_string(),
         }
+    }
+
+    pub fn code(&self) -> &str {
+        self.code.as_ref()
     }
 
     pub fn message(&self) -> &str {
@@ -281,22 +287,28 @@ mod tests {
     #[test]
     fn report_select() {
         let mut report = Report::new();
-        report.append(Path::new("a").join("b"), Error::new("lol"));
+        report.append(Path::new("a").join("b"), Error::new("LOL", "lol"));
         report.append(
             Path::new("a").join("b").join("c"),
-            Error::new("that seems wrong"),
+            Error::new("WRONG", "that seems wrong"),
         );
-        report.append(Path::new("a").join("b").join("c"), Error::new("pog"));
-        report.append(Path::new("array").join("0").join("c"), Error::new("pog"));
+        report.append(Path::new("a").join("b").join("c"), Error::new("POG", "pog"));
+        report.append(
+            Path::new("array").join("0").join("c"),
+            Error::new("POG", "pog"),
+        );
 
         assert_eq!(
             crate::select!(report, a.b.c).collect::<Vec<_>>(),
-            [&Error::new("that seems wrong"), &Error::new("pog")]
+            [
+                &Error::new("WRONG", "that seems wrong"),
+                &Error::new("POG", "pog")
+            ]
         );
 
         assert_eq!(
             crate::select!(report, array[0].c).collect::<Vec<_>>(),
-            [&Error::new("pog")]
+            [&Error::new("POG", "pog")]
         );
     }
 
@@ -307,10 +319,10 @@ mod tests {
         #[test]
         fn roundtrip_serde() {
             let mut report = Report::new();
-            report.append(Path::new("a").join(0), Error::new("lorem"));
-            report.append(Path::new("a").join(1), Error::new("ispum"));
-            report.append(Path::new("a").join(2), Error::new("dolor"));
-            report.append(Path::new("b").join("c"), Error::new("dolor"));
+            report.append(Path::new("a").join(0), Error::new("LOREM", "lorem"));
+            report.append(Path::new("a").join(1), Error::new("IPSUM", "ispum"));
+            report.append(Path::new("a").join(2), Error::new("DOLOR", "dolor"));
+            report.append(Path::new("b").join("c"), Error::new("DOLOR", "dolor"));
 
             let de: Report =
                 serde_json::from_str(&serde_json::to_string(&report).unwrap()).unwrap();

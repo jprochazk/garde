@@ -11,7 +11,7 @@ struct Test<'a> {
     a: &'a str,
     #[garde(custom(|value: &str, ctx: &Context| {
         if value != ctx.needle {
-            return Err(garde::Error::new(format!("`b` is not equal to {}", ctx.needle)));
+            return Err(garde::Error::new("CUSTOM", format!("`b` is not equal to {}", ctx.needle)));
         }
         Ok(())
     }))]
@@ -20,7 +20,7 @@ struct Test<'a> {
     inner_a: &'a [&'a str],
     #[garde(inner(custom(|value: &str, ctx: &Context| {
         if value != ctx.needle {
-            return Err(garde::Error::new(format!("`b` is not equal to {}", ctx.needle)));
+            return Err(garde::Error::new("CUSTOM", format!("`b` is not equal to {}", ctx.needle)));
         }
         Ok(())
     })))]
@@ -32,7 +32,10 @@ struct Test<'a> {
 
 fn custom_validate_fn(value: &str, ctx: &Context) -> Result<(), garde::Error> {
     if value != ctx.needle {
-        return Err(garde::Error::new(format!("not equal to {}", ctx.needle)));
+        return Err(garde::Error::new(
+            "CUSTOM",
+            format!("not equal to {}", ctx.needle),
+        ));
     }
     Ok(())
 }

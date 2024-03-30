@@ -19,7 +19,10 @@ use crate::error::Error;
 
 pub fn apply<T: Ip>(v: &T, (kind,): (IpKind,)) -> Result<(), Error> {
     if v.validate_ip(kind).is_err() {
-        return Err(Error::new(format!("not a valid {kind} address")));
+        return Err(Error::new(
+            format!("INVALID_{kind}"),
+            format!("not a valid {kind} address"),
+        ));
     }
     Ok(())
 }
