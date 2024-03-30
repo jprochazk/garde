@@ -45,6 +45,11 @@ impl Report {
     pub fn is_empty(&self) -> bool {
         self.errors.is_empty()
     }
+
+    /// Converts into the inner validation errors.
+    pub fn into_inner(self) -> Vec<(Path, Error)> {
+        self.errors
+    }
 }
 
 impl std::fmt::Display for Report {
