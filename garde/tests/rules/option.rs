@@ -18,6 +18,8 @@ struct Test<'a> {
     ip: Option<&'a str>,
     #[garde(length(min = 1))]
     length_min1: Option<&'a str>,
+    #[garde(matches(length_min1))]
+    matches: Option<&'a str>,
     #[garde(pattern(r"a|b"))]
     pat_a_or_b: Option<&'a str>,
     #[garde(phone_number)]
@@ -46,6 +48,7 @@ fn option_valid() {
             email: Some("test@mail.com"),
             ip: Some("127.0.0.1"),
             length_min1: Some("a"),
+            matches: Some("a"),
             pat_a_or_b: Some("a"),
             phone_number: Some("+14152370800"),
             prefix_a: Some("a"),
@@ -71,6 +74,7 @@ fn option_invalid() {
                 email: Some("😂"),
                 ip: Some("😂"),
                 length_min1: Some(""),
+                matches: Some("😂"),
                 pat_a_or_b: Some("😂"),
                 phone_number: Some("😂"),
                 prefix_a: Some(""),
@@ -88,6 +92,7 @@ fn option_invalid() {
                 email: None,
                 ip: None,
                 length_min1: None,
+                matches: None,
                 pat_a_or_b: None,
                 phone_number: None,
                 prefix_a: None,

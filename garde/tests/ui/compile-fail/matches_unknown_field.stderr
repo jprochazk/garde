@@ -1,0 +1,7 @@
+error[E0609]: no field `foo` on type `&Test<'a>`
+ --> tests/ui/compile-fail/matches_unknown_field.rs
+  |
+  |     #[garde(matches(foo))]
+  |                     ^^^ unknown field
+  |
+  = note: available field is: `bar`

@@ -290,6 +290,7 @@ impl Parse for model::RawRule {
                 "credit_card" => CreditCard,
                 "phone_number" => PhoneNumber,
                 "length" => Length(content),
+                "matches" => Matches(content),
                 "range" => Range(content),
                 "contains" => Contains(content),
                 "prefix" => Prefix(content),
