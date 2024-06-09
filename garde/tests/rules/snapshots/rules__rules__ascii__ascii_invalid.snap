@@ -7,7 +7,9 @@ Test {
     inner: [
         "😂",
     ],
+    cow: "😂",
 }
+cow: not ascii
 field: not ascii
 inner[0]: not ascii
 

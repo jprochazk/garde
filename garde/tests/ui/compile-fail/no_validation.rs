@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 #[derive(garde::Validate)]
 struct Struct {
     field: u64,

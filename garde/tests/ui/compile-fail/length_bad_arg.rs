@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 #[derive(garde::Validate)]
 struct Test<'a> {
     #[garde(length(min = 10, invalid_arg, max = 50))]

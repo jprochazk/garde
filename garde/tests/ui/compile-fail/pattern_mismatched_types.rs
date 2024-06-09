@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 static STR: &str = r"a|b";
 
 #[derive(garde::Validate)]

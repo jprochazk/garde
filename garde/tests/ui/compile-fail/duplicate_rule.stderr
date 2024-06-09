@@ -1,5 +1,5 @@
 error: duplicate rule `ascii`
- --> tests/ui/compile-fail/duplicate_rule.rs:3:20
+ --> tests/ui/compile-fail/duplicate_rule.rs
   |
-3 |     #[garde(ascii, ascii)]
+  |     #[garde(ascii, ascii)]
   |                    ^^^^^

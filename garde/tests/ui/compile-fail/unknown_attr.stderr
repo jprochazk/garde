@@ -1,5 +1,5 @@
 error: unrecognized attribute
- --> tests/ui/compile-fail/unknown_attr.rs:2:9
+ --> tests/ui/compile-fail/unknown_attr.rs
   |
-2 | #[garde(unknown_attr)]
+  | #[garde(unknown_attr)]
   |         ^^^^^^^^^^^^

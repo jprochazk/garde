@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 #[derive(Debug, garde::Validate)]
 struct Inner<'a> {
     #[garde(length(min = 1))]

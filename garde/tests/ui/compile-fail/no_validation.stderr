@@ -1,23 +1,23 @@
 error: field has no validation, use `#[garde(skip)]` if this is intentional
- --> tests/ui/compile-fail/no_validation.rs:3:12
+ --> tests/ui/compile-fail/no_validation.rs
   |
-3 |     field: u64,
+  |     field: u64,
   |            ^^^
 
 error: field has no validation, use `#[garde(skip)]` if this is intentional
- --> tests/ui/compile-fail/no_validation.rs:7:14
+ --> tests/ui/compile-fail/no_validation.rs
   |
-7 | struct Tuple(u64);
+  | struct Tuple(u64);
   |              ^^^
 
 error: field has no validation, use `#[garde(skip)]` if this is intentional
-  --> tests/ui/compile-fail/no_validation.rs:11:21
-   |
-11 |     Struct { field: u64 },
-   |                     ^^^
+ --> tests/ui/compile-fail/no_validation.rs
+  |
+  |     Struct { field: u64 },
+  |                     ^^^
 
 error: field has no validation, use `#[garde(skip)]` if this is intentional
-  --> tests/ui/compile-fail/no_validation.rs:12:11
-   |
-12 |     Tuple(u64),
-   |           ^^^
+ --> tests/ui/compile-fail/no_validation.rs
+  |
+  |     Tuple(u64),
+  |           ^^^

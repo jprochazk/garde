@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use super::util;
 
 #[derive(Debug, garde::Validate)]
@@ -7,6 +9,9 @@ struct Test<'a> {
 
     #[garde(inner(ascii))]
     inner: &'a [&'a str],
+
+    #[garde(ascii)]
+    cow: Cow<'a, str>,
 }
 
 #[test]
@@ -15,6 +20,7 @@ fn ascii_valid() {
         &[Test {
             field: "a!0_~",
             inner: &["a!0_~"],
+            cow: Cow::Borrowed("a!0_~"),
         }],
         &(),
     )
@@ -25,7 +31,8 @@ fn ascii_invalid() {
     util::check_fail!(
         &[Test {
             field: "😂",
-            inner: &["😂"]
+            inner: &["😂"],
+            cow: Cow::Borrowed("😂"),
         }],
         &()
     )

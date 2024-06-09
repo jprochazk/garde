@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 const TEST: &str = "test";
 
 #[derive(garde::Validate)]

@@ -121,7 +121,13 @@ fn ui(review: bool) -> Command {
 
 fn rules(review: bool) -> Command {
     if review {
-        cargo("insta").with_args(["test", "--review", "--package=garde", "--test=rules"])
+        cargo("insta").with_args([
+            "test",
+            "--review",
+            "--package=garde",
+            "--all-features",
+            "--test=rules",
+        ])
     } else {
         cargo("test").with_args(["--package=garde", "--all-features", "--test=rules"])
     }

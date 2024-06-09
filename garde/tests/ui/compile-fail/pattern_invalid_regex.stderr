@@ -2,7 +2,7 @@ error: invalid regex: regex parse error:
            (
            ^
        error: unclosed group
- --> tests/ui/compile-fail/pattern_invalid_regex.rs:3:21
+ --> tests/ui/compile-fail/pattern_invalid_regex.rs
   |
-3 |     #[garde(pattern("("))]
+  |     #[garde(pattern("("))]
   |                     ^^^

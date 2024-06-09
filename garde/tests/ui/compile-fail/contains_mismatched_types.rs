@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 static NUM: u32 = 666;
 
 #[derive(garde::Validate)]
