@@ -25,7 +25,7 @@ A Rust validation library
 ### Basic usage example
 
 To get started, install `garde`:
-```
+```text,ignore
 cargo add garde -F full
 ```
 
@@ -204,6 +204,31 @@ The above type would fail validation if:
 - any of the inner `String` elements is empty
 - any of the inner `String` elements contains non-ASCII characters
 
+To validate a deeply-nested type, such as `Vec<Option<String>>`, the `inner` modifier must be nested for each level of generics:
+```rust
+#[derive(garde::Validate)]
+struct Test {
+    #[garde(
+        length(min = 1), // applies to `Vec`
+        inner(inner(ascii, length(min = 1))), // applies to `String`
+    )]
+    items: Vec<Option<String>>,
+}
+```
+
+You can apply separate rules to every level of the nested type:
+```rust
+#[derive(garde::Validate)]
+struct Test {
+    #[garde(
+        length(min = 1), // applies to `Vec`
+        inner(required), // applies to `Option`
+        inner(inner(ascii, length(min = 1))), // applies to `String`
+    )]
+    items: Vec<Option<String>>,
+}
+```
+
 ### Newtypes
 
 The best way to re-use validation rules on a field is to use the [newtype idiom](https://doc.rust-lang.org/rust-by-example/generics/new_types.html)
@@ -300,7 +325,7 @@ In the above example, it is possible to use `&str`, because `password` is a `Str
 
 The `#[garde(custom(...))]` attribute accepts any expression which evalutes to a something which implements the following trait:
 
-```rust
+```rust,ignore
 FnOnce(&T, &<T as Validate>::Context) -> garde::Result
 ```
 
