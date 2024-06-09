@@ -21,15 +21,6 @@ test-rules:
 test-axum-garde:
   cargo test -p axum_garde --all-features
 
-# Update the version of all crates.
-version *args:
-  cargo ws version {{args}}
-
 # Release a new version of the crate.
 release: test
-  # publish `garde_derive`
-  cargo publish -p garde_derive
-  # publish `garde`
-  cargo publish -p garde
-  # publish `axum_garde`
-  cargo publish -p axum_garde
+  cargo x publish
