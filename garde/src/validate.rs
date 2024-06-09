@@ -331,3 +331,19 @@ impl<T: Validate> Validate for Option<T> {
         }
     }
 }
+
+impl<'a, B: Validate> Validate for std::borrow::Cow<'a, B>
+where
+    B: ToOwned,
+{
+    type Context = B::Context;
+
+    fn validate_into(
+        &self,
+        ctx: &Self::Context,
+        parent: &mut dyn FnMut() -> Path,
+        report: &mut Report,
+    ) {
+        self.as_ref().validate_into(ctx, parent, report)
+    }
+}
