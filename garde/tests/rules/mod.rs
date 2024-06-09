@@ -11,6 +11,7 @@ mod email;
 mod inner;
 mod ip;
 mod length;
+mod matches;
 mod multi_rule;
 mod newtype;
 mod option;

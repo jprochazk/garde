@@ -361,6 +361,7 @@ fn check_rule(
                 LengthMode::Utf16 => apply!(LengthUtf16(range), span),
             }
         }
+        Matches(path) => apply!(Matches(path), span),
         Range(v) => apply!(Range(check_range_not_ord(v)?), span),
         Contains(v) => apply!(Contains(v), span),
         Prefix(v) => apply!(Prefix(v), span),

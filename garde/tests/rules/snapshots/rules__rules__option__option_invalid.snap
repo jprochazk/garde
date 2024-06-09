@@ -27,6 +27,9 @@ Test {
     length_min1: Some(
         "",
     ),
+    matches: Some(
+        "😂",
+    ),
     pat_a_or_b: Some(
         "😂",
     ),
@@ -55,6 +58,7 @@ email: not a valid email: value is missing `@`
 ip: not a valid IP address
 length_min1: length is lower than 1
 length_min1_u8_slice: length is lower than 1
+matches: does not match length_min1 field
 pat_a_or_b: does not match pattern /a|b/
 phone_number: not a valid phone number: not a number
 prefix_a: value does not begin with "a"
@@ -72,6 +76,7 @@ Test {
     email: None,
     ip: None,
     length_min1: None,
+    matches: None,
     pat_a_or_b: None,
     phone_number: None,
     prefix_a: None,
@@ -81,5 +86,3 @@ Test {
     url: None,
 }
 required: not set
-
-

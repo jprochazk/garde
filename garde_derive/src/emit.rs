@@ -287,6 +287,9 @@ impl<'a> ToTokens for Rules<'a> {
                         quote!((#min, #max))
                     }
                 },
+                Matches(path) => {
+                    quote!((stringify!(#path), &self.#path))
+                }
                 Range(range) => match range {
                     model::ValidateRange::GreaterThan(min) => quote!((Some(#min), None)),
                     model::ValidateRange::LowerThan(max) => quote!((None, Some(#max))),

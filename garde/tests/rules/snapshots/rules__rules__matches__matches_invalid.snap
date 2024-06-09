@@ -1,0 +1,13 @@
+---
+source: garde/tests/./rules/matches.rs
+expression: snapshot
+---
+Test {
+    foo: "_test_",
+    bar: "_test",
+    inner: [
+        "_test",
+    ],
+}
+bar: does not match foo field
+inner[0]: does not match foo field
