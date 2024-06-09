@@ -64,15 +64,15 @@ jobs:
             rust: 1.72
             # Fails on pinned version because the output changed,
             # so we're excluding it, but it's still tested on stable and nightly.
-            EXCLUDE_UI_TESTS: "pattern_mismatched_types,newtype"
+            EXCLUDE_UI_TESTS: "pattern_mismatched_types,newtype,matches_unknown_field"
           - build: stable
             os: ubuntu-20.04
             rust: stable
-            EXCLUDE_UI_TESTS: "newtype"
+            EXCLUDE_UI_TESTS: ""
           - build: nightly
             os: ubuntu-20.04
             rust: nightly
-            EXCLUDE_UI_TESTS: ""
+            EXCLUDE_UI_TESTS: "pattern_mismatched_types,non_unary_newtype"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
