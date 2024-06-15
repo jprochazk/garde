@@ -15,6 +15,6 @@ anyhow = { version = "1.0.72", features = ["backtrace"] }
 argp = "0.3"
 glob = { version = "0.3.1", default-features = false }
 semver = "1.0.18"
-toml_edit = { version = "0.19.14", features = ["perf"] }
+toml_edit = { version = "0.22.14", features = ["perf"] }
 
 [workspace]
