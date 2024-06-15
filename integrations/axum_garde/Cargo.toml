@@ -36,10 +36,10 @@ garde = { version = "0.19.0", path = "../../garde", features = [
   "derive",
 ] }
 axum = { version = "0.7", features = ["default", "macros"] }
-axum-test = { version = "14.1" }
+axum-test = { version = "15" }
 tokio = { version = "1.28", features = ["full"] }
 prost = { version = "0.12" }
-rstest = { version = "0.18" }
+rstest = { version = "0.21" }
 speculoos = { version = "0.11" }
 
 [[example]]
