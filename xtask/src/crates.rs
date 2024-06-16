@@ -3,13 +3,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use semver::{BuildMetadata, Prerelease};
-use toml_edit::Document;
+use toml_edit::DocumentMut;
 
 use crate::Result;
 
 pub struct Crate {
     path: PathBuf,
-    doc: Document,
+    doc: DocumentMut,
 }
 
 impl Crate {
@@ -22,7 +22,7 @@ impl Crate {
     pub fn from_str(path: impl AsRef<Path>, source: &str) -> Result<Self> {
         Ok(Self {
             path: path.as_ref().to_path_buf(),
-            doc: source.parse::<Document>()?,
+            doc: source.parse::<DocumentMut>()?,
         })
     }
 
