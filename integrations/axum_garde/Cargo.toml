@@ -1,6 +1,6 @@
 [package]
 name = "axum_garde"
-version = "0.19.1"
+version = "0.19.2"
 edition = "2021"
 repository = "https://github.com/jprochazk/garde"
 license = "MIT OR Apache-2.0"
@@ -25,13 +25,13 @@ axum = { version = "0.7", default-features = false }
 axum-extra = { version = "0.9", default-features = false, optional = true }
 axum-yaml = { version = "0.4", default-features = false, optional = true }
 axum-msgpack = { version = "0.4", default-features = false, optional = true }
-garde = { version = "0.19.1", path = "../../garde", default-features = false }
+garde = { version = "0.19.2", path = "../../garde", default-features = false }
 thiserror = { version = "1.0", default-features = false }
 
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
-garde = { version = "0.19.1", path = "../../garde", features = [
+garde = { version = "0.19.2", path = "../../garde", features = [
   "full",
   "derive",
 ] }
