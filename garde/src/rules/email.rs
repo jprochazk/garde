@@ -15,8 +15,6 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
-use idna::AsciiDenyList;
-
 use super::pattern::Matcher;
 use super::AsStr;
 use crate::error::Error;
@@ -123,7 +121,7 @@ pub fn parse_email(s: &str) -> Result<(), InvalidEmail> {
 
         #[cfg(feature = "email-idna")]
         {
-            match idna::domain_to_ascii_cow(domain.as_bytes(), AsciiDenyList::URL) {
+            match idna::domain_to_ascii_cow(domain.as_bytes(), idna::AsciiDenyList::URL) {
                 Ok(domain) => {
                     if !is_valid_domain(&domain) {
                         return Err(InvalidEmail::InvalidDomain);
