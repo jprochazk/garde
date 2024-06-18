@@ -63,9 +63,15 @@ use crate::error::Error;
 
 fn check_len(len: usize, min: usize, max: usize) -> Result<(), Error> {
     if len < min {
-        Err(Error::new(format!("length is lower than {min}")))
+        Err(Error::new(
+            "INVALID_LENGTH",
+            format!("length is lower than {min}"),
+        ))
     } else if len > max {
-        Err(Error::new(format!("length is greater than {max}")))
+        Err(Error::new(
+            "EXCEEDS_LENGTH",
+            format!("length is greater than {max}"),
+        ))
     } else {
         Ok(())
     }

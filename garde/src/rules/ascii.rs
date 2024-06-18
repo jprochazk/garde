@@ -17,7 +17,7 @@ use crate::error::Error;
 
 pub fn apply<T: Ascii>(v: &T, _: ()) -> Result<(), Error> {
     if !v.validate_ascii() {
-        return Err(Error::new("not ascii"));
+        return Err(Error::new("NOT_ASCII", "not ascii"));
     }
     Ok(())
 }

@@ -11,7 +11,7 @@ mod test_adapter {
         pub mod simple {
             pub fn apply(v: &str, (min, max): (usize, usize)) -> garde::Result {
                 if !(min..=max).contains(&v.len()) {
-                    Err(garde::Error::new("my custom error message"))
+                    Err(garde::Error::new("CUSTOM", "my custom error message"))
                 } else {
                     Ok(())
                 }

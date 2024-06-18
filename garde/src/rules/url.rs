@@ -22,7 +22,7 @@ use crate::error::Error;
 
 pub fn apply<T: Url>(v: &T, _: ()) -> Result<(), Error> {
     if let Err(e) = v.validate_url() {
-        return Err(Error::new(format!("not a valid url: {e}")));
+        return Err(Error::new("INVALID_URL", format!("not a valid url: {e}")));
     }
     Ok(())
 }

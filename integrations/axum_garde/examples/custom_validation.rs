@@ -32,7 +32,10 @@ struct PasswordContext {
 // Define your custom validation
 fn password_validation(value: &str, context: &PasswordContext) -> garde::Result {
     if value.len() < context.complexity {
-        return Err(garde::Error::new("password is not strong enough"));
+        return Err(garde::Error::new(
+            "WEAK_PASSWORD",
+            "password is not strong enough",
+        ));
     }
     Ok(())
 }

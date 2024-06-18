@@ -21,7 +21,10 @@ use crate::error::Error;
 
 pub fn apply<T: Suffix>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
     if !v.validate_suffix(pat) {
-        return Err(Error::new(format!("does not end with \"{pat}\"")));
+        return Err(Error::new(
+            "INVALID_SUFFIX",
+            format!("does not end with \"{pat}\""),
+        ));
     }
     Ok(())
 }

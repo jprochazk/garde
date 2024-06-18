@@ -25,8 +25,12 @@ pub fn apply<T: Bounds>(
     let max = max.unwrap_or(T::MAX);
     if let Err(e) = v.validate_bounds(min, max) {
         match e {
-            OutOfBounds::Lower => return Err(Error::new(format!("lower than {min}"))),
-            OutOfBounds::Upper => return Err(Error::new(format!("greater than {max}"))),
+            OutOfBounds::Lower => {
+                return Err(Error::new("INVALID_SIZE", format!("lower than {min}")))
+            }
+            OutOfBounds::Upper => {
+                return Err(Error::new("EXCEEDS_SIZE", format!("greater than {max}")))
+            }
         }
     }
     Ok(())
