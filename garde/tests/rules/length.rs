@@ -42,9 +42,9 @@ fn length_invalid() {
 
 #[derive(Debug, garde::Validate)]
 struct Exact<'a> {
-    #[garde(length(min = 2, max = 2))]
+    #[garde(length(equal = 2))]
     field: &'a str,
-    #[garde(inner(length(min = 2, max = 2)))]
+    #[garde(inner(length(equal = 2)))]
     inner: &'a [&'a str],
 }
 
