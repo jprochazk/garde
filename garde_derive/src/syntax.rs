@@ -287,8 +287,6 @@ impl Parse for model::RawRule {
             };
         }
 
-        // abort!(ident, "`parse` must have exactly one argument");
-
         match ident.to_string().as_str() {
             "email" => {
                 error_if_missing_feature!("email", "email");
