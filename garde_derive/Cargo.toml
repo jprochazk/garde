@@ -14,6 +14,10 @@ proc-macro = true
 
 [features]
 regex = ["dep:regex"]
+email = []
+url = []
+credit-card = []
+phone-number = []
 
 [dependencies]
 syn = { version = "2", features = ["full", "derive"] }
