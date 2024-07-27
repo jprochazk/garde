@@ -5,9 +5,11 @@ mod syntax;
 mod util;
 
 use proc_macro::{Delimiter, Literal, Span, TokenStream, TokenTree};
+use proc_macro_error::proc_macro_error;
 use quote::quote;
 use syn::DeriveInput;
 
+#[proc_macro_error]
 #[proc_macro_derive(Validate, attributes(garde))]
 pub fn derive_validate(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as DeriveInput);
