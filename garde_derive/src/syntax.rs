@@ -346,16 +346,6 @@ impl Parse for model::RawLength {
         let mut max = None;
         let mut equal = None;
 
-        macro_rules! update_opt {
-            ($ident:ident, $span:expr, $v:expr) => {
-                if $ident.is_some() {
-                    error.maybe_fold(syn::Error::new($span, "duplicate argument"));
-                } else {
-                    $ident = Some($v);
-                }
-            };
-        }
-
         for arg in args {
             let arg = match arg {
                 ContinueOnFail::Ok(arg) => arg,
@@ -365,10 +355,34 @@ impl Parse for model::RawLength {
                 }
             };
             match arg {
-                RawLengthArgument::Min(span, v) => update_opt!(min, span, v),
-                RawLengthArgument::Max(span, v) => update_opt!(max, span, v),
-                RawLengthArgument::Equal(span, v) => update_opt!(equal, span, v),
-                RawLengthArgument::Mode(span, v) => update_opt!(mode, span, v),
+                RawLengthArgument::Min(span, v) => {
+                    if min.is_some() {
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"))
+                    } else {
+                        min = Some(v)
+                    }
+                }
+                RawLengthArgument::Max(span, v) => {
+                    if max.is_some() {
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"))
+                    } else {
+                        max = Some(v)
+                    }
+                }
+                RawLengthArgument::Equal(span, v) => {
+                    if equal.is_some() {
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"))
+                    } else {
+                        equal = Some(v)
+                    }
+                }
+                RawLengthArgument::Mode(span, v) => {
+                    if mode.is_some() {
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"))
+                    } else {
+                        mode = Some(v)
+                    }
+                }
             }
         }
 
