@@ -84,6 +84,49 @@ fn exact_length_invalid() {
 }
 
 #[derive(Debug, garde::Validate)]
+struct MinMaxEqual<'a> {
+    #[garde(length(min = 2, max = 2))]
+    min_max: &'a str,
+    #[garde(length(equal = 2))]
+    equal: &'a str,
+}
+
+#[test]
+fn min_max_equal_length_valid() {
+    util::check_ok(
+        &[MinMaxEqual {
+            // 'b' * 2
+            min_max: "bb",
+            equal: "bb",
+        }],
+        &(),
+    )
+}
+
+#[test]
+fn min_max_equal_length_invalid() {
+    util::check_fail!(
+        &[
+            MinMaxEqual {
+                min_max: "",
+                equal: ""
+            },
+            MinMaxEqual {
+                // 'b' * 1
+                min_max: "b",
+                equal: "b"
+            },
+            MinMaxEqual {
+                // 'b' * 3
+                min_max: "bbb",
+                equal: "bbb"
+            },
+        ],
+        &()
+    )
+}
+
+#[derive(Debug, garde::Validate)]
 struct SpecialLengthTest<'a> {
     #[garde(length(simple, max = 1))]
     simple: &'a str,
