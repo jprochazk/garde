@@ -1,5 +1,5 @@
 error: no `min` or `max` allowed if using `equal`
- --> tests/ui/compile-fail/length_bad_equal_combined.rs
+ --> tests/ui/compile-fail/length_bad_equal_combined_min.rs
   |
   |     #[garde(length(min = 1, equal = 10))]
   |                    ^^^
