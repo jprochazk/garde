@@ -42,9 +42,9 @@ fn length_invalid() {
 
 #[derive(Debug, garde::Validate)]
 struct Exact<'a> {
-    #[garde(length(min = 2, max = 2))]
+    #[garde(length(equal = 2))]
     field: &'a str,
-    #[garde(inner(length(min = 2, max = 2)))]
+    #[garde(inner(length(equal = 2)))]
     inner: &'a [&'a str],
 }
 
@@ -77,6 +77,49 @@ fn exact_length_invalid() {
                 // 'a' * 3
                 field: "aaa",
                 inner: &["aaa"]
+            },
+        ],
+        &()
+    )
+}
+
+#[derive(Debug, garde::Validate)]
+struct MinMaxEqual<'a> {
+    #[garde(length(min = 2, max = 2))]
+    min_max: &'a str,
+    #[garde(length(equal = 2))]
+    equal: &'a str,
+}
+
+#[test]
+fn min_max_equal_length_valid() {
+    util::check_ok(
+        &[MinMaxEqual {
+            // 'b' * 2
+            min_max: "bb",
+            equal: "bb",
+        }],
+        &(),
+    )
+}
+
+#[test]
+fn min_max_equal_length_invalid() {
+    util::check_fail!(
+        &[
+            MinMaxEqual {
+                min_max: "",
+                equal: ""
+            },
+            MinMaxEqual {
+                // 'b' * 1
+                min_max: "b",
+                equal: "b"
+            },
+            MinMaxEqual {
+                // 'b' * 3
+                min_max: "bbb",
+                equal: "bbb"
             },
         ],
         &()

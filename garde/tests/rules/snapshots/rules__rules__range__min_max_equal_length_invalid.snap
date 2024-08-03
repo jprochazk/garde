@@ -1,0 +1,24 @@
+---
+source: garde/tests/./rules/range.rs
+expression: snapshot
+---
+MinMaxEqual {
+    min_max: 0,
+    equal: 0,
+}
+equal: lower than 40
+min_max: lower than 40
+
+MinMaxEqual {
+    min_max: 39,
+    equal: 39,
+}
+equal: lower than 40
+min_max: lower than 40
+
+MinMaxEqual {
+    min_max: 41,
+    equal: 41,
+}
+equal: greater than 40
+min_max: greater than 40
