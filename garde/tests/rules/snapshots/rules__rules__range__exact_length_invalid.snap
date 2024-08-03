@@ -1,0 +1,30 @@
+---
+source: garde/tests/./rules/range.rs
+expression: snapshot
+---
+Exact {
+    field: 0,
+    inner: [
+        0,
+    ],
+}
+field: lower than 2
+inner[0]: lower than 2
+
+Exact {
+    field: 1,
+    inner: [
+        1,
+    ],
+}
+field: lower than 2
+inner[0]: lower than 2
+
+Exact {
+    field: 3,
+    inner: [
+        3,
+    ],
+}
+field: greater than 2
+inner[0]: greater than 2
