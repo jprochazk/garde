@@ -286,6 +286,9 @@ impl<'a> ToTokens for Rules<'a> {
                     model::ValidateRange::Between(min, max) => {
                         quote!((#min, #max))
                     }
+                    model::ValidateRange::Equal(equal) => {
+                        quote!((#equal, #equal))
+                    }
                 },
                 Matches(path) => {
                     quote!((stringify!(#path), &self.#path))
@@ -294,6 +297,7 @@ impl<'a> ToTokens for Rules<'a> {
                     model::ValidateRange::GreaterThan(min) => quote!((Some(#min), None)),
                     model::ValidateRange::LowerThan(max) => quote!((None, Some(#max))),
                     model::ValidateRange::Between(min, max) => quote!((Some(#min), Some(#max))),
+                    model::ValidateRange::Equal(equal) => quote!((Some(#equal), Some(#equal))),
                 },
                 Contains(expr) | Prefix(expr) | Suffix(expr) => {
                     quote_spanned!(expr.span() => (&#expr,))

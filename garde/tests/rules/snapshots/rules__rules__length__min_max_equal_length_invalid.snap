@@ -1,0 +1,24 @@
+---
+source: garde/tests/./rules/length.rs
+expression: snapshot
+---
+MinMaxEqual {
+    min_max: "",
+    equal: "",
+}
+equal: length is lower than 2
+min_max: length is lower than 2
+
+MinMaxEqual {
+    min_max: "b",
+    equal: "b",
+}
+equal: length is lower than 2
+min_max: length is lower than 2
+
+MinMaxEqual {
+    min_max: "bbb",
+    equal: "bbb",
+}
+equal: length is greater than 2
+min_max: length is greater than 2

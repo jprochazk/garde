@@ -380,6 +380,7 @@ impl Parse for model::RawLength {
         let mut mode = None;
         let mut min = None;
         let mut max = None;
+        let mut equal = None;
 
         for arg in args {
             let arg = match arg {
@@ -392,24 +393,31 @@ impl Parse for model::RawLength {
             match arg {
                 RawLengthArgument::Min(span, v) => {
                     if min.is_some() {
-                        error.maybe_fold(syn::Error::new(span, "duplicate argument"));
-                        continue;
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"))
+                    } else {
+                        min = Some(v)
                     }
-                    min = Some(v);
                 }
                 RawLengthArgument::Max(span, v) => {
                     if max.is_some() {
-                        error.maybe_fold(syn::Error::new(span, "duplicate argument"));
-                        continue;
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"))
+                    } else {
+                        max = Some(v)
                     }
-                    max = Some(v);
+                }
+                RawLengthArgument::Equal(span, v) => {
+                    if equal.is_some() {
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"))
+                    } else {
+                        equal = Some(v)
+                    }
                 }
                 RawLengthArgument::Mode(span, v) => {
                     if mode.is_some() {
-                        error.maybe_fold(syn::Error::new(span, "duplicate argument"));
-                        continue;
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"))
+                    } else {
+                        mode = Some(v)
                     }
-                    mode = Some(v);
                 }
             }
         }
@@ -420,7 +428,12 @@ impl Parse for model::RawLength {
 
         Ok(model::RawLength {
             mode: mode.unwrap_or_default(),
-            range: model::Range { span, min, max },
+            range: model::Range {
+                span,
+                min,
+                max,
+                equal,
+            },
         })
     }
 }
@@ -428,6 +441,7 @@ impl Parse for model::RawLength {
 enum RawLengthArgument {
     Min(Span, model::Either<usize, syn::Expr>),
     Max(Span, model::Either<usize, syn::Expr>),
+    Equal(Span, model::Either<usize, syn::Expr>),
     Mode(Span, model::LengthMode),
 }
 
@@ -450,6 +464,11 @@ impl Parse for RawLengthArgument {
                 let _ = input.parse::<Token![=]>()?;
                 let v = input.parse::<syn::Expr>()?;
                 RawLengthArgument::Max(span, FromExpr::from_expr(v)?)
+            }
+            "equal" => {
+                let _ = input.parse::<Token![=]>()?;
+                let v = input.parse::<syn::Expr>()?;
+                RawLengthArgument::Equal(span, FromExpr::from_expr(v)?)
             }
             _ => {
                 if input.peek(Token![=]) {
@@ -478,6 +497,7 @@ where
 
         let mut min = None::<T>;
         let mut max = None::<T>;
+        let mut equal = None::<T>;
 
         for pair in pairs {
             if pair.path.is_ident("min") {
@@ -506,6 +526,26 @@ where
                     }
                 };
                 max = Some(value);
+            } else if pair.path.is_ident("equal") {
+                if equal.is_some() {
+                    error.maybe_fold(syn::Error::new(pair.path.span(), "duplicate argument"));
+                    continue;
+                }
+                let value = match <T as FromExpr>::from_expr(pair.value) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        error.maybe_fold(e);
+                        continue;
+                    }
+                };
+
+                if min.is_some() || max.is_some() {
+                    error.maybe_fold(syn::Error::new(
+                        pair.path.span(),
+                        "min or max conflict with equal",
+                    ));
+                }
+                equal = Some(value);
             } else {
                 error.maybe_fold(syn::Error::new(pair.path.span(), "unexpected argument"));
                 continue;
@@ -515,7 +555,12 @@ where
         if let Some(error) = error {
             Err(error)
         } else {
-            Ok(model::Range { span, min, max })
+            Ok(model::Range {
+                span,
+                min,
+                max,
+                equal,
+            })
         }
     }
 }
