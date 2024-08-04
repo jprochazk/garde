@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 
 use proc_macro2::{Ident, Span};
-use quote::IdentFragment;
 use syn::ext::IdentExt;
 use syn::parse::Parse;
 use syn::punctuated::Punctuated;
