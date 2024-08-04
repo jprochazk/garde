@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use proc_macro2::{Ident, Span};
+use quote::IdentFragment;
 use syn::ext::IdentExt;
 use syn::parse::Parse;
 use syn::punctuated::Punctuated;
@@ -274,16 +275,16 @@ impl Parse for model::RawRule {
         macro_rules! error_if_missing_feature {
             ($rule:expr, $feature:expr) => {
                 #[cfg(not(feature = $feature))]
-                proc_macro_error::abort!(
-                    ident,
+                return Err(syn::Error::new(
+                    ident.span(),
                     concat!(
                         "Validation rule `",
                         $rule,
                         "` not found. Did you forget to add the `",
                         $feature,
                         "` feature flag?"
-                    )
-                );
+                    ),
+                ));
             };
         }
 
