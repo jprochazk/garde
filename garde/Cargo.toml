@@ -23,6 +23,8 @@ full = [
     "unicode",
 ]
 
+# NOTE: When adding new feature flags for validation rules you will likely want to add the corresponding
+#       feature flag in garde_derive to give better compiler error messages.
 serde = ["dep:serde", "compact_str/serde", "smallvec/serde"]
 derive = ["dep:garde_derive"]
 url = ["dep:url", "garde_derive?/url"]
