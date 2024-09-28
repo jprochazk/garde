@@ -5,6 +5,7 @@ expression: snapshot
 Test {
     field: "dcba",
     field_path: "dcba",
+    field_path_once_cell: "abcd",
     field_call: "dcba",
     inner: [
         "dcba",
@@ -18,6 +19,7 @@ inner[0]: does not match pattern /^abcd|efgh$/
 Test {
     field: "hgfe",
     field_path: "hgfe",
+    field_path_once_cell: "abcd",
     field_call: "hgfe",
     inner: [
         "hgfe",
@@ -27,5 +29,3 @@ field: does not match pattern /^abcd|efgh$/
 field_call: does not match pattern /^abcd|efgh$/
 field_path: does not match pattern /^abcd|efgh$/
 inner[0]: does not match pattern /^abcd|efgh$/
-
-
