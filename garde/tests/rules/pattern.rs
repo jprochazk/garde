@@ -3,11 +3,11 @@ use regex::Regex;
 use super::util;
 
 mod sub {
-    use once_cell::sync::Lazy;
+    use std::sync::LazyLock;
 
     use super::*;
 
-    pub static LAZY_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^abcd|efgh$").unwrap());
+    pub static LAZY_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^abcd|efgh$").unwrap());
 }
 
 #[derive(Debug, garde::Validate)]

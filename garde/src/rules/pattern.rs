@@ -144,9 +144,9 @@ pub mod regex {
         }
     }
 
-    impl<T: Matcher> Matcher for once_cell::sync::Lazy<T> {
+    impl<T: Matcher> Matcher for std::sync::LazyLock<T> {
         fn is_match(&self, haystack: &str) -> bool {
-            once_cell::sync::Lazy::force(self).is_match(haystack)
+            std::sync::LazyLock::force(self).is_match(haystack)
         }
     }
 
@@ -156,13 +156,13 @@ pub mod regex {
         }
     }
 
-    impl<T: AsStr> AsStr for once_cell::sync::Lazy<T> {
+    impl<T: AsStr> AsStr for std::sync::LazyLock<T> {
         fn as_str(&self) -> &str {
-            once_cell::sync::Lazy::force(self).as_str()
+            std::sync::LazyLock::force(self).as_str()
         }
     }
 
-    pub type StaticPattern = once_cell::sync::Lazy<Regex>;
+    pub type StaticPattern = std::sync::LazyLock<Regex>;
 
     #[macro_export]
     macro_rules! __init_pattern {
