@@ -50,14 +50,14 @@ pub enum OutOfBounds {
     Upper,
 }
 
-macro_rules! impl_for_int {
-    ($($T:ident),*) => {
+macro_rules! impl_for {
+    ($($T:ty),*) => {
         $(
             impl Bounds for $T {
                 type Size = $T;
 
-                const MIN: Self::Size = $T::MIN;
-                const MAX: Self::Size = $T::MAX;
+                const MIN: Self::Size = <$T>::MIN;
+                const MAX: Self::Size = <$T>::MAX;
 
                 fn validate_bounds(
                     &self,
@@ -77,7 +77,10 @@ macro_rules! impl_for_int {
     };
 }
 
-impl_for_int!(u8, u16, u32, u64, usize, u128, i8, i16, i32, i64, isize, i128, f32, f64);
+impl_for!(u8, u16, u32, u64, usize, u128, i8, i16, i32, i64, isize, i128, f32, f64);
+
+#[cfg(feature = "rust_decimal")]
+impl_for!(rust_decimal::Decimal);
 
 impl<T: Bounds> Bounds for Option<T> {
     type Size = T::Size;
