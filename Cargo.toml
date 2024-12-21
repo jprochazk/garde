@@ -1,5 +1,5 @@
 [workspace]
-members = ["garde_derive", "garde", "integrations/axum_garde"]
+members = ["garde_derive", "garde"]
 resolver = "2"
 
 [workspace.package]
@@ -9,7 +9,6 @@ version = "0.21.0"
 [workspace.dependencies]
 garde = { path = "garde", version = "=0.21.0", default-features = false }
 garde_derive = { path = "garde_derive", version = "=0.21.0", default-features = false }
-axum_garde = { path = "integrations/axum_garde", version = "=0.21.0", default-features = false }
 
 [profile.dev.package]
 insta = { opt-level = 3 }

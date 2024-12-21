@@ -11,7 +11,6 @@ impl Publish {
     pub fn run(self) -> Result {
         cargo("publish").with_args(["-p", "garde_derive"]).run()?;
         cargo("publish").with_args(["-p", "garde"]).run()?;
-        cargo("publish").with_args(["-p", "axum_garde"]).run()?;
 
         Ok(())
     }

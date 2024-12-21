@@ -27,17 +27,13 @@ enum Target {
     Doc,
     Ui,
     Rules,
-    Axum,
 }
 
 struct InvalidTarget;
 
 impl std::fmt::Display for InvalidTarget {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "invalid target, expected one of: unit, doc, ui, rules, axum"
-        )
+        write!(f, "invalid target, expected one of: unit, doc, ui, rules")
     }
 }
 
@@ -48,22 +44,19 @@ impl argp::FromArgValue for Target {
             ("doc", Self::Doc),
             ("ui", Self::Ui),
             ("rules", Self::Rules),
-            ("axum", Self::Axum),
         ]
         .into_iter()
         .find(|(name, _)| value.eq_ignore_ascii_case(std::ffi::OsStr::new(name)))
         .map(|(_, target)| target)
-        .ok_or_else(|| "invalid target, expected one of: unit, doc, ui, rules, axum".into())
+        .ok_or_else(|| "invalid target, expected one of: unit, doc, ui, rules".into())
     }
 }
 
 impl Test {
     pub fn run(mut self) -> Result {
         let review = self.review;
-        let mut commands = if self.targets.is_empty() && self.wasm {
+        let mut commands = if self.targets.is_empty() {
             vec![unit(), ui(review), rules(review)]
-        } else if self.targets.is_empty() {
-            vec![unit(), ui(review), rules(review), axum()]
         } else {
             self.targets.sort();
             BTreeSet::from_iter(self.targets)
@@ -73,7 +66,6 @@ impl Test {
                     Target::Doc => doc(),
                     Target::Ui => ui(review),
                     Target::Rules => rules(review),
-                    Target::Axum => axum(),
                 })
                 .collect()
         };
@@ -131,8 +123,4 @@ fn rules(review: bool) -> Command {
     } else {
         cargo("test").with_args(["--package=garde", "--all-features", "--test=rules"])
     }
-}
-
-fn axum() -> Command {
-    cargo("test").with_args(["--package=axum_garde", "--all-features"])
 }
