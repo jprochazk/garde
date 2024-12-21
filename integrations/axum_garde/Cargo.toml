@@ -5,8 +5,11 @@ rust-version.workspace = true
 edition = "2021"
 repository = "https://github.com/jprochazk/garde"
 license = "MIT OR Apache-2.0"
-description = "Axum integration for garde"
+description = "Deprecated in favor of axum-valid"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[badges]
+maintenance.status = "deprecated"
 
 [package.metadata.docs.rs]
 all-features = true

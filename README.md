@@ -491,7 +491,7 @@ will continue to use `garde`'s implementation.
 
 ### Integration with web frameworks
 
-- [`axum`](https://crates.io/crates/axum): [`axum_garde`](https://crates.io/crates/axum_garde)
+- [`axum`](https://crates.io/crates/axum): [`axum-valid`](https://crates.io/crates/axum-valid)
 - [`actix-web`](https://crates.io/crates/actix-web): [`garde-actix-web`](https://crates.io/crates/garde-actix-web)
 
 ### Feature flags

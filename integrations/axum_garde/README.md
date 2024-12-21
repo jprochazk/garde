@@ -1,5 +1,8 @@
 # axum_garde
 
+> [!WARNING]
+> ⚠️ **This crate is deprecated in favor of [axum-valid](https://crates.io/crates/axum-valid).** ⚠️
+
 Provide [garde](https://github.com/jprochazk/garde) validation on your
 [axum](https://github.com/tokio-rs/axum) application.
 
