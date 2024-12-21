@@ -3,11 +3,14 @@ use regex::Regex;
 use super::util;
 
 mod sub {
+    use std::sync::LazyLock;
+
     use once_cell::sync::Lazy;
 
     use super::*;
 
-    pub static LAZY_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^abcd|efgh$").unwrap());
+    pub static LAZY_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^abcd|efgh$").unwrap());
+    pub static LAZY_RE_ONCE_CELL: Lazy<Regex> = Lazy::new(|| Regex::new(r"^abcd|efgh$").unwrap());
 }
 
 #[derive(Debug, garde::Validate)]
@@ -17,6 +20,9 @@ struct Test<'a> {
 
     #[garde(pattern(sub::LAZY_RE))]
     field_path: &'a str,
+
+    #[garde(pattern(sub::LAZY_RE_ONCE_CELL))]
+    field_path_once_cell: &'a str,
 
     #[garde(pattern(create_regex()))]
     field_call: &'a str,
@@ -46,12 +52,14 @@ fn pattern_valid() {
             Test {
                 field: "abcd",
                 field_path: "abcd",
+                field_path_once_cell: "abcd",
                 field_call: "abcd",
                 inner: &["abcd"],
             },
             Test {
                 field: "efgh",
                 field_path: "efgh",
+                field_path_once_cell: "abcd",
                 field_call: "efgh",
                 inner: &["efgh"],
             },
@@ -68,12 +76,14 @@ fn pattern_invalid() {
             Test {
                 field: "dcba",
                 field_path: "dcba",
+                field_path_once_cell: "abcd",
                 field_call: "dcba",
                 inner: &["dcba"]
             },
             Test {
                 field: "hgfe",
                 field_path: "hgfe",
+                field_path_once_cell: "abcd",
                 field_call: "hgfe",
                 inner: &["hgfe"]
             }

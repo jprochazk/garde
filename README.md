@@ -518,8 +518,6 @@ Contributing to `garde` only requires a somewhat recent version of [`Rust`](http
 
 This repository also makes use of the following tools, but they are optional:
 - [`insta`](https://insta.rs/) for snapshot testing ([tests/rules](./garde_derive_tests/tests/rules/)).
-- [`just`](https://just.systems/) for running recipes defined in the [`justfile`](./justfile).
-  Run `just -l` to see what recipes are available.
 
 ### License
 
