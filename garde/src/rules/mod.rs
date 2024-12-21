@@ -25,7 +25,7 @@ pub trait AsStr {
     fn as_str(&self) -> &str;
 }
 
-impl<'a> AsStr for &'a str {
+impl AsStr for &str {
     fn as_str(&self) -> &str {
         self
     }
@@ -37,7 +37,7 @@ impl AsStr for String {
     }
 }
 
-impl<'a> AsStr for std::borrow::Cow<'a, str> {
+impl AsStr for std::borrow::Cow<'_, str> {
     fn as_str(&self) -> &str {
         std::borrow::Cow::as_ref(self)
     }

@@ -50,7 +50,7 @@ impl<const N: usize, T> Inner<T> for [T; N] {
     }
 }
 
-impl<'a, T> Inner<T> for &'a [T] {
+impl<T> Inner<T> for &[T] {
     type Key = usize;
 
     fn validate_inner<F>(&self, mut f: F)
