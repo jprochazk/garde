@@ -23,7 +23,7 @@ env:
 jobs:
   test-wasm:
     name: Test WASM
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -57,7 +57,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     env:
       CARGO_TERM_COLOR: always
     strategy:
@@ -66,17 +66,11 @@ jobs:
         build: [pinned, stable, nightly]
         include:
           - build: pinned
-            os: ubuntu-20.04
-            rust: 1.75
-            # Fails on pinned version because the output changed,
-            # so we're excluding it, but it's still tested on stable and nightly.
-            EXCLUDE_UI_TESTS: "pattern_mismatched_types,newtype,matches_unknown_field"
+            rust: 1.81
           - build: stable
-            os: ubuntu-20.04
             rust: stable
             EXCLUDE_UI_TESTS: ""
           - build: nightly
-            os: ubuntu-20.04
             rust: nightly
             EXCLUDE_UI_TESTS: "pattern_mismatched_types,non_unary_newtype"
     steps:
@@ -106,7 +100,7 @@ jobs:
 
   checks:
     name: Checks
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       CARGO_TERM_COLOR: always
     steps:
