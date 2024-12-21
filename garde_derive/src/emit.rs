@@ -47,7 +47,7 @@ struct Type<'a> {
     kind: &'a model::ValidateKind,
 }
 
-impl<'a> ToTokens for Type<'a> {
+impl ToTokens for Type<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let is_transparent = self.is_transparent;
         match &self.kind {
@@ -94,7 +94,7 @@ struct Variant<'a> {
     variant: &'a model::ValidateVariant,
 }
 
-impl<'a> ToTokens for Variant<'a> {
+impl ToTokens for Variant<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let is_transparent = self.is_transparent;
         match &self.variant {
@@ -122,7 +122,7 @@ struct Struct<'a> {
     fields: &'a [(Ident, model::ValidateField)],
 }
 
-impl<'a> ToTokens for Struct<'a> {
+impl ToTokens for Struct<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         Fields::new(
             self.fields
@@ -147,7 +147,7 @@ struct Tuple<'a> {
     fields: &'a [model::ValidateField],
 }
 
-impl<'a> ToTokens for Tuple<'a> {
+impl ToTokens for Tuple<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         Fields::new(
             self.fields
@@ -173,7 +173,7 @@ struct Inner<'a> {
     rule_set: &'a model::RuleSet,
 }
 
-impl<'a> ToTokens for Inner<'a> {
+impl ToTokens for Inner<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let Inner {
             rules_mod,
@@ -231,7 +231,7 @@ enum Binding<'a> {
     Index(usize),
 }
 
-impl<'a> ToTokens for Binding<'a> {
+impl ToTokens for Binding<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         match self {
             Binding::Ident(v) => v.to_tokens(tokens),
@@ -240,7 +240,7 @@ impl<'a> ToTokens for Binding<'a> {
     }
 }
 
-impl<'a> ToTokens for Rules<'a> {
+impl ToTokens for Rules<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let Rules {
             rules_mod,
@@ -422,7 +422,7 @@ where
 
 struct Bindings<'a>(&'a model::ValidateVariant);
 
-impl<'a> ToTokens for Bindings<'a> {
+impl ToTokens for Bindings<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         match &self.0 {
             model::ValidateVariant::Struct(fields) => {
