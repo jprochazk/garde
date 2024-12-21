@@ -29,6 +29,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Runner includes Node v18, which seems to be too ancient for wasm-bindgen-test
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@v1
         with:
