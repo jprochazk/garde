@@ -1,6 +1,7 @@
 [package]
 name = "garde"
-version = "0.20.0"
+version.workspace = true
+rust-version.workspace = true
 edition = "2021"
 repository = "https://github.com/jprochazk/garde"
 license = "MIT OR Apache-2.0"
@@ -32,21 +33,21 @@ phone-number = ["dep:phonenumber"]
 email = ["regex"]
 email-idna = ["dep:idna"]
 regex = ["dep:regex", "dep:once_cell", "garde_derive?/regex"]
-pattern = ["regex"] # for backward compatibility with <0.14.0
+pattern = ["regex"]                                           # for backward compatibility with <0.14.0
 js-sys = ["dep:js-sys"]
 rust_decimal = ["dep:rust_decimal"]
 
 [dependencies]
-garde_derive = { version = "0.20.0", path = "../garde_derive", optional = true, default-features = false }
+# Workspace
+garde_derive = { workspace = true, optional = true, default-features = false }
 
 smallvec = { version = "1.11.0", default-features = false }
-compact_str = { version = "0.7.1", default-features = false }
-
+compact_str = { version = "0.8.0", default-features = false }
 serde = { version = "1", features = ["derive"], optional = true }
 url = { version = "2", optional = true }
 unicode-segmentation = { version = "1.10.1", optional = true }
 card-validate = { version = "2.3", optional = true }
-phonenumber = { version = "0.3.2+8.13.9", optional = true }
+phonenumber = { version = "0.3.6+8.13.36", optional = true }
 regex = { version = "1", default-features = false, features = [
     "std",
 ], optional = true }

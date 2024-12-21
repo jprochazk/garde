@@ -11,10 +11,10 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = { version = "1.0.72", features = ["backtrace"] }
-argp = "0.3"
+anyhow = { version = "1.0.94", features = ["backtrace"] }
+argp = "0.4.0"
 glob = { version = "0.3.1", default-features = false }
-semver = "1.0.18"
-toml_edit = { version = "0.22.14", features = ["perf"] }
+semver = "1.0.24"
+toml_edit = { version = "0.22.22", features = ["perf"] }
 
 [workspace]

@@ -1,6 +1,7 @@
 [package]
 name = "garde_derive"
-version = "0.20.0"
+version.workspace = true
+rust-version.workspace = true
 edition = "2021"
 repository = "https://github.com/jprochazk/garde"
 license = "MIT OR Apache-2.0"

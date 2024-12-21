@@ -1,6 +1,7 @@
 [package]
 name = "axum_garde"
-version = "0.20.0"
+version.workspace = true
+rust-version.workspace = true
 edition = "2021"
 repository = "https://github.com/jprochazk/garde"
 license = "MIT OR Apache-2.0"
@@ -21,26 +22,28 @@ axum-extra-protobuf = ["axum-extra/protobuf"]
 axum-extra-query = ["axum-extra/query"]
 
 [dependencies]
+# Workspace
+garde.workspace = true
+
 axum = { version = "0.7", default-features = false }
 axum-extra = { version = "0.9", default-features = false, optional = true }
 axum-yaml = { version = "0.4", default-features = false, optional = true }
 axum-msgpack = { version = "0.4", default-features = false, optional = true }
-garde = { version = "0.20.0", path = "../../garde", default-features = false }
-thiserror = { version = "1.0", default-features = false }
+thiserror = { version = "2.0.8", default-features = false }
 
 [dev-dependencies]
+# Workspace
+garde = { workspace = true, features = ["full", "derive"] }
+
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
-garde = { version = "0.20.0", path = "../../garde", features = [
-  "full",
-  "derive",
-] }
 axum = { version = "0.7", features = ["default", "macros"] }
-axum-test = { version = "15.5" }
+axum-test = { version = "16.4.1" }
 tokio = { version = "1.28", features = ["full"] }
 prost = { version = "0.12" }
-rstest = { version = "0.21" }
+rstest = { version = "0.23.0" }
 speculoos = { version = "0.11" }
+
 
 [[example]]
 name = "json"
