@@ -61,9 +61,6 @@ jobs:
         include:
           - build: pinned
             rust: 1.81
-            # Fails on pinned version because the output changed,
-            # so we're excluding it, but it's still tested on stable and nightly.
-            EXCLUDE_UI_TESTS: "pattern_mismatched_types,newtype,matches_unknown_field"
           - build: stable
             rust: stable
             EXCLUDE_UI_TESTS: ""
