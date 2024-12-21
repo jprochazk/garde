@@ -92,7 +92,7 @@ impl<const N: usize, T> Simple for [T; N] {
     }
 }
 
-impl<'a, const N: usize, T> Simple for &'a [T; N] {
+impl<const N: usize, T> Simple for &[T; N] {
     fn validate_length(&self, min: usize, max: usize) -> Result<(), Error> {
         super::check_len(self.len(), min, max)
     }
