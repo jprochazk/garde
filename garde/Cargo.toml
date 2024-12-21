@@ -34,6 +34,7 @@ email-idna = ["dep:idna"]
 regex = ["dep:regex", "dep:once_cell", "garde_derive?/regex"]
 pattern = ["regex"] # for backward compatibility with <0.14.0
 js-sys = ["dep:js-sys"]
+rust_decimal = ["dep:rust_decimal"]
 
 [dependencies]
 garde_derive = { version = "0.20.0", path = "../garde_derive", optional = true, default-features = false }
@@ -51,6 +52,7 @@ regex = { version = "1", default-features = false, features = [
 ], optional = true }
 once_cell = { version = "1", optional = true }
 idna = { version = "1", optional = true }
+rust_decimal = { version = "1", optional = true }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 js-sys = { version = "0.3", optional = true }
