@@ -120,7 +120,7 @@ impl<T: Debug> Debug for Unvalidated<T> {
     }
 }
 
-impl<'a, T: ?Sized + Validate> Validate for &'a T {
+impl<T: ?Sized + Validate> Validate for &T {
     type Context = T::Context;
 
     fn validate_into(
@@ -133,7 +133,7 @@ impl<'a, T: ?Sized + Validate> Validate for &'a T {
     }
 }
 
-impl<'a, T: ?Sized + Validate> Validate for &'a mut T {
+impl<T: ?Sized + Validate> Validate for &mut T {
     type Context = T::Context;
 
     fn validate_into(
@@ -332,7 +332,7 @@ impl<T: Validate> Validate for Option<T> {
     }
 }
 
-impl<'a, B: Validate> Validate for std::borrow::Cow<'a, B>
+impl<B: Validate> Validate for std::borrow::Cow<'_, B>
 where
     B: ToOwned,
 {

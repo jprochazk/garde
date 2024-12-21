@@ -142,7 +142,7 @@ impl_path_component_kind!(String => Key);
 impl_path_component_kind!(CompactString => Key);
 impl_path_component_kind!(NoKey => None);
 
-impl<'a, T: PathComponentKind> PathComponentKind for &'a T {
+impl<T: PathComponentKind> PathComponentKind for &T {
     fn component_kind() -> Kind {
         T::component_kind()
     }
@@ -197,7 +197,7 @@ impl std::fmt::Debug for Path {
             path: &'a Path,
         }
 
-        impl<'a> std::fmt::Debug for Components<'a> {
+        impl std::fmt::Debug for Components<'_> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 let mut list = f.debug_list();
                 list.entries(self.path.__iter().rev().map(|(_, c)| c))
