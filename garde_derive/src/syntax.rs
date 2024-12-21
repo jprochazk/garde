@@ -271,6 +271,41 @@ impl Parse for model::RawRule {
             };
         }
 
+        macro_rules! error_if_missing_feature {
+            ($rule:expr, $feature:expr) => {
+                #[cfg(not(feature = $feature))]
+                return Err(syn::Error::new(
+                    ident.span(),
+                    concat!(
+                        "Validation rule `",
+                        $rule,
+                        "` not found. Did you forget to add the `",
+                        $feature,
+                        "` feature flag?"
+                    ),
+                ));
+            };
+        }
+
+        match ident.to_string().as_str() {
+            "email" => {
+                error_if_missing_feature!("email", "email");
+            }
+            "url" => {
+                error_if_missing_feature!("url", "url");
+            }
+            "credit_card" => {
+                error_if_missing_feature!("credit_card", "credit-card");
+            }
+            "phone_number" => {
+                error_if_missing_feature!("phone_number", "phone-number");
+            }
+            "regex" => {
+                error_if_missing_feature!("regex", "regex");
+            }
+            _ => {}
+        }
+
         rules! {
             (input, ident) {
                 "skip" => Skip,

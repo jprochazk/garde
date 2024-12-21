@@ -24,13 +24,15 @@ full = [
     "unicode",
 ]
 
+# NOTE: When adding new feature flags for validation rules you will likely want to add the corresponding
+#       feature flag in garde_derive to give better compiler error messages.
 serde = ["dep:serde", "compact_str/serde", "smallvec/serde"]
 derive = ["dep:garde_derive"]
-url = ["dep:url"]
+url = ["dep:url", "garde_derive?/url"]
 unicode = ["dep:unicode-segmentation"]
-credit-card = ["dep:card-validate"]
-phone-number = ["dep:phonenumber"]
-email = ["regex"]
+credit-card = ["dep:card-validate", "garde_derive?/credit-card"]
+phone-number = ["dep:phonenumber", "garde_derive?/phone-number"]
+email = ["regex", "garde_derive?/email"]
 email-idna = ["dep:idna"]
 regex = ["dep:regex", "dep:once_cell", "garde_derive?/regex"]
 pattern = ["regex"]                                           # for backward compatibility with <0.14.0

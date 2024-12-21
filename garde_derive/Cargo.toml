@@ -14,7 +14,12 @@ readme = "../README.md"
 proc-macro = true
 
 [features]
+# NOTE: When adding new validation rule feature flags, don't forget to add checking to `src/syntax.rs`
 regex = ["dep:regex"]
+email = []
+url = []
+credit-card = []
+phone-number = []
 
 [dependencies]
 syn = { version = "2", features = ["full", "derive"] }
