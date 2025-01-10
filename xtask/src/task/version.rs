@@ -1,9 +1,6 @@
-use std::path::Path;
-
 use argp::FromArgs;
-use toml_edit::DocumentMut;
 
-use crate::util::{cargo, CommandExt as _};
+use crate::util::{cargo, get_workspace_manifest, get_workspace_manifest_path, CommandExt as _};
 use crate::Result;
 
 #[derive(FromArgs)]
@@ -63,12 +60,7 @@ impl argp::FromArgValue for Bump {
 
 impl Version {
     pub fn run(self) -> Result {
-        let cargo_toml_path = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .unwrap()
-            .join("Cargo.toml");
-        let mut cargo_toml = std::fs::read_to_string(&cargo_toml_path)?.parse::<DocumentMut>()?;
-
+        let mut cargo_toml = get_workspace_manifest()?;
         let workspace = &mut cargo_toml["workspace"];
 
         let version = workspace["package"]["version"]
@@ -106,7 +98,7 @@ impl Version {
             }
         }
 
-        std::fs::write(&cargo_toml_path, cargo_toml.to_string())?;
+        std::fs::write(get_workspace_manifest_path(), cargo_toml.to_string())?;
 
         Ok(())
     }

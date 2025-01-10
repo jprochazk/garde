@@ -1,13 +1,28 @@
 use std::ffi::OsStr;
 use std::path::Path;
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 use anyhow::anyhow;
+use toml_edit::DocumentMut;
 
 use crate::Result;
 
 pub fn project_root() -> &'static Path {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap()
+}
+
+pub fn get_workspace_manifest_path() -> PathBuf {
+    project_root().join("Cargo.toml")
+}
+
+pub fn get_workspace_manifest() -> Result<DocumentMut> {
+    let cargo_toml_path = project_root().join("Cargo.toml");
+    Ok(std::fs::read_to_string(&cargo_toml_path)?.parse::<DocumentMut>()?)
+}
+
+pub fn git(cmd: &str) -> Command {
+    Command::new("git").with_arg(cmd)
 }
 
 pub fn rustup(cmd: &str) -> Command {

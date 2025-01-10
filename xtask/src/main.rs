@@ -29,7 +29,7 @@ fn main() -> ExitCode {
     match try_main() {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
-            let _ = write!(stderr(), "{e}");
+            let _ = writeln!(stderr(), "{e}");
             ExitCode::FAILURE
         }
     }
