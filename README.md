@@ -106,7 +106,7 @@ if let Err(e) = data.validate() {
 
 Additional notes:
 - `required` is only available for `Option` fields.
-- `dive` accepts an optional context: `#[garde(dive(&self.other_field))]`
+- `dive` accepts an optional context: `#[garde(dive(self.other_field))]`
 - The `<mode>` argument for `length` is [explained here](#length-modes)
 - For `length` and `range`:
   - If `equal` is defined, `min` and `max` must be omitted.

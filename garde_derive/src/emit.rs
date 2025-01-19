@@ -392,7 +392,7 @@ where
                 (Some((_, Some(ctx))), None) => Some(quote! {
                     ::garde::validate::Validate::validate_into(
                         &*__garde_binding,
-                        #ctx,
+                        &#ctx,
                         &mut __garde_path,
                         __garde_report,
                     );

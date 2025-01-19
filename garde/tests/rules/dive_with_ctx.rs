@@ -13,7 +13,7 @@ struct Test<'a> {
     min: usize,
     #[garde(skip)]
     max: usize,
-    #[garde(dive(&(self.min, self.max)))]
+    #[garde(dive((self.min, self.max)))]
     inner: Inner<'a>,
 }
 
