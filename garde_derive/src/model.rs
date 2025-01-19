@@ -78,7 +78,7 @@ pub enum RawRuleKind {
     Rename(Str),
     // Message(Message),
     Code(Str),
-    Dive,
+    Dive(Option<Expr>),
     Required,
     Ascii,
     Alphanumeric,
@@ -184,7 +184,7 @@ pub struct ValidateField {
     // pub message: Option<Message>,
     pub code: Option<String>,
 
-    pub dive: Option<Span>,
+    pub dive: Option<(Span, Option<Expr>)>,
     pub rule_set: RuleSet,
 }
 

@@ -1,0 +1,11 @@
+---
+source: garde/tests/./rules/dive_with_ctx.rs
+expression: snapshot
+snapshot_kind: text
+---
+Test2 {
+    inner: Inner {
+        field: "asdfgh",
+    },
+}
+inner.field: length is greater than 5

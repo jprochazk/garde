@@ -264,7 +264,7 @@ fn check_field(field: model::Field, options: &model::Options) -> syn::Result<mod
         }
     }
 
-    if let Some(span) = field.dive {
+    if let Some((span, _)) = field.dive {
         if field.rule_set.inner.is_some() {
             error.maybe_fold(syn::Error::new(
                 span,
@@ -339,7 +339,7 @@ fn check_rule(
         Rename(alias) => apply!(alias = alias.value, span),
         // Message(message) => apply!(message = message, span),
         Code(code) => apply!(code = code.value, span),
-        Dive => apply!(dive = span, span),
+        Dive(ctx) => apply!(dive = (span, ctx), span),
         Custom(custom) => rule_set.custom_rules.push(custom),
         Required => apply!(Required(), span),
         Ascii => apply!(Ascii(), span),
