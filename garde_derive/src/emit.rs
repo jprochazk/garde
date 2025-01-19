@@ -381,10 +381,18 @@ where
                 false => None,
             };
             let inner = match (&field.dive, &field.rule_set.inner) {
-                (Some(..), None) => Some(quote! {
+                (Some((_, None)), None) => Some(quote! {
                     ::garde::validate::Validate::validate_into(
                         &*__garde_binding,
                         __garde_user_ctx,
+                        &mut __garde_path,
+                        __garde_report,
+                    );
+                }),
+                (Some((_, Some(ctx))), None) => Some(quote! {
+                    ::garde::validate::Validate::validate_into(
+                        &*__garde_binding,
+                        #ctx,
                         &mut __garde_path,
                         __garde_report,
                     );

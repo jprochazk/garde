@@ -6,6 +6,7 @@ mod contains;
 mod credit_card;
 mod custom;
 mod dive;
+mod dive_with_ctx;
 mod dive_with_rules;
 mod email;
 mod inner;

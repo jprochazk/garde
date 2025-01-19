@@ -251,7 +251,7 @@ impl Parse for model::RawRule {
 
         macro_rules! rules {
             (($input:ident, $ident:ident) {
-                $($name:literal => $rule:ident $(($content:ident))?,)*
+                $($name:literal => $rule:ident $(($content:ident))? $(( ? $content_opt:ident))?,)*
             }) => {
                 match $ident.to_string().as_str() {
                     $(
@@ -259,10 +259,24 @@ impl Parse for model::RawRule {
                             $(
                                 let $content;
                                 syn::parenthesized!($content in $input);
+                                let $content = $content.parse()?;
+                            )?
+                            $(
+                                let $content_opt = if $input.peek(syn::token::Paren) {
+                                    let $content_opt;
+                                    syn::parenthesized!($content_opt in $input);
+                                    if $content_opt.is_empty() {
+                                        None
+                                    } else {
+                                        Some($content_opt.parse()?)
+                                    }
+                                } else {
+                                    None
+                                };
                             )?
                             Ok(model::RawRule {
                                 span: $ident.span(),
-                                kind: model::RawRuleKind::$rule $(($content.parse()?))?
+                                kind: model::RawRuleKind::$rule $(($content))? $(($content_opt))?
                             })
                         }
                     )*
@@ -278,7 +292,7 @@ impl Parse for model::RawRule {
                 "rename" => Rename(content),
                 // "message" => Message(content),
                 "code" => Code(content),
-                "dive" => Dive,
+                "dive" => Dive(? content),
                 "required" => Required,
                 "ascii" => Ascii,
                 "alphanumeric" => Alphanumeric,
