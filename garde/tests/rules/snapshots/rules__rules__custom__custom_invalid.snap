@@ -1,6 +1,7 @@
 ---
 source: garde/tests/./rules/custom.rs
 expression: snapshot
+snapshot_kind: text
 ---
 Test {
     a: "asdf",
@@ -13,10 +14,9 @@ Test {
     ],
     uses_ctx: "",
 }
+`a` is not equal to `uses_ctx`
 a: not equal to test
 b: `b` is not equal to test
 inner_a[0]: not equal to test
 inner_b[0]: `b` is not equal to test
 uses_ctx: length is lower than 4
-
-

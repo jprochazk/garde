@@ -1,8 +1,8 @@
 use std::collections::BTreeSet;
 
 use proc_macro2::Span;
-use syn::parse_quote;
 use syn::spanned::Spanned;
+use syn::{parse_quote, Expr};
 
 use crate::model;
 use crate::model::LengthMode;
@@ -31,6 +31,8 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
     };
 
     let transparent = get_transparent_attr(&attrs);
+
+    let custom_rules = get_custom_attrs(&attrs);
 
     let options = get_options(&attrs);
 
@@ -83,6 +85,7 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         context,
         is_transparent: transparent.is_some(),
         kind,
+        custom_rules,
         options,
     })
 }
@@ -92,6 +95,9 @@ fn check_attrs(attrs: &[(Span, model::Attr)]) -> syn::Result<()> {
 
     let mut set = BTreeSet::new();
     for (span, attr) in attrs {
+        if matches!(attr, model::Attr::Custom(..)) {
+            continue;
+        }
         let d = attr.discriminant();
         if set.contains(&d) {
             error.maybe_fold(syn::Error::new(
@@ -139,6 +145,16 @@ fn get_transparent_attr(attrs: &[(Span, model::Attr)]) -> Option<Span> {
     }
 
     None
+}
+
+fn get_custom_attrs(attrs: &[(Span, model::Attr)]) -> Vec<Expr> {
+    attrs
+        .iter()
+        .filter_map(|(_, attr)| match attr {
+            model::Attr::Custom(expr) => Some(expr.clone()),
+            _ => None,
+        })
+        .collect()
 }
 
 fn is_unary_struct(k: &model::ValidateKind) -> bool {

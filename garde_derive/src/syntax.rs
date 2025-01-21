@@ -101,6 +101,11 @@ impl Parse for model::Attr {
             }
             "allow_unvalidated" => Ok(model::Attr::AllowUnvalidated),
             "transparent" => Ok(model::Attr::Transparent),
+            "custom" => {
+                let content;
+                syn::parenthesized!(content in input);
+                Ok(model::Attr::Custom(content.parse()?))
+            }
             _ => Err(syn::Error::new(ident.span(), "unrecognized attribute")),
         }
     }

@@ -21,6 +21,16 @@ impl ToTokens for model::Validate {
             kind: &self.kind,
         };
 
+        let mut custom_rules = TokenStream2::new();
+        for custom_rule in &self.custom_rules {
+            quote! {
+                if let Err(__garde_error) = (#custom_rule)(self, &__garde_user_ctx) {
+                    __garde_report.append(__garde_path(), __garde_error);
+                }
+            }
+            .to_tokens(&mut custom_rules);
+        }
+
         quote! {
             impl #impl_generics ::garde::Validate for #ident #ty_generics #where_clause {
                 type Context = #context_ty ;
@@ -33,7 +43,7 @@ impl ToTokens for model::Validate {
                     __garde_report: &mut ::garde::error::Report,
                 ) {
                     let __garde_user_ctx = &#context_ident;
-
+                    #custom_rules
                     #ty
                 }
             }
