@@ -249,70 +249,113 @@ impl Parse for model::RawRule {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let ident = Ident::parse_any(input)?;
 
-        macro_rules! rules {
-            (($input:ident, $ident:ident) {
-                $($name:literal => $rule:ident $(($content:ident))? $(( ? $content_opt:ident))?,)*
-            }) => {
-                match $ident.to_string().as_str() {
-                    $(
-                        $name => {
-                            $(
-                                let $content;
-                                syn::parenthesized!($content in $input);
-                                let $content = $content.parse()?;
-                            )?
-                            $(
-                                let $content_opt = if $input.peek(syn::token::Paren) {
-                                    let $content_opt;
-                                    syn::parenthesized!($content_opt in $input);
-                                    if $content_opt.is_empty() {
-                                        None
-                                    } else {
-                                        Some($content_opt.parse()?)
-                                    }
-                                } else {
-                                    None
-                                };
-                            )?
-                            Ok(model::RawRule {
-                                span: $ident.span(),
-                                kind: model::RawRuleKind::$rule $(($content))? $(($content_opt))?
-                            })
-                        }
-                    )*
-                    _ => Err(syn::Error::new($ident.span(), "unrecognized validation rule")),
+        let extract_code = |content: &syn::parse::ParseBuffer| -> syn::Result<Option<model::Str>> {
+            let code = if content.peek(syn::Ident) && content.peek2(Token![=]) {
+                let fork = content.fork();
+                let key: Ident = fork.parse()?;
+                if key == "code" {
+                    content.parse::<Ident>()?;
+                    content.parse::<Token![=]>()?;
+                    let code_lit: model::Str = content.parse()?;
+
+                    // Handle the comma after code = "..."
+                    if !content.is_empty() && content.peek(Token![,]) {
+                        content.parse::<Token![,]>()?;
+                    }
+                    Some(code_lit)
+                } else {
+                    None
                 }
+            } else {
+                None
             };
+            Ok(code)
+        };
+
+        macro_rules! rule {
+            ($rule:ident($content:ident)) => {{
+                let inner;
+                syn::parenthesized!(inner in input);
+                let code: Option<model::Str> = extract_code(&inner)?;
+                let $content = inner.parse()?;
+                Ok(model::RawRule {
+                    span: ident.span(),
+                    code,
+                    kind: model::RawRuleKind::$rule($content),
+                })
+            }};
+            ($rule:ident(? $content:ident)) => {{
+                let code: Option<model::Str>;
+                let $content = if input.peek(syn::token::Paren) {
+                    let inner;
+                    syn::parenthesized!(inner in input);
+                    if inner.is_empty() {
+                        code = None;
+                        None
+                    } else {
+                        code = extract_code(&inner)?;
+                        Some(inner.parse()?)
+                    }
+                } else {
+                    code = None;
+                    None
+                };
+                Ok(model::RawRule {
+                    span: ident.span(),
+                    code,
+                    kind: model::RawRuleKind::$rule($content),
+                })
+            }};
+            ($rule:ident) => {{
+                let code: Option<model::Str>;
+                if input.peek(syn::token::Paren) {
+                    let inner;
+                    syn::parenthesized!(inner in input);
+                    code = extract_code(&inner)?;
+                    if !inner.is_empty() {
+                        return Err(syn::Error::new(inner.span(), "unexpected content, only code is allowed"));
+                    }
+                } else {
+                    code = None;
+                }
+                Ok(model::RawRule {
+                    span: ident.span(),
+                    code,
+                    kind: model::RawRuleKind::$rule,
+                })
+            }};
         }
 
-        rules! {
-            (input, ident) {
-                "skip" => Skip,
-                "adapt" => Adapt(content),
-                "rename" => Rename(content),
-                // "message" => Message(content),
-                "code" => Code(content),
-                "dive" => Dive(? content),
-                "required" => Required,
-                "ascii" => Ascii,
-                "alphanumeric" => Alphanumeric,
-                "email" => Email,
-                "url" => Url,
-                "ip" => Ip,
-                "ipv4" => IpV4,
-                "ipv6" => IpV6,
-                "credit_card" => CreditCard,
-                "phone_number" => PhoneNumber,
-                "length" => Length(content),
-                "matches" => Matches(content),
-                "range" => Range(content),
-                "contains" => Contains(content),
-                "prefix" => Prefix(content),
-                "suffix" => Suffix(content),
-                "pattern" => Pattern(content),
-                "custom" => Custom(content),
-                "inner" => Inner(content),
-            }
+        match ident.to_string().as_str() {
+            "skip" => rule!(Skip),
+            "adapt" => rule!(Adapt(content)),
+            "rename" => rule!(Rename(content)),
+            // "message" => rule!(Message(content)),
+            // "code" => rule!(Code(content)),
+            "dive" => rule!(Dive(?content)),
+            "required" => rule!(Required),
+            "ascii" => rule!(Ascii),
+            "alphanumeric" => rule!(Alphanumeric),
+            "email" => rule!(Email),
+            "url" => rule!(Url),
+            "ip" => rule!(Ip),
+            "ipv4" => rule!(IpV4),
+            "ipv6" => rule!(IpV6),
+            "credit_card" => rule!(CreditCard),
+            "phone_number" => rule!(PhoneNumber),
+            "length" => rule!(Length(content)),
+            "matches" => rule!(Matches(content)),
+            "range" => rule!(Range(content)),
+            "contains" => rule!(Contains(content)),
+            "prefix" => rule!(Prefix(content)),
+            "suffix" => rule!(Suffix(content)),
+            "pattern" => rule!(Pattern(content)),
+            "custom" => rule!(Custom(content)),
+            "inner" => rule!(Inner(content)),
+            _ => Err(syn::Error::new(
+                ident.span(),
+                "unrecognized validation rule",
+            )),
         }
     }
 }
