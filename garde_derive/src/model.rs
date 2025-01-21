@@ -69,6 +69,7 @@ pub struct Field {
 
 pub struct RawRule {
     pub span: Span,
+    pub code: Option<Str>,
     pub kind: RawRuleKind,
 }
 
@@ -77,7 +78,7 @@ pub enum RawRuleKind {
     Adapt(Path),
     Rename(Str),
     // Message(Message),
-    Code(Str),
+    // Code(Str),
     Dive(Option<Expr>),
     Required,
     Ascii,
@@ -182,8 +183,7 @@ pub struct ValidateField {
     pub skip: Option<Span>,
     pub alias: Option<String>,
     // pub message: Option<Message>,
-    pub code: Option<String>,
-
+    // pub code: Option<String>,
     pub dive: Option<(Span, Option<Expr>)>,
     pub rule_set: RuleSet,
 }
@@ -228,27 +228,80 @@ impl RuleSet {
 
 #[repr(u8)]
 pub enum ValidateRule {
-    Required,
-    Ascii,
-    Alphanumeric,
-    Email,
-    Url,
-    Ip,
-    IpV4,
-    IpV6,
-    CreditCard,
-    PhoneNumber,
-    LengthSimple(LengthRange),
-    LengthBytes(LengthRange),
-    LengthChars(LengthRange),
-    LengthGraphemes(LengthRange),
-    LengthUtf16(LengthRange),
-    Matches(Path),
-    Range(ValidateRange<Expr>),
-    Contains(Expr),
-    Prefix(Expr),
-    Suffix(Expr),
-    Pattern(ValidatePattern),
+    Required {
+        code: Option<String>,
+    },
+    Ascii {
+        code: Option<String>,
+    },
+    Alphanumeric {
+        code: Option<String>,
+    },
+    Email {
+        code: Option<String>,
+    },
+    Url {
+        code: Option<String>,
+    },
+    Ip {
+        code: Option<String>,
+    },
+    IpV4 {
+        code: Option<String>,
+    },
+    IpV6 {
+        code: Option<String>,
+    },
+    CreditCard {
+        code: Option<String>,
+    },
+    PhoneNumber {
+        code: Option<String>,
+    },
+    LengthSimple {
+        code: Option<String>,
+        range: LengthRange,
+    },
+    LengthBytes {
+        code: Option<String>,
+        range: LengthRange,
+    },
+    LengthChars {
+        code: Option<String>,
+        range: LengthRange,
+    },
+    LengthGraphemes {
+        code: Option<String>,
+        range: LengthRange,
+    },
+    LengthUtf16 {
+        code: Option<String>,
+        range: LengthRange,
+    },
+    Matches {
+        code: Option<String>,
+        path: Path,
+    },
+    Range {
+        code: Option<String>,
+        range: ValidateRange<Expr>,
+    },
+    Contains {
+        code: Option<String>,
+        expr: Expr,
+    },
+    Prefix {
+        code: Option<String>,
+        expr: Expr,
+    },
+    Suffix {
+        code: Option<String>,
+        expr: Expr,
+    },
+    Pattern {
+        code: Option<String>,
+        pat: ValidatePattern,
+    },
 }
 
 type LengthRange = ValidateRange<Either<usize, Expr>>;
@@ -256,27 +309,27 @@ type LengthRange = ValidateRange<Either<usize, Expr>>;
 impl ValidateRule {
     pub fn name(&self) -> &'static str {
         match self {
-            ValidateRule::Required => "required",
-            ValidateRule::Ascii => "ascii",
-            ValidateRule::Alphanumeric => "alphanumeric",
-            ValidateRule::Email => "email",
-            ValidateRule::Url => "url",
-            ValidateRule::Ip => "ip",
-            ValidateRule::IpV4 => "ip",
-            ValidateRule::IpV6 => "ip",
-            ValidateRule::CreditCard => "credit_card",
-            ValidateRule::PhoneNumber => "phone_number",
-            ValidateRule::LengthSimple(_) => "length::simple",
-            ValidateRule::LengthBytes(_) => "length::bytes",
-            ValidateRule::LengthChars(_) => "length::chars",
-            ValidateRule::LengthGraphemes(_) => "length::graphemes",
-            ValidateRule::LengthUtf16(_) => "length::utf16",
-            ValidateRule::Matches(_) => "matches",
-            ValidateRule::Range(_) => "range",
-            ValidateRule::Contains(_) => "contains",
-            ValidateRule::Prefix(_) => "prefix",
-            ValidateRule::Suffix(_) => "suffix",
-            ValidateRule::Pattern(_) => "pattern",
+            ValidateRule::Required { .. } => "required",
+            ValidateRule::Ascii { .. } => "ascii",
+            ValidateRule::Alphanumeric { .. } => "alphanumeric",
+            ValidateRule::Email { .. } => "email",
+            ValidateRule::Url { .. } => "url",
+            ValidateRule::Ip { .. } => "ip",
+            ValidateRule::IpV4 { .. } => "ip",
+            ValidateRule::IpV6 { .. } => "ip",
+            ValidateRule::CreditCard { .. } => "credit_card",
+            ValidateRule::PhoneNumber { .. } => "phone_number",
+            ValidateRule::LengthSimple { .. } => "length::simple",
+            ValidateRule::LengthBytes { .. } => "length::bytes",
+            ValidateRule::LengthChars { .. } => "length::chars",
+            ValidateRule::LengthGraphemes { .. } => "length::graphemes",
+            ValidateRule::LengthUtf16 { .. } => "length::utf16",
+            ValidateRule::Matches { .. } => "matches",
+            ValidateRule::Range { .. } => "range",
+            ValidateRule::Contains { .. } => "contains",
+            ValidateRule::Prefix { .. } => "prefix",
+            ValidateRule::Suffix { .. } => "suffix",
+            ValidateRule::Pattern { .. } => "pattern",
         }
     }
 }

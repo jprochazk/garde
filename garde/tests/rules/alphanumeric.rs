@@ -5,7 +5,7 @@ struct Test<'a> {
     #[garde(alphanumeric)]
     field: &'a str,
 
-    #[garde(inner(alphanumeric))]
+    #[garde(inner(alphanumeric(code = "ALPHA")))]
     inner: &'a [&'a str],
 }
 

@@ -70,23 +70,42 @@ impl std::error::Error for Report {}
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Error {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    code: Option<Cow<'static, str>>,
     message: CompactString,
 }
 
 impl Error {
     pub fn new(message: impl ToCompactString) -> Self {
         Self {
+            code: None,
             message: message.to_compact_string(),
         }
+    }
+
+    pub fn code(&self) -> Option<&str> {
+        self.code.as_deref()
     }
 
     pub fn message(&self) -> &str {
         self.message.as_ref()
     }
+
+    pub fn set_code(&mut self, code: impl Into<Cow<'static, str>>) {
+        self.code = Some(code.into());
+    }
+
+    pub fn with_code(mut self, code: impl Into<Cow<'static, str>>) -> Self {
+        self.code = Some(code.into());
+        self
+    }
 }
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        if let Some(code) = &self.code {
+            write!(f, "[{}] ", code)?;
+        }
         write!(f, "{}", self.message)
     }
 }

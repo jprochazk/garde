@@ -260,23 +260,29 @@ impl ToTokens for Rules<'_> {
             let name = TokenStream2::from_str(rule.name()).unwrap();
             use model::ValidateRule::*;
             let args = match rule {
-                Ascii | Alphanumeric | Email | Url | CreditCard | PhoneNumber | Required => {
+                Ascii { .. }
+                | Alphanumeric { .. }
+                | Email { .. }
+                | Url { .. }
+                | CreditCard { .. }
+                | PhoneNumber { .. }
+                | Required { .. } => {
                     quote!(())
                 }
-                Ip => {
+                Ip { .. } => {
                     quote!((#rules_mod::ip::IpKind::Any,))
                 }
-                IpV4 => {
+                IpV4 { .. } => {
                     quote!((#rules_mod::ip::IpKind::V4,))
                 }
-                IpV6 => {
+                IpV6 { .. } => {
                     quote!((#rules_mod::ip::IpKind::V6,))
                 }
-                LengthSimple(range)
-                | LengthBytes(range)
-                | LengthChars(range)
-                | LengthGraphemes(range)
-                | LengthUtf16(range) => match range {
+                LengthSimple { range, .. }
+                | LengthBytes { range, .. }
+                | LengthChars { range, .. }
+                | LengthGraphemes { range, .. }
+                | LengthUtf16 { range, .. } => match range {
                     model::ValidateRange::GreaterThan(min) => {
                         quote!((#min, usize::MAX))
                     }
@@ -290,19 +296,19 @@ impl ToTokens for Rules<'_> {
                         quote!((#equal, #equal))
                     }
                 },
-                Matches(path) => {
+                Matches { path, .. } => {
                     quote!((stringify!(#path), &self.#path))
                 }
-                Range(range) => match range {
+                Range { range, .. } => match range {
                     model::ValidateRange::GreaterThan(min) => quote!((Some(#min), None)),
                     model::ValidateRange::LowerThan(max) => quote!((None, Some(#max))),
                     model::ValidateRange::Between(min, max) => quote!((Some(#min), Some(#max))),
                     model::ValidateRange::Equal(equal) => quote!((Some(#equal), Some(#equal))),
                 },
-                Contains(expr) | Prefix(expr) | Suffix(expr) => {
+                Contains { expr, .. } | Prefix { expr, .. } | Suffix { expr, .. } => {
                     quote_spanned!(expr.span() => (&#expr,))
                 }
-                Pattern(pat) => match pat {
+                Pattern { pat, .. } => match pat {
                     model::ValidatePattern::Expr(expr) => quote_spanned!(expr.span() => (&#expr,)),
                     #[cfg(all(feature = "regex", feature = "js-sys"))]
                     model::ValidatePattern::Lit(s) => quote!({
@@ -332,9 +338,39 @@ impl ToTokens for Rules<'_> {
                 },
             };
 
+            let code = match rule {
+                Required { code }
+                | Ascii { code }
+                | Alphanumeric { code }
+                | Email { code }
+                | Url { code }
+                | Ip { code }
+                | IpV4 { code }
+                | IpV6 { code }
+                | CreditCard { code }
+                | PhoneNumber { code }
+                | LengthSimple { code, .. }
+                | LengthBytes { code, .. }
+                | LengthChars { code, .. }
+                | LengthGraphemes { code, .. }
+                | LengthUtf16 { code, .. }
+                | Matches { code, .. }
+                | Range { code, .. }
+                | Contains { code, .. }
+                | Prefix { code, .. }
+                | Suffix { code, .. }
+                | Pattern { code, .. } => code,
+            };
+
+            let code = if let Some(code) = code {
+                quote!(.with_code(#code))
+            } else {
+                TokenStream2::new()
+            };
+
             quote! {
                 if let Err(__garde_error) = (#rules_mod::#name::apply)(&*__garde_binding, #args) {
-                    __garde_report.append(__garde_path(), __garde_error);
+                    __garde_report.append(__garde_path(), __garde_error #code);
                 }
             }
             .to_tokens(tokens)
