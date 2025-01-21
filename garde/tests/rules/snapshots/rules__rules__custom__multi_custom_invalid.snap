@@ -1,6 +1,7 @@
 ---
 source: garde/tests/./rules/custom.rs
 expression: snapshot
+snapshot_kind: text
 ---
 Multi {
     field: "asdf",
@@ -8,9 +9,9 @@ Multi {
         "asdf",
     ],
 }
+`field` is not equal to `needle`
+`inner` contains a value not equal to `needle`
 field: not equal to test
 field: not equal to test
 inner[0]: not equal to test
 inner[0]: not equal to test
-
-

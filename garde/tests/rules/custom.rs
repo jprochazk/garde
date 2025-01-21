@@ -6,6 +6,7 @@ struct Context {
 
 #[derive(Debug, garde::Validate)]
 #[garde(context(Context as ctx))]
+#[garde(custom(custom_validate_struct))]
 struct Test<'a> {
     #[garde(custom(custom_validate_fn))]
     a: &'a str,
@@ -28,6 +29,13 @@ struct Test<'a> {
 
     #[garde(length(min = ctx.needle.len()))]
     uses_ctx: &'a str,
+}
+
+fn custom_validate_struct(test: &Test, _ctx: &Context) -> Result<(), garde::Error> {
+    if test.a != test.uses_ctx {
+        return Err(garde::Error::new("`a` is not equal to `uses_ctx`"));
+    }
+    Ok(())
 }
 
 fn custom_validate_fn(value: &str, ctx: &Context) -> Result<(), garde::Error> {
@@ -73,12 +81,26 @@ fn custom_invalid() {
 
 #[derive(Debug, garde::Validate)]
 #[garde(context(Context))]
+#[garde(custom(custom_validate_multi))]
+#[garde(custom(|multi: &Multi, ctx: &Context| {
+    if multi.inner.iter().any(|&s| s != ctx.needle) {
+        return Err(garde::Error::new("`inner` contains a value not equal to `needle`"));
+    }
+    Ok(())
+}))]
 struct Multi<'a> {
     #[garde(custom(custom_validate_fn), custom(custom_validate_fn))]
     field: &'a str,
 
     #[garde(inner(custom(custom_validate_fn), custom(custom_validate_fn)))]
     inner: &'a [&'a str],
+}
+
+fn custom_validate_multi(multi: &Multi, ctx: &Context) -> Result<(), garde::Error> {
+    if multi.field != ctx.needle {
+        return Err(garde::Error::new("`field` is not equal to `needle`"));
+    }
+    Ok(())
 }
 
 #[test]
