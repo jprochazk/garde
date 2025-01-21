@@ -15,6 +15,7 @@ pub enum Attr {
     Context(Box<Type>, Ident),
     AllowUnvalidated,
     Transparent,
+    Custom(Expr),
 }
 
 impl Attr {
@@ -31,6 +32,7 @@ impl Attr {
             Attr::Context(..) => "context",
             Attr::AllowUnvalidated => "allow_unvalidated",
             Attr::Transparent => "transparent",
+            Attr::Custom(..) => "custom",
         }
     }
 }
@@ -160,6 +162,7 @@ pub struct Validate {
     pub context: (Type, Ident),
     pub is_transparent: bool,
     pub kind: ValidateKind,
+    pub custom_rules: Vec<Expr>,
     // I don't know why Rust thinks this is unused.
     // It's both read and written, grep for `.allow_unvalidated`.
     #[allow(dead_code)]
