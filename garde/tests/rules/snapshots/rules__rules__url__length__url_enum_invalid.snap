@@ -1,0 +1,139 @@
+---
+source: garde/tests/./rules/url.rs
+expression: snapshot
+---
+Struct {
+    field: Url {
+        scheme: "https",
+        cannot_be_a_base: false,
+        username: "",
+        password: None,
+        host: Some(
+            Domain(
+                "www.youtube.com",
+            ),
+        ),
+        port: None,
+        path: "/",
+        query: None,
+        fragment: None,
+    },
+    v: Struct {
+        default: Url {
+            scheme: "https",
+            cannot_be_a_base: false,
+            username: "",
+            password: None,
+            host: Some(
+                Domain(
+                    "www.youtube.com",
+                ),
+            ),
+            port: None,
+            path: "/",
+            query: None,
+            fragment: None,
+        },
+        simple: Url {
+            scheme: "https",
+            cannot_be_a_base: false,
+            username: "",
+            password: None,
+            host: Some(
+                Domain(
+                    "www.youtube.com",
+                ),
+            ),
+            port: None,
+            path: "/",
+            query: None,
+            fragment: None,
+        },
+        bytes: Url {
+            scheme: "https",
+            cannot_be_a_base: false,
+            username: "",
+            password: None,
+            host: Some(
+                Domain(
+                    "www.youtube.com",
+                ),
+            ),
+            port: None,
+            path: "/",
+            query: None,
+            fragment: None,
+        },
+        chars: Url {
+            scheme: "https",
+            cannot_be_a_base: false,
+            username: "",
+            password: None,
+            host: Some(
+                Domain(
+                    "www.youtube.com",
+                ),
+            ),
+            port: None,
+            path: "/",
+            query: None,
+            fragment: None,
+        },
+        graphemes: Url {
+            scheme: "https",
+            cannot_be_a_base: false,
+            username: "",
+            password: None,
+            host: Some(
+                Domain(
+                    "www.youtube.com",
+                ),
+            ),
+            port: None,
+            path: "/",
+            query: None,
+            fragment: None,
+        },
+        utf_16_code_units: Url {
+            scheme: "https",
+            cannot_be_a_base: false,
+            username: "",
+            password: None,
+            host: Some(
+                Domain(
+                    "www.youtube.com",
+                ),
+            ),
+            port: None,
+            path: "/",
+            query: None,
+            fragment: None,
+        },
+    },
+}
+field: length is lower than 30
+v.bytes: length is lower than 30
+v.chars: length is lower than 30
+v.default: length is lower than 30
+v.graphemes: length is lower than 30
+v.simple: length is lower than 30
+v.utf_16_code_units: length is lower than 30
+
+Tuple(
+    Url {
+        scheme: "https",
+        cannot_be_a_base: false,
+        username: "",
+        password: None,
+        host: Some(
+            Domain(
+                "www.youtube.com",
+            ),
+        ),
+        port: None,
+        path: "/",
+        query: None,
+        fragment: None,
+    },
+)
+[0]: length is lower than 30
