@@ -47,10 +47,10 @@ fn simple_conditional_invalid_when_true() {
 struct WithContext {
     #[garde(if(cond = ctx.strict_mode, length(min = 8), alphanumeric))]
     password: String,
-    
+
     #[garde(if(cond = self.email_required, email, required))]
     email: Option<String>,
-    
+
     #[garde(skip)]
     email_required: bool,
 }
@@ -104,7 +104,7 @@ struct MultipleConditions {
     check_format: bool,
     #[garde(skip)]
     check_length: bool,
-    
+
     #[garde(
         if(cond = self.check_format, ascii),
         if(cond = self.check_length, length(min = 5, max = 20)),
@@ -157,7 +157,7 @@ struct ComplexCondition {
     is_admin: bool,
     #[garde(skip)]
     is_active: bool,
-    
+
     #[garde(if(cond = self.is_admin && self.is_active, length(min = 16)))]
     api_key: String,
 }

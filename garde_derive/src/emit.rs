@@ -449,7 +449,7 @@ where
                             #(#conditional_rules)*
                         }
                     }
-                },
+                }
             };
 
             let add = &self.1;

@@ -388,24 +388,24 @@ fn check_rule(
             if is_inner {
                 return Err(syn::Error::new(
                     span,
-                    "rule `if` may not be used in `inner`"
+                    "rule `if` may not be used in `inner`",
                 ));
             }
-            
+
             // Process the if rule as a separate conditional rule set
             let mut conditional_rule_set = model::RuleSet::empty();
             let mut error = None;
-            
+
             for raw_rule in if_rule.rules.contents {
                 if let Err(e) = check_rule(field, raw_rule, &mut conditional_rule_set, false) {
                     error.maybe_fold(e);
                 }
             }
-            
+
             if let Some(error) = error {
                 return Err(error);
             }
-            
+
             field.conditional_rule_sets.push(model::ConditionalRuleSet {
                 condition: if_rule.condition,
                 rule_set: conditional_rule_set,

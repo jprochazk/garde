@@ -567,20 +567,20 @@ impl Parse for model::IfRule {
         }
         input.parse::<Token![=]>()?;
         let condition = input.parse::<Expr>()?;
-        
+
         // Expect comma after condition
         input.parse::<Token![,]>()?;
-        
+
         // Parse the remaining rules
         let rules = input.parse::<List<model::RawRule>>()?;
-        
+
         if rules.contents.is_empty() {
             return Err(syn::Error::new(
                 input.span(),
                 "if rule must contain at least one validation rule",
             ));
         }
-        
+
         Ok(model::IfRule { condition, rules })
     }
 }
