@@ -1,0 +1,9 @@
+---
+source: garde/tests/./rules/if_conditional.rs
+expression: snapshot
+---
+SimpleConditional {
+    validate_username: true,
+    username: "テスト",
+}
+username: not ascii

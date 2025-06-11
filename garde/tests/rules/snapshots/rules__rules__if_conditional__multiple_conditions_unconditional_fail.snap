@@ -1,0 +1,10 @@
+---
+source: garde/tests/./rules/if_conditional.rs
+expression: snapshot
+---
+MultipleConditions {
+    check_format: false,
+    check_length: false,
+    value: None,
+}
+value: not set
