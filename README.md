@@ -14,6 +14,7 @@ A Rust validation library
 - [Newtypes](#newtypes)
 - [Handling Option](#handling-option)
 - [Custom validation](#custom-validation)
+- [Conditional validation](#conditional-validation)
 - [Context/Self access](#contextself-access)
 - [Implementing rules](#implementing-rules)
 - [Implementing `Validate`](#implementing-validate)
@@ -103,6 +104,7 @@ if let Err(e) = data.validate() {
 | dive         | `#[garde(dive)]`                                                    | nested validation, calls `validate` on the value                                                                  | -              |
 | skip         | `#[garde(skip)]`                                                    | skip validation                                                                                                   | -              |
 | custom       | `#[garde(custom(<function or closure>))]`                           | a custom validator                                                                                                | -              |
+| if           | `#[garde(if(cond = <expr>, <rules>...))]`                           | conditional validation, applies rules only when condition is true                                                  | -              |
 
 Additional notes:
 - `required` is only available for `Option` fields.
@@ -113,6 +115,11 @@ Additional notes:
   - Assuming `equal` is omitted, either `min` or `max` may be omitted, but not both.
   - `min` and `max` use an *inclusive* upper bound (`min..=max`). Setting `min == max` is equivalent to using `equal`.
 - For `contains`, `prefix`, and `suffix`, the pattern must be a string literal, because the `Pattern` API [is currently unstable](https://github.com/rust-lang/rust/issues/27721).
+- For `if` conditional validation:
+  - The condition expression can access `self` fields and context variables (e.g., `ctx`).
+  - Multiple rules can be specified after the condition: `if(cond = expr, rule1, rule2, ...)`.
+  - Multiple conditional blocks can be used on the same field.
+  - Conditional validation cannot be used inside `inner` rules.
 - Garde does not enable the default features of the `regex` crate - if you need extra regex features (e.g. Unicode) or better performance, add a dependency on `regex = "1"` to your `Cargo.toml`.
 
 If most of the fields on your struct are annotated with `#[garde(skip)]`, you may use `#[garde(allow_unvalidated)]` instead:
@@ -374,6 +381,87 @@ struct Config {
 struct User {
     #[garde(length(min = ctx.username.min, max = ctx.username.max))]
     username: String,
+}
+```
+
+### Conditional validation
+
+Validation can be made conditional using the `if` rule, which applies validation rules only when a specified condition is true. This is useful for implementing complex validation logic that depends on field values or context.
+
+```rust
+#[derive(garde::Validate)]
+struct User {
+    #[garde(skip)]
+    is_admin: bool,
+    
+    // Only validate username format for admin users
+    #[garde(if(cond = self.is_admin, ascii, length(min = 8)))]
+    username: String,
+}
+```
+
+You can use multiple rules within a single condition:
+
+```rust
+#[derive(garde::Validate)]
+struct Account {
+    #[garde(skip)]
+    strict_mode: bool,
+    
+    #[garde(if(cond = self.strict_mode, ascii, length(min = 12), alphanumeric))]
+    password: String,
+}
+```
+
+Multiple conditional blocks can be applied to the same field:
+
+```rust
+#[derive(garde::Validate)]
+struct Document {
+    #[garde(skip)]
+    check_format: bool,
+    #[garde(skip)]
+    check_length: bool,
+    
+    #[garde(
+        if(cond = self.check_format, ascii),
+        if(cond = self.check_length, length(min = 10, max = 100)),
+        required  // This rule always applies
+    )]
+    content: Option<String>,
+}
+```
+
+Conditional validation also works with context:
+
+```rust
+#[derive(garde::Validate)]
+#[garde(context(Config as ctx))]
+struct ApiKey {
+    #[garde(if(cond = ctx.production && self.is_service_account, length(min = 32)))]
+    key: String,
+    
+    #[garde(skip)]
+    is_service_account: bool,
+}
+
+struct Config {
+    production: bool,
+}
+```
+
+Complex boolean expressions are supported in conditions:
+
+```rust
+#[derive(garde::Validate)]
+struct AdvancedUser {
+    #[garde(skip)]
+    is_admin: bool,
+    #[garde(skip)]
+    is_active: bool,
+    
+    #[garde(if(cond = self.is_admin && self.is_active, length(min = 16)))]
+    admin_token: String,
 }
 ```
 
