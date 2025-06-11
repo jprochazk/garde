@@ -6,7 +6,7 @@ use syn::parse::Parse;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::token::As;
-use syn::{DeriveInput, Token, Type};
+use syn::{DeriveInput, Expr, Token, Type};
 
 use crate::model;
 use crate::model::List;
@@ -312,6 +312,7 @@ impl Parse for model::RawRule {
                 "pattern" => Pattern(content),
                 "custom" => Custom(content),
                 "inner" => Inner(content),
+                "if" => If(content),
             }
         }
     }
@@ -551,6 +552,36 @@ impl<T: Parse> Parse for List<T> {
             .collect();
 
         Ok(Self { contents })
+    }
+}
+
+impl Parse for model::IfRule {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        // Parse "cond = <expr>,"
+        let cond_ident = input.parse::<Ident>()?;
+        if cond_ident != "cond" {
+            return Err(syn::Error::new(
+                cond_ident.span(),
+                "expected 'cond' in if rule",
+            ));
+        }
+        input.parse::<Token![=]>()?;
+        let condition = input.parse::<Expr>()?;
+        
+        // Expect comma after condition
+        input.parse::<Token![,]>()?;
+        
+        // Parse the remaining rules
+        let rules = input.parse::<List<model::RawRule>>()?;
+        
+        if rules.contents.is_empty() {
+            return Err(syn::Error::new(
+                input.span(),
+                "if rule must contain at least one validation rule",
+            ));
+        }
+        
+        Ok(model::IfRule { condition, rules })
     }
 }
 

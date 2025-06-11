@@ -234,6 +234,7 @@ fn check_field(field: model::Field, options: &model::Options) -> syn::Result<mod
         code: None,
         dive: None,
         rule_set: model::RuleSet::empty(),
+        conditional_rule_sets: Vec::new(),
     };
 
     if raw_rules.is_empty() {
@@ -382,6 +383,33 @@ fn check_rule(
             if let Some(error) = error {
                 return Err(error);
             }
+        }
+        If(if_rule) => {
+            if is_inner {
+                return Err(syn::Error::new(
+                    span,
+                    "rule `if` may not be used in `inner`"
+                ));
+            }
+            
+            // Process the if rule as a separate conditional rule set
+            let mut conditional_rule_set = model::RuleSet::empty();
+            let mut error = None;
+            
+            for raw_rule in if_rule.rules.contents {
+                if let Err(e) = check_rule(field, raw_rule, &mut conditional_rule_set, false) {
+                    error.maybe_fold(e);
+                }
+            }
+            
+            if let Some(error) = error {
+                return Err(error);
+            }
+            
+            field.conditional_rule_sets.push(model::ConditionalRuleSet {
+                condition: if_rule.condition,
+                rule_set: conditional_rule_set,
+            });
         }
     };
 
