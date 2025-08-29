@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.range_greater_than(\"99\")"
+---
+custom: value too large, maximum is 99

@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "default.prefix_missing(\"http://\")"
+---
+value does not begin with "http://"

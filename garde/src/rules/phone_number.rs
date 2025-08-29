@@ -12,42 +12,52 @@
 //!
 //! This trait has a blanket implementation for all `T: garde::rules::AsStr`.
 
-use std::fmt::Display;
 use std::str::FromStr;
 
 use super::AsStr;
 use crate::error::Error;
+pub use crate::i18n::InvalidPhoneNumber;
 
 pub fn apply<T: PhoneNumber>(v: &T, _: ()) -> Result<(), Error> {
-    match v.validate_phone_number() {
-        Ok(true) => Ok(()),
-        Ok(false) => Err(Error::new("not a valid phone number")),
-        Err(e) => Err(Error::new(format!("not a valid phone number: {e}"))),
+    if let Err(reason) = v.validate_phone_number() {
+        return Err(Error::new(i18n!(phone_number_invalid, reason)));
     }
+    Ok(())
 }
 
 pub trait PhoneNumber {
-    type Error: Display;
-
-    fn validate_phone_number(&self) -> Result<bool, Self::Error>;
+    fn validate_phone_number(&self) -> Result<(), InvalidPhoneNumber>;
 }
 
 impl<T: AsStr> PhoneNumber for T {
-    type Error = phonenumber::ParseError;
-
-    fn validate_phone_number(&self) -> Result<bool, Self::Error> {
+    fn validate_phone_number(&self) -> Result<(), InvalidPhoneNumber> {
         let number = phonenumber::PhoneNumber::from_str(self.as_str())?;
-        Ok(number.is_valid())
+        if number.is_valid() {
+            Ok(())
+        } else {
+            Err(InvalidPhoneNumber::Invalid)
+        }
     }
 }
 
 impl<T: PhoneNumber> PhoneNumber for Option<T> {
-    type Error = T::Error;
-
-    fn validate_phone_number(&self) -> Result<bool, Self::Error> {
+    fn validate_phone_number(&self) -> Result<(), InvalidPhoneNumber> {
         match self {
             Some(value) => value.validate_phone_number(),
-            None => Ok(true),
+            None => Ok(()),
+        }
+    }
+}
+
+impl From<phonenumber::ParseError> for InvalidPhoneNumber {
+    fn from(e: phonenumber::ParseError) -> Self {
+        match e {
+            phonenumber::ParseError::NoNumber => InvalidPhoneNumber::NotANumber,
+            phonenumber::ParseError::InvalidCountryCode => InvalidPhoneNumber::InvalidCountryCode,
+            phonenumber::ParseError::TooShortAfterIdd => InvalidPhoneNumber::TooShortAfterIdd,
+            phonenumber::ParseError::TooShortNsn => InvalidPhoneNumber::TooShortNsn,
+            phonenumber::ParseError::TooLong => InvalidPhoneNumber::TooLong,
+            phonenumber::ParseError::MalformedInteger(_) => InvalidPhoneNumber::MalformedInteger,
         }
     }
 }

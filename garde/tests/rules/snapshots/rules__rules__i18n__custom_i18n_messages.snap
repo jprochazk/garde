@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: custom.length_lower_than(3)
+---
+custom: too short, need at least 3

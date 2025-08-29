@@ -12,12 +12,12 @@
 //!
 //! This trait has a blanket implementation for all `T: garde::rules::AsStr`.
 
-use std::fmt::Display;
 use std::str::FromStr;
 
 use super::pattern::Matcher;
 use super::AsStr;
 use crate::error::Error;
+pub use crate::i18n::InvalidEmail;
 
 macro_rules! init_regex {
     ($var:ident => $p:literal) => {
@@ -33,59 +33,26 @@ macro_rules! init_regex {
 
 pub fn apply<T: Email>(v: &T, _: ()) -> Result<(), Error> {
     if let Err(e) = v.validate_email() {
-        return Err(Error::new(format!("not a valid email: {e}")));
+        return Err(Error::new(i18n!(email_invalid, e)));
     }
     Ok(())
 }
 
 pub trait Email {
-    type Error: Display;
-
-    fn validate_email(&self) -> Result<(), Self::Error>;
+    fn validate_email(&self) -> Result<(), InvalidEmail>;
 }
 
 impl<T: AsStr> Email for T {
-    type Error = InvalidEmail;
-
-    fn validate_email(&self) -> Result<(), Self::Error> {
+    fn validate_email(&self) -> Result<(), InvalidEmail> {
         parse_email(self.as_str())
     }
 }
 
 impl<T: Email> Email for Option<T> {
-    type Error = T::Error;
-
-    fn validate_email(&self) -> Result<(), Self::Error> {
+    fn validate_email(&self) -> Result<(), InvalidEmail> {
         match self {
             Some(value) => value.validate_email(),
             None => Ok(()),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum InvalidEmail {
-    Empty,
-    MissingAt,
-    UserLengthExceeded,
-    InvalidUser,
-    DomainLengthExceeded,
-    InvalidDomain,
-}
-
-impl Display for InvalidEmail {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            InvalidEmail::Empty => write!(f, "value is empty"),
-            InvalidEmail::MissingAt => write!(f, "value is missing `@`"),
-            InvalidEmail::UserLengthExceeded => {
-                write!(f, "user length exceeded maximum of 64 characters")
-            }
-            InvalidEmail::InvalidUser => write!(f, "user contains unexpected characters"),
-            InvalidEmail::DomainLengthExceeded => {
-                write!(f, "domain length exceeded maximum of 255 characters")
-            }
-            InvalidEmail::InvalidDomain => write!(f, "domain contains unexpected characters"),
         }
     }
 }

@@ -15,40 +15,54 @@
 //! If you need to implement this for a string-like type where a contiguous slice of the entire contents cannot be obtained,
 //! then there is currently no way for you to implement this trait.
 
-use std::fmt::Display;
-
 use super::AsStr;
 use crate::error::Error;
+pub use crate::i18n::InvalidUrl;
 
 pub fn apply<T: Url>(v: &T, _: ()) -> Result<(), Error> {
     if let Err(e) = v.validate_url() {
-        return Err(Error::new(format!("not a valid url: {e}")));
+        return Err(Error::new(i18n!(url_invalid, e)));
     }
     Ok(())
 }
 
 pub trait Url {
-    type Error: Display;
-
-    fn validate_url(&self) -> Result<(), Self::Error>;
+    fn validate_url(&self) -> Result<(), InvalidUrl>;
 }
 
 impl<T: AsStr> Url for T {
-    type Error = url::ParseError;
-
-    fn validate_url(&self) -> Result<(), Self::Error> {
-        let _ = url::Url::parse(self.as_str())?;
-        Ok(())
+    fn validate_url(&self) -> Result<(), InvalidUrl> {
+        url::Url::parse(self.as_str())
+            .map(|_| ())
+            .map_err(InvalidUrl::from)
     }
 }
 
 impl<T: Url> Url for Option<T> {
-    type Error = T::Error;
-
-    fn validate_url(&self) -> Result<(), Self::Error> {
+    fn validate_url(&self) -> Result<(), InvalidUrl> {
         match self {
             Some(value) => value.validate_url(),
             None => Ok(()),
+        }
+    }
+}
+
+impl From<url::ParseError> for InvalidUrl {
+    fn from(e: url::ParseError) -> Self {
+        match e {
+            url::ParseError::EmptyHost => InvalidUrl::EmptyHost,
+            url::ParseError::IdnaError => InvalidUrl::IdnaError,
+            url::ParseError::InvalidPort => InvalidUrl::InvalidPort,
+            url::ParseError::InvalidIpv4Address => InvalidUrl::InvalidIpv4Address,
+            url::ParseError::InvalidIpv6Address => InvalidUrl::InvalidIpv6Address,
+            url::ParseError::InvalidDomainCharacter => InvalidUrl::InvalidDomainCharacter,
+            url::ParseError::RelativeUrlWithoutBase => InvalidUrl::RelativeUrlWithoutBase,
+            url::ParseError::RelativeUrlWithCannotBeABaseBase => {
+                InvalidUrl::RelativeUrlWithCannotBeABaseBase
+            }
+            url::ParseError::SetHostOnCannotBeABaseUrl => InvalidUrl::SetHostOnCannotBeABaseUrl,
+            url::ParseError::Overflow => InvalidUrl::Overflow,
+            _ => InvalidUrl::Other,
         }
     }
 }

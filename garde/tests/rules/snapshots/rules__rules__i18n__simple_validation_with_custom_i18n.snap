@@ -1,0 +1,14 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: snapshot
+---
+User {
+    name: "Jo",
+    email: "invalid-email",
+    age: 15,
+    phone: None,
+}
+age: custom: value too small, minimum is 18
+email: custom: bad email - MissingAt
+name: custom: too short, need at least 3
+phone: custom: this field is required

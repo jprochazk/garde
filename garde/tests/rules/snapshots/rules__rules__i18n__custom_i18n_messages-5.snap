@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.credit_card_invalid(InvalidCreditCard::InvalidLength)"
+---
+custom: invalid credit card - InvalidLength

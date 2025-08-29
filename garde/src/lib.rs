@@ -1,5 +1,8 @@
 #![doc = include_str!("../README.md")]
 
+#[macro_use]
+pub mod i18n;
+
 pub mod error;
 pub mod rules;
 pub mod validate;
@@ -7,6 +10,7 @@ pub mod validate;
 pub use error::{Error, Path, Report};
 #[cfg(feature = "derive")]
 pub use garde_derive::{select, Validate};
+pub use i18n::{with_i18n, I18n};
 pub use validate::{Unvalidated, Valid, Validate};
 
 pub type Result = ::core::result::Result<(), Error>;

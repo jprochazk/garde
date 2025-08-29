@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.ip_invalid(\"IPv6\")"
+---
+custom: not a valid IPv6 IP

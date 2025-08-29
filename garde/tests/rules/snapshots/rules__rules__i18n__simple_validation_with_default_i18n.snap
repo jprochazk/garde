@@ -1,0 +1,14 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: snapshot
+---
+User {
+    name: "Jo",
+    email: "invalid-email",
+    age: 15,
+    phone: None,
+}
+age: lower than 18
+email: not a valid email: value is missing `@`
+name: length is lower than 3
+phone: not set
