@@ -1,0 +1,26 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: snapshot
+---
+Profile {
+    user: User {
+        name: "A",
+        email: "bad-email",
+        age: 200,
+        phone: None,
+    },
+    address: Address {
+        street: "St",
+        city: "X",
+        zip_code: "123",
+    },
+    bio: "Short",
+}
+address.city: custom: too short, need at least 2
+address.street: custom: too short, need at least 5
+address.zip_code: custom: doesn't match /^[0-9]{5}$/
+bio: custom: too short, need at least 10
+user.age: custom: value too large, maximum is 120
+user.email: custom: bad email - value is missing `@`
+user.name: custom: too short, need at least 3
+user.phone: custom: this field is required

@@ -17,7 +17,7 @@ use crate::error::Error;
 
 pub fn apply<T: Alphanumeric>(v: &T, _: ()) -> Result<(), Error> {
     if !v.validate_alphanumeric() {
-        return Err(Error::new("not alphanumeric"));
+        return Err(Error::new(i18n!(alphanumeric_invalid)));
     }
     Ok(())
 }

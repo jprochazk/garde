@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "default.contains_missing(\"test\")"
+---
+does not contain "test"

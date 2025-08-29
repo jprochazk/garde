@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "default.credit_card_invalid(\"invalid format\")"
+---
+not a valid credit card number: invalid format

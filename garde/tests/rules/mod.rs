@@ -9,6 +9,7 @@ mod dive;
 mod dive_with_ctx;
 mod dive_with_rules;
 mod email;
+mod i18n;
 mod inner;
 mod ip;
 mod length;

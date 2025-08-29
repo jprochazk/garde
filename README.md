@@ -11,6 +11,7 @@ A Rust validation library
 - [Validation rules](#available-validation-rules)
 - [Length modes](#length-modes)
 - [Inner type validation](#inner-type-validation)
+- [I18n](#i18n)
 - [Newtypes](#newtypes)
 - [Handling Option](#handling-option)
 - [Custom validation](#custom-validation)
@@ -231,6 +232,45 @@ struct Test {
     items: Vec<Option<String>>,
 }
 ```
+
+### I18n
+
+Error messages produced by rules may be customized by implementing [`I18n`]:
+
+```rust,ignore
+use garde::{Validate, i18n::{I18n, with_i18n}};
+
+struct Czech;
+
+impl I18n for Czech {
+    fn length_lower_than(&self, _: usize, min: usize) -> String {
+        format!("musí obsahovat alespoň {min} znaků")
+    }
+
+    fn email_invalid(&self, error: &str) -> String {
+        format!("email je neplatný, {error}")
+    }
+
+    // etc.
+}
+
+#[derive(Validate)]
+struct User {
+    #[garde(length(min = 3))]
+    name: String,
+    #[garde(email)]
+    email: String,
+}
+
+let user = User {
+    name: "Jan Novák".to_string(),
+    email: "invalid-email".to_string(),
+};
+
+let result = with_i18n(Czech, || user.validate());
+```
+
+The default implementation is [`i18n::DefaultI18n`], which produces error messages in english.
 
 ### Newtypes
 

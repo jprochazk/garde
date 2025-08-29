@@ -19,7 +19,7 @@ use crate::error::Error;
 
 pub fn apply<T: CreditCard>(v: &T, _: ()) -> Result<(), Error> {
     if let Err(e) = v.validate_credit_card() {
-        return Err(Error::new(format!("not a valid credit card number: {e}")));
+        return Err(Error::new(i18n!(credit_card_invalid, &e.to_string())));
     }
     Ok(())
 }

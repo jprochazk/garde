@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "default.range_lower_than(\"0\")"
+---
+lower than 0

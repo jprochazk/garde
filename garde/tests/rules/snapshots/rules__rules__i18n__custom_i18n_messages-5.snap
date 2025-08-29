@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.credit_card_invalid(\"bad format\")"
+---
+custom: invalid credit card - bad format

@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.email_invalid(\"no domain\")"
+---
+custom: bad email - no domain

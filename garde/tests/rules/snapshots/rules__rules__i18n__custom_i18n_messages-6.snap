@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.pattern_no_match(\"[a-z]+\")"
+---
+custom: doesn't match /[a-z]+/

@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: custom.required_not_set()
+---
+custom: this field is required
