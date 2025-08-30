@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "default.phone_number_invalid_with_error(\"wrong format\")"
+---
+not a valid phone number: wrong format

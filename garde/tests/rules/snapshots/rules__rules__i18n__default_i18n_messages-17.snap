@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: default.alphanumeric_invalid()
+---
+not alphanumeric

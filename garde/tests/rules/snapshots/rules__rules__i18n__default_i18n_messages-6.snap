@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "default.pattern_no_match(\"\\\\d+\")"
+---
+does not match pattern /\d+/

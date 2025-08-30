@@ -18,7 +18,7 @@ use crate::Error;
 
 pub fn apply<T: Matches<O>, O>(v: &T, (field, value): (&str, &O)) -> Result<(), Error> {
     if !v.validate_matches(value) {
-        return Err(Error::new(format!("does not match {field} field")));
+        return Err(Error::new(i18n!(matches_field_mismatch, field)));
     }
     Ok(())
 }

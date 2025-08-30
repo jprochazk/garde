@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "default.ip_invalid(\"IPv4\")"
+---
+not a valid IPv4 address

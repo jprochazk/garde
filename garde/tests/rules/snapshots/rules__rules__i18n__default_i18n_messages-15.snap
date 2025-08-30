@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "default.email_invalid(\"missing @\")"
+---
+not a valid email: missing @

@@ -1,0 +1,26 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: snapshot
+---
+Profile {
+    user: User {
+        name: "A",
+        email: "bad-email",
+        age: 200,
+        phone: None,
+    },
+    address: Address {
+        street: "St",
+        city: "X",
+        zip_code: "123",
+    },
+    bio: "Short",
+}
+address.city: length is lower than 2
+address.street: length is lower than 5
+address.zip_code: does not match pattern /^[0-9]{5}$/
+bio: length is lower than 10
+user.age: greater than 120
+user.email: not a valid email: value is missing `@`
+user.name: length is lower than 3
+user.phone: not set

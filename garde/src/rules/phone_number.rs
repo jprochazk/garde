@@ -21,8 +21,11 @@ use crate::error::Error;
 pub fn apply<T: PhoneNumber>(v: &T, _: ()) -> Result<(), Error> {
     match v.validate_phone_number() {
         Ok(true) => Ok(()),
-        Ok(false) => Err(Error::new("not a valid phone number")),
-        Err(e) => Err(Error::new(format!("not a valid phone number: {e}"))),
+        Ok(false) => Err(Error::new(i18n!(phone_number_invalid))),
+        Err(e) => Err(Error::new(i18n!(
+            phone_number_invalid_with_error,
+            &e.to_string()
+        ))),
     }
 }
 

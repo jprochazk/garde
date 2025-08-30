@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.url_invalid(\"malformed\")"
+---
+custom: bad URL - malformed

@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "default.matches_field_mismatch(\"password\")"
+---
+does not match password field

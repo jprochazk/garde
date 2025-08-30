@@ -21,7 +21,7 @@ use crate::error::Error;
 
 pub fn apply<T: Contains>(v: &T, (pat,): (&str,)) -> Result<(), Error> {
     if !v.validate_contains(pat) {
-        return Err(Error::new(format!("does not contain \"{pat}\"")));
+        return Err(Error::new(i18n!(contains_missing, pat)));
     }
     Ok(())
 }

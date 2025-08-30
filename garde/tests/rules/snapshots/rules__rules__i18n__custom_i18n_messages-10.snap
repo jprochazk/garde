@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.suffix_missing(\".org\")"
+---
+custom: must end with '.org'

@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: custom.phone_number_invalid()
+---
+custom: invalid phone number
