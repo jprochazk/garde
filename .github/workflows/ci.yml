@@ -66,7 +66,7 @@ jobs:
         build: [pinned, stable, nightly]
         include:
           - build: pinned
-            rust: 1.81
+            rust: 1.82
           - build: stable
             rust: stable
             EXCLUDE_UI_TESTS: ""
