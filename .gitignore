@@ -1,3 +1,7 @@
+.*
+!.cargo
+!.gitignore
+
 /target
 /Cargo.lock
 *.snap.new

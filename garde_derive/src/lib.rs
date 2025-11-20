@@ -7,6 +7,62 @@ mod util;
 use proc_macro::{Delimiter, Literal, Span, TokenStream, TokenTree};
 use quote::quote;
 use syn::DeriveInput;
+use syn::__private::TokenStream2;
+
+trait ValidationMode {
+    fn await_token() -> TokenStream2;
+    fn validate_path() -> TokenStream2;
+    fn async_token() -> TokenStream2;
+
+    fn parent_fn_path() -> TokenStream2;
+    fn apply_fn_iden() -> TokenStream2;
+}
+
+struct SyncMarker;
+struct AsyncMarker;
+
+impl ValidationMode for SyncMarker {
+    fn await_token() -> TokenStream2 {
+        TokenStream2::new()
+    }
+
+    fn validate_path() -> TokenStream2 {
+        quote!(::garde::validate::Validate)
+    }
+
+    fn async_token() -> TokenStream2 {
+        TokenStream2::new()
+    }
+
+    fn parent_fn_path() -> TokenStream2 {
+        quote!(::garde::validate::ParentFn)
+    }
+
+    fn apply_fn_iden() -> TokenStream2 {
+        quote!(apply)
+    }
+}
+
+impl ValidationMode for AsyncMarker {
+    fn await_token() -> TokenStream2 {
+        quote!(.await)
+    }
+
+    fn validate_path() -> TokenStream2 {
+        quote!(::garde::async_validate::AsyncValidate)
+    }
+
+    fn async_token() -> TokenStream2 {
+        quote!(async)
+    }
+    fn parent_fn_path() -> TokenStream2 {
+        quote!(::garde::async_validate::AsyncParentFn<'_>)
+    }
+
+    fn apply_fn_iden() -> TokenStream2 {
+        quote!(async_apply)
+    }
+}
 
 #[proc_macro_derive(Validate, attributes(garde))]
 pub fn derive_validate(input: TokenStream) -> TokenStream {
@@ -15,11 +71,25 @@ pub fn derive_validate(input: TokenStream) -> TokenStream {
         Ok(v) => v,
         Err(e) => return e.into_compile_error().into(),
     };
-    let input = match check::check(input) {
+    let input = match check::check::<SyncMarker>(input) {
         Ok(v) => v,
         Err(e) => return e.into_compile_error().into(),
     };
-    emit::emit(input).into()
+    emit::emit::<SyncMarker>(input).into()
+}
+
+#[proc_macro_derive(AsyncValidate, attributes(garde))]
+pub fn derive_async_validate(input: TokenStream) -> TokenStream {
+    let input = syn::parse_macro_input!(input as DeriveInput);
+    let input = match syntax::parse(input) {
+        Ok(v) => v,
+        Err(e) => return e.into_compile_error().into(),
+    };
+    let input = match check::check::<AsyncMarker>(input) {
+        Ok(v) => v,
+        Err(e) => return e.into_compile_error().into(),
+    };
+    emit::emit::<AsyncMarker>(input).into()
 }
 
 #[proc_macro]

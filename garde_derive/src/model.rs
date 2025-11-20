@@ -1,7 +1,10 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::marker::PhantomData;
 
 use proc_macro2::{Ident, Span};
 use syn::{Expr, Generics, Path, Type};
+
+use crate::ValidationMode;
 
 pub struct Input {
     pub ident: Ident,
@@ -154,16 +157,13 @@ pub struct List<T> {
     pub contents: Vec<T>,
 }
 
-pub struct Validate {
+pub struct Validate<M: ValidationMode> {
     pub ident: Ident,
     pub generics: Generics,
     pub context: (Type, Ident),
     pub is_transparent: bool,
     pub kind: ValidateKind,
-    // I don't know why Rust thinks this is unused.
-    // It's both read and written, grep for `.allow_unvalidated`.
-    #[allow(dead_code)]
-    pub options: Options,
+    pub _mode: PhantomData<M>,
 }
 
 pub struct Options {

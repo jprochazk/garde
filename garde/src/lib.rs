@@ -1,12 +1,14 @@
 #![doc = include_str!("../README.md")]
 
+pub mod async_validate;
 pub mod error;
 pub mod rules;
 pub mod validate;
 
+pub use async_validate::{AsyncUnvalidated, AsyncValidate};
 pub use error::{Error, Path, Report};
 #[cfg(feature = "derive")]
-pub use garde_derive::{select, Validate};
+pub use garde_derive::{select, AsyncValidate, Validate};
 pub use validate::{Unvalidated, Valid, Validate};
 
 pub type Result = ::core::result::Result<(), Error>;

@@ -40,7 +40,7 @@ impl<T: garde::Validate> garde::Validate for MyVec<T> {
     fn validate_into(
         &self,
         ctx: &Self::Context,
-        mut path: &mut dyn FnMut() -> garde::Path,
+        mut path: &mut garde::validate::ParentFn,
         report: &mut garde::Report,
     ) {
         for (index, item) in self.0.iter().enumerate() {
