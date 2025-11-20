@@ -2,22 +2,22 @@ error: transparent structs must have exactly one field
  --> tests/ui/compile-fail/non_unary_newtype.rs
   |
   | #[garde(transparent)]
-  | ^
+  | ^^^^^^^^^^^^^^^^^^^^^
 
 error: transparent structs must have exactly one field
  --> tests/ui/compile-fail/non_unary_newtype.rs
   |
   | #[garde(transparent)]
-  | ^
+  | ^^^^^^^^^^^^^^^^^^^^^
 
 error: transparent structs must have exactly one field
  --> tests/ui/compile-fail/non_unary_newtype.rs
   |
   | #[garde(transparent)]
-  | ^
+  | ^^^^^^^^^^^^^^^^^^^^^
 
 error: transparent structs must have exactly one field
  --> tests/ui/compile-fail/non_unary_newtype.rs
   |
   | #[garde(transparent)]
-  | ^
+  | ^^^^^^^^^^^^^^^^^^^^^

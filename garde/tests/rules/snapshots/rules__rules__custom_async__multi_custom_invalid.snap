@@ -1,0 +1,9 @@
+---
+source: garde/tests/./rules/custom_async.rs
+expression: snapshot
+---
+Multi {
+    field: "asdf",
+}
+field: not equal to test
+field: not equal to test

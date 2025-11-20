@@ -1,14 +1,15 @@
 use std::collections::BTreeSet;
+use std::marker::PhantomData;
 
 use proc_macro2::Span;
 use syn::parse_quote;
 use syn::spanned::Spanned;
 
-use crate::model;
 use crate::model::LengthMode;
 use crate::util::{default_ctx_name, MaybeFoldError};
+use crate::{model, ValidationMode};
 
-pub fn check(input: model::Input) -> syn::Result<model::Validate> {
+pub fn check<M: ValidationMode>(input: model::Input) -> syn::Result<model::Validate<M>> {
     let model::Input {
         ident,
         generics,
@@ -77,12 +78,13 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         return Err(error);
     }
 
-    Ok(model::Validate {
+    Ok(model::Validate::<M> {
         ident,
         generics,
         context,
         is_transparent: transparent.is_some(),
         kind,
+        _mode: PhantomData,
         options,
     })
 }

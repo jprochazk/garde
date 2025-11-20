@@ -5,6 +5,8 @@ use std::fmt::Debug;
 use crate::error::{Path, PathComponentKind};
 use crate::Report;
 
+pub type ParentFn<'a> = dyn FnMut() -> Path + 'a;
+
 /// The core trait of this crate.
 ///
 /// Validation runs the fields through every validation rules,
@@ -43,12 +45,7 @@ pub trait Validate {
     }
 
     /// Validates `Self`, aggregating all validation errors into `Report`.
-    fn validate_into(
-        &self,
-        ctx: &Self::Context,
-        parent: &mut dyn FnMut() -> Path,
-        report: &mut Report,
-    );
+    fn validate_into(&self, ctx: &Self::Context, parent: &mut ParentFn, report: &mut Report);
 }
 
 /// A struct which wraps a valid instance of some `T`.
@@ -58,7 +55,7 @@ pub trait Validate {
 /// it was definitely validated at some point. This is commonly referred to as the
 /// typestate pattern.
 #[derive(Debug, Clone, Copy)]
-pub struct Valid<T>(T);
+pub struct Valid<T>(pub(super) T);
 
 impl<T: Validate> Valid<T> {
     /// Returns the inner value.
@@ -123,12 +120,7 @@ impl<T: Debug> Debug for Unvalidated<T> {
 impl<T: ?Sized + Validate> Validate for &T {
     type Context = T::Context;
 
-    fn validate_into(
-        &self,
-        ctx: &Self::Context,
-        parent: &mut dyn FnMut() -> Path,
-        report: &mut Report,
-    ) {
+    fn validate_into(&self, ctx: &Self::Context, parent: &mut ParentFn, report: &mut Report) {
         <T as Validate>::validate_into(self, ctx, parent, report)
     }
 }
@@ -136,12 +128,7 @@ impl<T: ?Sized + Validate> Validate for &T {
 impl<T: ?Sized + Validate> Validate for &mut T {
     type Context = T::Context;
 
-    fn validate_into(
-        &self,
-        ctx: &Self::Context,
-        parent: &mut dyn FnMut() -> Path,
-        report: &mut Report,
-    ) {
+    fn validate_into(&self, ctx: &Self::Context, parent: &mut ParentFn, report: &mut Report) {
         <T as Validate>::validate_into(self, ctx, parent, report)
     }
 }
@@ -149,12 +136,7 @@ impl<T: ?Sized + Validate> Validate for &mut T {
 impl<T: Validate> Validate for std::boxed::Box<T> {
     type Context = T::Context;
 
-    fn validate_into(
-        &self,
-        ctx: &Self::Context,
-        parent: &mut dyn FnMut() -> Path,
-        report: &mut Report,
-    ) {
+    fn validate_into(&self, ctx: &Self::Context, parent: &mut ParentFn, report: &mut Report) {
         <T as Validate>::validate_into(self, ctx, parent, report)
     }
 }
@@ -162,12 +144,7 @@ impl<T: Validate> Validate for std::boxed::Box<T> {
 impl<T: Validate> Validate for std::rc::Rc<T> {
     type Context = T::Context;
 
-    fn validate_into(
-        &self,
-        ctx: &Self::Context,
-        parent: &mut dyn FnMut() -> Path,
-        report: &mut Report,
-    ) {
+    fn validate_into(&self, ctx: &Self::Context, parent: &mut ParentFn, report: &mut Report) {
         <T as Validate>::validate_into(self, ctx, parent, report)
     }
 }
@@ -175,12 +152,7 @@ impl<T: Validate> Validate for std::rc::Rc<T> {
 impl<T: Validate> Validate for std::sync::Arc<T> {
     type Context = T::Context;
 
-    fn validate_into(
-        &self,
-        ctx: &Self::Context,
-        parent: &mut dyn FnMut() -> Path,
-        report: &mut Report,
-    ) {
+    fn validate_into(&self, ctx: &Self::Context, parent: &mut ParentFn, report: &mut Report) {
         <T as Validate>::validate_into(self, ctx, parent, report)
     }
 }
@@ -193,7 +165,7 @@ macro_rules! impl_validate_list {
         {
             type Context = T::Context;
 
-            fn validate_into(&self, ctx: &Self::Context, mut parent: &mut dyn FnMut() -> Path, report: &mut Report) {
+            fn validate_into(&self, ctx: &Self::Context, mut parent: &mut ParentFn, report: &mut Report) {
                 for (index, item) in self.iter().enumerate() {
                     let mut path = $crate::util::nested_path!(parent, index);
                     <T as Validate>::validate_into(item, ctx, &mut path, report);
@@ -214,12 +186,7 @@ impl_validate_list!(<T> [T]);
 impl<T: Validate, const N: usize> Validate for [T; N] {
     type Context = T::Context;
 
-    fn validate_into(
-        &self,
-        ctx: &Self::Context,
-        mut parent: &mut dyn FnMut() -> Path,
-        report: &mut Report,
-    ) {
+    fn validate_into(&self, ctx: &Self::Context, mut parent: &mut ParentFn, report: &mut Report) {
         for (index, item) in self.iter().enumerate() {
             let mut path = crate::util::nested_path!(parent, index);
             <T as Validate>::validate_into(item, ctx, &mut path, report);
@@ -237,7 +204,7 @@ macro_rules! impl_validate_tuple {
             type Context = $A::Context;
 
             #[allow(non_snake_case)]
-            fn validate_into(&self, ctx: &Self::Context, mut parent: &mut dyn FnMut() -> Path, report: &mut Report) {
+            fn validate_into(&self, ctx: &Self::Context, mut parent: &mut ParentFn, report: &mut Report) {
                 let ($A, $($T,)*) = self;
                 let mut index = 0usize;
                 let _index = index;
@@ -274,7 +241,7 @@ impl_validate_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
 impl Validate for () {
     type Context = ();
 
-    fn validate_into(&self, _: &Self::Context, _: &mut dyn FnMut() -> Path, _: &mut Report) {}
+    fn validate_into(&self, _: &Self::Context, _: &mut ParentFn, _: &mut Report) {}
 }
 
 impl<K, V, S> Validate for std::collections::HashMap<K, V, S>
@@ -284,12 +251,7 @@ where
 {
     type Context = V::Context;
 
-    fn validate_into(
-        &self,
-        ctx: &Self::Context,
-        mut parent: &mut dyn FnMut() -> Path,
-        report: &mut Report,
-    ) {
+    fn validate_into(&self, ctx: &Self::Context, mut parent: &mut ParentFn, report: &mut Report) {
         for (key, value) in self.iter() {
             let mut path = crate::util::nested_path!(parent, key);
             <V as Validate>::validate_into(value, ctx, &mut path, report);
@@ -304,12 +266,7 @@ where
 {
     type Context = V::Context;
 
-    fn validate_into(
-        &self,
-        ctx: &Self::Context,
-        mut parent: &mut dyn FnMut() -> Path,
-        report: &mut Report,
-    ) {
+    fn validate_into(&self, ctx: &Self::Context, mut parent: &mut ParentFn, report: &mut Report) {
         for (key, value) in self.iter() {
             let mut path = crate::util::nested_path!(parent, key);
             <V as Validate>::validate_into(value, ctx, &mut path, report);
@@ -320,12 +277,7 @@ where
 impl<T: Validate> Validate for Option<T> {
     type Context = T::Context;
 
-    fn validate_into(
-        &self,
-        ctx: &Self::Context,
-        parent: &mut dyn FnMut() -> Path,
-        report: &mut Report,
-    ) {
+    fn validate_into(&self, ctx: &Self::Context, parent: &mut ParentFn, report: &mut Report) {
         if let Some(value) = self {
             value.validate_into(ctx, parent, report)
         }
@@ -338,12 +290,7 @@ where
 {
     type Context = B::Context;
 
-    fn validate_into(
-        &self,
-        ctx: &Self::Context,
-        parent: &mut dyn FnMut() -> Path,
-        report: &mut Report,
-    ) {
+    fn validate_into(&self, ctx: &Self::Context, parent: &mut ParentFn, report: &mut Report) {
         self.as_ref().validate_into(ctx, parent, report)
     }
 }

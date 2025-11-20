@@ -1,0 +1,12 @@
+---
+source: garde/tests/./rules/custom_async.rs
+expression: snapshot
+---
+Test {
+    a: "asdf",
+    b: "asdf",
+    uses_ctx: "",
+}
+a: not equal to test
+b: `b` is not equal to test
+uses_ctx: length is lower than 4
