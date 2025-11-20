@@ -85,7 +85,6 @@ pub fn check<M: ValidationMode>(input: model::Input) -> syn::Result<model::Valid
         is_transparent: transparent.is_some(),
         kind,
         _mode: PhantomData,
-        options,
     })
 }
 

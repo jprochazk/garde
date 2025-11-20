@@ -164,10 +164,6 @@ pub struct Validate<M: ValidationMode> {
     pub is_transparent: bool,
     pub kind: ValidateKind,
     pub _mode: PhantomData<M>,
-    // I don't know why Rust thinks this is unused.
-    // It's both read and written, grep for `.allow_unvalidated`.
-    #[allow(dead_code)]
-    pub options: Options,
 }
 
 pub struct Options {

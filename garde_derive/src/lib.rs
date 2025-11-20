@@ -1,6 +1,5 @@
 mod check;
 mod emit;
-mod fields;
 mod model;
 mod syntax;
 mod util;
