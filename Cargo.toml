@@ -1,5 +1,5 @@
 [workspace]
-members = ["garde_derive", "garde"]
+members = ["garde", "garde_derive"]
 resolver = "2"
 
 [workspace.package]
