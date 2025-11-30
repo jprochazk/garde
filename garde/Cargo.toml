@@ -67,3 +67,7 @@ serde_json = { version = "1.0.112", features = ["preserve_order"] }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
 wasm-bindgen-test = "0.3.38"
+
+[package.metadata.docs.rs]
+all-features = true
+
