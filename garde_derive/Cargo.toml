@@ -18,9 +18,9 @@ regex = ["dep:regex"]
 js-sys = []
 
 [dependencies]
-syn = { version = "2", features = ["full", "derive"] }
-quote = { version = "1" }
 proc-macro2 = { version = "1" }
+quote = { version = "1" }
 regex = { version = "1", default-features = false, features = [
   "std",
 ], optional = true }
+syn = { version = "2", features = ["full", "derive"] }
