@@ -1,0 +1,11 @@
+---
+source: garde/tests/./rules/if_conditional.rs
+expression: snapshot
+---
+WithContext {
+    password: "weak",
+    email: None,
+    email_required: true,
+}
+email: not set
+password: length is lower than 8

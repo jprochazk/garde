@@ -409,21 +409,47 @@ where
                 _ => unreachable!("`dive` and `inner` are mutually exclusive"),
             };
 
+            // Generate conditional rule sets
+            let conditional_rules = field.conditional_rule_sets.iter().map(|cond_rule_set| {
+                let condition = &cond_rule_set.condition;
+                let cond_rules = Rules {
+                    rules_mod,
+                    rule_set: &cond_rule_set.rule_set,
+                };
+                quote! {
+                    if #condition {
+                        #cond_rules
+                    }
+                }
+            });
+
             let value = match (outer, inner) {
                 (Some(outer), Some(inner)) => quote! {
                     let __garde_binding = &*#binding;
                     #inner
                     #outer
+                    #(#conditional_rules)*
                 },
                 (None, Some(inner)) => quote! {
                     let __garde_binding = &*#binding;
                     #inner
+                    #(#conditional_rules)*
                 },
                 (Some(outer), None) => quote! {
                     let __garde_binding = &*#binding;
                     #outer
+                    #(#conditional_rules)*
                 },
-                (None, None) => unreachable!("field should already be skipped"),
+                (None, None) => {
+                    if field.conditional_rule_sets.is_empty() {
+                        unreachable!("field should already be skipped")
+                    } else {
+                        quote! {
+                            let __garde_binding = &*#binding;
+                            #(#conditional_rules)*
+                        }
+                    }
+                }
             };
 
             let add = &self.1;

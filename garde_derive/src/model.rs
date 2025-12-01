@@ -98,6 +98,12 @@ pub enum RawRuleKind {
     Pattern(Pattern),
     Custom(Expr),
     Inner(List<RawRule>),
+    If(IfRule),
+}
+
+pub struct IfRule {
+    pub condition: Expr,
+    pub rules: List<RawRule>,
 }
 
 pub struct RawLength {
@@ -186,15 +192,21 @@ pub struct ValidateField {
 
     pub dive: Option<(Span, Option<Expr>)>,
     pub rule_set: RuleSet,
+    pub conditional_rule_sets: Vec<ConditionalRuleSet>,
+}
+
+pub struct ConditionalRuleSet {
+    pub condition: Expr,
+    pub rule_set: RuleSet,
 }
 
 impl ValidateField {
     pub fn is_empty(&self) -> bool {
-        self.dive.is_none() && self.rule_set.is_empty()
+        self.dive.is_none() && self.rule_set.is_empty() && self.conditional_rule_sets.is_empty()
     }
 
     pub fn has_top_level_rules(&self) -> bool {
-        self.rule_set.has_top_level_rules()
+        self.rule_set.has_top_level_rules() || !self.conditional_rule_sets.is_empty()
     }
 }
 
