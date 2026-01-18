@@ -298,6 +298,7 @@ The context may be any type without generic parameters. By default, the context 
 ```rust,ignore
 #[derive(garde::Validate)]
 struct Metadata {
+    #[garde(ascii)]
     name: String,
 }
 
@@ -316,7 +317,9 @@ struct PasswordContext {
 }
 
 fn is_strong_password(value: &str, context: &PasswordContext) -> garde::Result {
-    let bits = context.entropy.estimate_password_entropy(value.as_bytes())
+    let bits = context
+        .entropy
+        .estimate_password_entropy(value.as_bytes())
         .map(|e| e.mask_entropy)
         .unwrap_or(0.0);
     if bits < context.min_entropy {
@@ -325,9 +328,17 @@ fn is_strong_password(value: &str, context: &PasswordContext) -> garde::Result {
     Ok(())
 }
 
-let ctx = PasswordContext { /* ... */ };
-let user = User { /* ... */ };
-user.validate_with(&ctx)?;
+let ctx = PasswordContext {
+    min_entropy: 30.0,
+    entropy: cracken::password_entropy::EntropyEstimator::new(),
+};
+let user = User {
+    password: "weakpassword".to_string(),
+    metadata: Metadata {
+        name: "validname".to_string(),
+    },
+};
+user.validate_with(&ctx).unwrap();
 ```
 
 The validator function may accept the value as a reference to any type which it derefs to.
