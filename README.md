@@ -297,10 +297,17 @@ The context may be any type without generic parameters. By default, the context 
 
 ```rust,ignore
 #[derive(garde::Validate)]
+struct Metadata {
+    name: String,
+}
+
+#[derive(garde::Validate)]
 #[garde(context(PasswordContext))]
 struct User {
     #[garde(custom(is_strong_password))]
     password: String,
+    #[garde(dive(&()))]
+    metadata: Metadata,
 }
 
 struct PasswordContext {
@@ -320,7 +327,7 @@ fn is_strong_password(value: &str, context: &PasswordContext) -> garde::Result {
 
 let ctx = PasswordContext { /* ... */ };
 let user = User { /* ... */ };
-user.validate(&ctx)?;
+user.validate_with(&ctx)?;
 ```
 
 The validator function may accept the value as a reference to any type which it derefs to.
