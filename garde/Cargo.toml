@@ -46,7 +46,7 @@ rust_decimal = ["dep:rust_decimal"]
 garde_derive = { workspace = true, optional = true, default-features = false }
 
 card-validate = { version = "2.3", optional = true }
-compact_str = { version = "0.8.0", default-features = false }
+compact_str = { version = "0.9.0", default-features = false }
 idna = { version = "1", optional = true }
 once_cell = { version = "1", optional = true }
 phonenumber = { version = "0.3.6+8.13.36", optional = true }
