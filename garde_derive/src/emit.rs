@@ -496,19 +496,15 @@ impl ToTokens for Bindings<'_> {
                 quote!( { #(#names,)* #rest } )
             }
             model::ValidateVariant::Tuple(fields) => {
-                let indices = fields
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, field)| field.skip.is_none())
-                    .map(|(i, _)| IndexBinding(i))
-                    .collect::<Vec<_>>();
-                let rest = if indices.len() != fields.len() {
-                    Some(quote!(..))
-                } else {
-                    None
-                };
+                let bindings = fields.iter().enumerate().map(|(i, field)| {
+                    if field.skip.is_none() {
+                        IndexBinding(i).to_token_stream()
+                    } else {
+                        quote!(_)
+                    }
+                });
 
-                quote!( ( #(#indices,)* #rest ) )
+                quote!( ( #(#bindings,)* ) )
             }
         }
         .to_tokens(tokens)
