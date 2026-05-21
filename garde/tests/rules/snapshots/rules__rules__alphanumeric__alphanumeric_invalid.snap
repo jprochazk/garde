@@ -1,6 +1,7 @@
 ---
 source: garde/tests/./rules/alphanumeric.rs
 expression: snapshot
+snapshot_kind: text
 ---
 Test {
     field: "!!!!",
@@ -9,6 +10,4 @@ Test {
     ],
 }
 field: not alphanumeric
-inner[0]: not alphanumeric
-
-
+inner[0]: [ALPHA] not alphanumeric
