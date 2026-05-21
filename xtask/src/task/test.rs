@@ -27,13 +27,17 @@ enum Target {
     Doc,
     Ui,
     Rules,
+    FeatureFlags,
 }
 
 struct InvalidTarget;
 
 impl std::fmt::Display for InvalidTarget {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "invalid target, expected one of: unit, doc, ui, rules")
+        write!(
+            f,
+            "invalid target, expected one of: unit, doc, ui, rules, feature-flags"
+        )
     }
 }
 
@@ -44,11 +48,14 @@ impl argp::FromArgValue for Target {
             ("doc", Self::Doc),
             ("ui", Self::Ui),
             ("rules", Self::Rules),
+            ("feature-flags", Self::FeatureFlags),
         ]
         .into_iter()
         .find(|(name, _)| value.eq_ignore_ascii_case(std::ffi::OsStr::new(name)))
         .map(|(_, target)| target)
-        .ok_or_else(|| "invalid target, expected one of: unit, doc, ui, rules".into())
+        .ok_or_else(|| {
+            "invalid target, expected one of: unit, doc, ui, rules, feature-flags".into()
+        })
     }
 }
 
@@ -66,6 +73,7 @@ impl Test {
                     Target::Doc => doc(),
                     Target::Ui => ui(review),
                     Target::Rules => rules(review),
+                    Target::FeatureFlags => feature_flags(),
                 })
                 .collect()
         };
@@ -123,4 +131,10 @@ fn rules(review: bool) -> Command {
     } else {
         cargo("test").with_args(["--package=garde", "--all-features", "--test=rules"])
     }
+}
+
+fn feature_flags() -> Command {
+    cargo("test")
+        .with_args(["--package=garde", "--test=feature_flags"])
+        .with_env("GARDE_RUN_FEATURE_FLAG_TESTS", "1")
 }

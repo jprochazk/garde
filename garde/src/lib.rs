@@ -12,7 +12,8 @@ pub use validate::{Unvalidated, Valid, Validate};
 pub type Result = ::core::result::Result<(), Error>;
 
 pub mod external {
-    pub use {compact_str, smallvec};
+    pub use compact_str;
+    pub use smallvec;
 }
 
 #[doc(hidden)]

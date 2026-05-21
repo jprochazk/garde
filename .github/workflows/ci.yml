@@ -67,6 +67,7 @@ jobs:
         include:
           - build: pinned
             rust: 1.84.1
+            EXCLUDE_UI_TESTS: "pattern_mismatched_types"
           - build: stable
             rust: stable
             EXCLUDE_UI_TESTS: ""
@@ -97,6 +98,10 @@ jobs:
         run: cargo x test
         env:
           EXCLUDE_UI_TESTS: ${{ matrix.EXCLUDE_UI_TESTS }}
+
+      - name: Run feature flag tests
+        if: matrix.build == 'stable'
+        run: cargo x test feature-flags
 
   checks:
     name: Checks
