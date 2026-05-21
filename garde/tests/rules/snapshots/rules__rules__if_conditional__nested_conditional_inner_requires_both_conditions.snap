@@ -1,0 +1,12 @@
+---
+source: garde/tests/./rules/if_conditional.rs
+expression: snapshot
+---
+NestedConditionalInner {
+    validate_items: true,
+    check_ascii: true,
+    items: [
+        "é",
+    ],
+}
+items[0]: not ascii

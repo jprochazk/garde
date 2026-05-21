@@ -100,6 +100,12 @@ pub enum RawRuleKind {
     Pattern(Pattern),
     Custom(Expr),
     Inner(List<RawRule>),
+    If(IfRule),
+}
+
+pub struct IfRule {
+    pub condition: Expr,
+    pub rules: List<RawRule>,
 }
 
 pub struct RawLength {
@@ -191,6 +197,11 @@ pub struct ValidateField {
     pub rule_set: RuleSet,
 }
 
+pub struct ConditionalRuleSet {
+    pub condition: Expr,
+    pub rule_set: RuleSet,
+}
+
 impl ValidateField {
     pub fn is_empty(&self) -> bool {
         self.dive.is_none() && self.rule_set.is_empty()
@@ -205,6 +216,7 @@ pub struct RuleSet {
     pub rules: BTreeSet<ValidateRule>,
     pub custom_rules: Vec<Expr>,
     pub inner: Option<Box<RuleSet>>,
+    pub conditional_rule_sets: Vec<ConditionalRuleSet>,
 }
 
 impl RuleSet {
@@ -213,6 +225,7 @@ impl RuleSet {
             rules: BTreeSet::new(),
             custom_rules: Vec::new(),
             inner: None,
+            conditional_rule_sets: Vec::new(),
         }
     }
 
@@ -221,11 +234,24 @@ impl RuleSet {
             Some(inner) => inner.is_empty(),
             None => true,
         };
-        inner_empty && self.rules.is_empty() && self.custom_rules.is_empty()
+        inner_empty
+            && self.rules.is_empty()
+            && self.custom_rules.is_empty()
+            && self.conditional_rule_sets.is_empty()
     }
 
     pub fn has_top_level_rules(&self) -> bool {
-        !self.rules.is_empty() || !self.custom_rules.is_empty()
+        !self.rules.is_empty()
+            || !self.custom_rules.is_empty()
+            || !self.conditional_rule_sets.is_empty()
+    }
+
+    pub fn has_inner_rules(&self) -> bool {
+        self.inner.is_some()
+            || self
+                .conditional_rule_sets
+                .iter()
+                .any(|conditional| conditional.rule_set.has_inner_rules())
     }
 }
 

@@ -1,0 +1,13 @@
+---
+source: garde/tests/./rules/if_conditional.rs
+expression: snapshot
+---
+ContextualNestedConditional {
+    items: [
+        "é",
+    ],
+    expected_first: "expected",
+}
+first item does not match expected value
+items[0]: length is lower than 3
+items[0]: not ascii

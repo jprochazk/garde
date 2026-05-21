@@ -1,0 +1,5 @@
+error: missing `cond` argument
+ --> tests/ui/compile-fail/if_missing_cond.rs
+  |
+  |     #[garde(if(ascii, length(min = 1)))]
+  |                                      ^

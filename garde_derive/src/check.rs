@@ -281,7 +281,7 @@ fn check_field(field: model::Field, options: &model::Options) -> syn::Result<mod
     }
 
     if let Some((span, _)) = field.dive {
-        if field.rule_set.inner.is_some() {
+        if field.rule_set.has_inner_rules() {
             error.maybe_fold(syn::Error::new(
                 span,
                 "`dive` may not be combined with `inner`",
@@ -303,7 +303,7 @@ fn check_rules(
     let mut error = None;
     let mut rule_set = model::RuleSet::empty();
     for raw_rule in raw_rules {
-        if let Err(e) = check_rule(field, raw_rule, &mut rule_set, false) {
+        if let Err(e) = check_rule(field, raw_rule, &mut rule_set, false, false) {
             error.maybe_fold(e);
         };
     }
@@ -318,13 +318,14 @@ fn check_rule(
     raw_rule: model::RawRule,
     rule_set: &mut model::RuleSet,
     is_inner: bool,
+    is_conditional: bool,
 ) -> syn::Result<()> {
     macro_rules! apply {
         ($name:ident = $value:expr, $span:expr) => {{
-            if is_inner {
+            if is_inner || is_conditional {
                 return Err(syn::Error::new(
                     $span,
-                    concat!("rule `", stringify!($name), "` may not be used in `inner`")
+                    concat!("rule `", stringify!($name), "` may only be used at the field level")
                 ));
             }
             match field.$name {
@@ -390,14 +391,42 @@ fn check_rule(
 
             let mut error = None;
             for raw_rule in v.contents {
-                if let Err(e) = check_rule(field, raw_rule, rule_set.inner.as_mut().unwrap(), true)
-                {
+                if let Err(e) = check_rule(
+                    field,
+                    raw_rule,
+                    rule_set.inner.as_mut().unwrap(),
+                    true,
+                    is_conditional,
+                ) {
                     error.maybe_fold(e);
                 }
             }
             if let Some(error) = error {
                 return Err(error);
             }
+        }
+        If(if_rule) => {
+            let mut conditional_rule_set = model::RuleSet::empty();
+            let mut error = None;
+
+            for raw_rule in if_rule.rules.contents {
+                if let Err(e) =
+                    check_rule(field, raw_rule, &mut conditional_rule_set, is_inner, true)
+                {
+                    error.maybe_fold(e);
+                }
+            }
+
+            if let Some(error) = error {
+                return Err(error);
+            }
+
+            rule_set
+                .conditional_rule_sets
+                .push(model::ConditionalRuleSet {
+                    condition: if_rule.condition,
+                    rule_set: conditional_rule_set,
+                });
         }
     };
 

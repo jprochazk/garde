@@ -1,0 +1,15 @@
+---
+source: garde/tests/./rules/if_conditional.rs
+expression: snapshot
+---
+ConditionalRequiredInner {
+    require_items: true,
+    conditional_inner: [
+        None,
+    ],
+    inner_conditional: [
+        None,
+    ],
+}
+conditional_inner[0]: not set
+inner_conditional[0]: not set

@@ -1,0 +1,5 @@
+error: rule `dive` may only be used at the field level
+ --> tests/ui/compile-fail/if_with_dive.rs
+  |
+  |     #[garde(if(cond = self.enabled, dive))]
+  |                                     ^^^^

@@ -178,14 +178,14 @@ impl ToTokens for Tuple<'_> {
     }
 }
 
-struct Inner<'a> {
+struct RuleSet<'a> {
     rules_mod: &'a TokenStream2,
     rule_set: &'a model::RuleSet,
 }
 
-impl ToTokens for Inner<'_> {
+impl ToTokens for RuleSet<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
-        let Inner {
+        let RuleSet {
             rules_mod,
             rule_set,
         } = self;
@@ -205,7 +205,7 @@ impl ToTokens for Inner<'_> {
             rule_set,
         });
 
-        let value = match (outer, inner) {
+        match (outer, inner) {
             (Some(outer), Some(inner)) => quote! {
                 #outer
                 #inner
@@ -215,6 +215,25 @@ impl ToTokens for Inner<'_> {
             },
             (Some(outer), None) => outer,
             (None, None) => return,
+        }
+        .to_tokens(tokens)
+    }
+}
+
+struct Inner<'a> {
+    rules_mod: &'a TokenStream2,
+    rule_set: &'a model::RuleSet,
+}
+
+impl ToTokens for Inner<'_> {
+    fn to_tokens(&self, tokens: &mut TokenStream2) {
+        let Inner {
+            rules_mod,
+            rule_set,
+        } = self;
+        let value = RuleSet {
+            rules_mod,
+            rule_set,
         };
 
         quote! {
@@ -348,6 +367,20 @@ impl ToTokens for Rules<'_> {
                 }
             }
             .to_tokens(tokens)
+        }
+
+        for cond_rule_set in &rule_set.conditional_rule_sets {
+            let condition = &cond_rule_set.condition;
+            let cond_rules = RuleSet {
+                rules_mod,
+                rule_set: &cond_rule_set.rule_set,
+            };
+            quote! {
+                if #condition {
+                    #cond_rules
+                }
+            }
+            .to_tokens(tokens);
         }
     }
 }
