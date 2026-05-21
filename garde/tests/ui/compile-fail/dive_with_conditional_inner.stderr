@@ -1,0 +1,5 @@
+error: `dive` may not be combined with `inner`
+ --> tests/ui/compile-fail/dive_with_conditional_inner.rs
+  |
+  |     #[garde(dive, if(cond = self.enabled, inner(length(min = 1))))]
+  |             ^^^^

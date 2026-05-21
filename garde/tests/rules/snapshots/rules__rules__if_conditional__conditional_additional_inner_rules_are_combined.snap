@@ -1,0 +1,12 @@
+---
+source: garde/tests/./rules/if_conditional.rs
+expression: snapshot
+---
+ConditionalAdditionalInner {
+    strict: true,
+    items: [
+        "é",
+    ],
+}
+items[0]: not ascii
+items[0]: length is lower than 3

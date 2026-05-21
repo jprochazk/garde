@@ -65,4 +65,60 @@ struct Ctx {
     strict_mode: bool,
 }
 
+#[derive(garde::Validate)]
+struct ConditionalInner {
+    #[garde(skip)]
+    validate_items: bool,
+    #[garde(if(cond = self.validate_items, inner(ascii, length(min = 2))))]
+    items: Vec<String>,
+}
+
+#[derive(garde::Validate)]
+struct InnerConditional {
+    #[garde(skip)]
+    check_items: bool,
+    #[garde(inner(if(cond = self.check_items, ascii, length(min = 2))))]
+    items: Vec<String>,
+}
+
+#[derive(garde::Validate)]
+struct NestedConditionalInner {
+    #[garde(skip)]
+    validate_items: bool,
+    #[garde(skip)]
+    check_ascii: bool,
+    #[garde(if(
+        cond = self.validate_items,
+        inner(if(cond = self.check_ascii, ascii))
+    ))]
+    items: Vec<String>,
+}
+
+struct NestedCtx {
+    validate_items: bool,
+    check_ascii: bool,
+    min_len: usize,
+}
+
+#[derive(garde::Validate)]
+#[garde(context(NestedCtx as ctx))]
+#[garde(custom(validate_contextual_nested_struct))]
+struct ContextualNestedConditional<'a> {
+    #[garde(if(
+        cond = ctx.validate_items,
+        inner(if(cond = ctx.check_ascii, ascii), length(min = ctx.min_len))
+    ))]
+    items: Vec<&'a str>,
+}
+
+fn validate_contextual_nested_struct(
+    value: &ContextualNestedConditional<'_>,
+    ctx: &NestedCtx,
+) -> Result<(), garde::Error> {
+    if ctx.validate_items && value.items.is_empty() {
+        return Err(garde::Error::new("items must not be empty"));
+    }
+    Ok(())
+}
+
 fn main() {}

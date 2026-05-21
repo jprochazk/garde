@@ -1,0 +1,23 @@
+error: rule `adapter` may only be used at the field level
+ --> tests/ui/compile-fail/if_with_field_level_rules.rs
+  |
+  |     #[garde(if(cond = self.enabled, adapt(adapter)))]
+  |                                     ^^^^^
+
+error: rule `code` may only be used at the field level
+ --> tests/ui/compile-fail/if_with_field_level_rules.rs
+  |
+  |     #[garde(if(cond = self.enabled, code("code")))]
+  |                                     ^^^^
+
+error: rule `alias` may only be used at the field level
+ --> tests/ui/compile-fail/if_with_field_level_rules.rs
+  |
+  |     #[garde(if(cond = self.enabled, rename("renamed")))]
+  |                                     ^^^^^^
+
+error: rule `skip` may only be used at the field level
+ --> tests/ui/compile-fail/if_with_field_level_rules.rs
+  |
+  |     #[garde(if(cond = self.enabled, skip))]
+  |                                     ^^^^

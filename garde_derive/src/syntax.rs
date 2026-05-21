@@ -597,7 +597,7 @@ impl<T: Parse> Parse for List<T> {
 
 enum IfRuleArgument {
     Cond(Span, Expr),
-    Rule(model::RawRule),
+    Rule(Box<model::RawRule>),
 }
 
 impl Parse for IfRuleArgument {
@@ -607,7 +607,7 @@ impl Parse for IfRuleArgument {
             input.parse::<Token![=]>()?;
             Ok(Self::Cond(ident.span(), input.parse()?))
         } else {
-            parse_raw_rule(input, ident).map(Self::Rule)
+            parse_raw_rule(input, ident).map(Box::new).map(Self::Rule)
         }
     }
 }
@@ -628,7 +628,7 @@ impl Parse for model::IfRule {
                         condition = Some(expr);
                     }
                 }
-                IfRuleArgument::Rule(rule) => rules.push(rule),
+                IfRuleArgument::Rule(rule) => rules.push(*rule),
             }
         }
 

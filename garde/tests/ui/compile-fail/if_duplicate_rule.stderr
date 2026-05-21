@@ -1,0 +1,5 @@
+error: duplicate rule `ascii`
+ --> tests/ui/compile-fail/if_duplicate_rule.rs
+  |
+  |     #[garde(if(cond = self.enabled, ascii, ascii))]
+  |                                            ^^^^^

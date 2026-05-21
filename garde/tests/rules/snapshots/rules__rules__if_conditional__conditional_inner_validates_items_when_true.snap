@@ -1,0 +1,13 @@
+---
+source: garde/tests/./rules/if_conditional.rs
+expression: snapshot
+---
+ConditionalInner {
+    validate_items: true,
+    items: [
+        "okay",
+        "é",
+    ],
+}
+items[1]: not ascii
+items[1]: length is lower than 3
