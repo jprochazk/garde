@@ -249,6 +249,38 @@ impl Parse for model::RawRule {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let ident = Ident::parse_any(input)?;
 
+        macro_rules! error_if_missing_feature {
+            ($rule:literal, $feature:literal) => {
+                #[cfg(not(feature = $feature))]
+                return Err(syn::Error::new(
+                    ident.span(),
+                    concat!(
+                        "validation rule `",
+                        $rule,
+                        "` requires the `",
+                        $feature,
+                        "` feature flag"
+                    ),
+                ));
+            };
+        }
+
+        match ident.to_string().as_str() {
+            "email" => {
+                error_if_missing_feature!("email", "email");
+            }
+            "url" => {
+                error_if_missing_feature!("url", "url");
+            }
+            "credit_card" => {
+                error_if_missing_feature!("credit_card", "credit-card");
+            }
+            "phone_number" => {
+                error_if_missing_feature!("phone_number", "phone-number");
+            }
+            _ => {}
+        }
+
         macro_rules! rules {
             (($input:ident, $ident:ident) {
                 $($name:literal => $rule:ident $(($content:ident))? $(( ? $content_opt:ident))?,)*

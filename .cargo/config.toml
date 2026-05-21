@@ -3,5 +3,8 @@ build-xtask = "build --manifest-path ./xtask/Cargo.toml"
 xtask = "run --quiet --manifest-path ./xtask/Cargo.toml --"
 x = "run --quiet --manifest-path ./xtask/Cargo.toml --"
 
+[resolver]
+incompatible-rust-versions = "fallback"
+
 [target.wasm32-unknown-unknown]
 runner = 'wasm-bindgen-test-runner'
