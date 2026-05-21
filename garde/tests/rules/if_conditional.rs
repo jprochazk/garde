@@ -45,7 +45,7 @@ fn simple_conditional_invalid_when_true() {
 #[derive(Debug, garde::Validate)]
 #[garde(context(ValidationContext as ctx))]
 struct WithContext {
-    #[garde(if(cond = ctx.strict_mode, length(min = 8), alphanumeric))]
+    #[garde(if(length(min = 8), cond = ctx.strict_mode, alphanumeric))]
     password: String,
 
     #[garde(if(cond = self.email_required, email, required))]

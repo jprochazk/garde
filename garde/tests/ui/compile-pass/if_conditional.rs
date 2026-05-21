@@ -10,7 +10,7 @@ struct SimpleIf {
 struct MultipleRulesInIf {
     #[garde(skip)]
     strict: bool,
-    #[garde(if(cond = self.strict, ascii, length(min = 3, max = 20)))]
+    #[garde(if(ascii, cond = self.strict, length(min = 3, max = 20)))]
     username: String,
 }
 

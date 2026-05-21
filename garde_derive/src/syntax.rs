@@ -253,104 +253,107 @@ where
 impl Parse for model::RawRule {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let ident = Ident::parse_any(input)?;
+        parse_raw_rule(input, ident)
+    }
+}
 
-        macro_rules! error_if_missing_feature {
-            ($rule:literal, $feature:literal) => {
-                #[cfg(not(feature = $feature))]
-                return Err(syn::Error::new(
-                    ident.span(),
-                    concat!(
-                        "validation rule `",
-                        $rule,
-                        "` requires the `",
-                        $feature,
-                        "` feature flag"
-                    ),
-                ));
-            };
+fn parse_raw_rule(input: syn::parse::ParseStream, ident: Ident) -> syn::Result<model::RawRule> {
+    macro_rules! error_if_missing_feature {
+        ($rule:literal, $feature:literal) => {
+            #[cfg(not(feature = $feature))]
+            return Err(syn::Error::new(
+                ident.span(),
+                concat!(
+                    "validation rule `",
+                    $rule,
+                    "` requires the `",
+                    $feature,
+                    "` feature flag"
+                ),
+            ));
+        };
+    }
+
+    match ident.to_string().as_str() {
+        "email" => {
+            error_if_missing_feature!("email", "email");
         }
-
-        match ident.to_string().as_str() {
-            "email" => {
-                error_if_missing_feature!("email", "email");
-            }
-            "url" => {
-                error_if_missing_feature!("url", "url");
-            }
-            "credit_card" => {
-                error_if_missing_feature!("credit_card", "credit-card");
-            }
-            "phone_number" => {
-                error_if_missing_feature!("phone_number", "phone-number");
-            }
-            _ => {}
+        "url" => {
+            error_if_missing_feature!("url", "url");
         }
+        "credit_card" => {
+            error_if_missing_feature!("credit_card", "credit-card");
+        }
+        "phone_number" => {
+            error_if_missing_feature!("phone_number", "phone-number");
+        }
+        _ => {}
+    }
 
-        macro_rules! rules {
-            (($input:ident, $ident:ident) {
-                $($name:literal => $rule:ident $(($content:ident))? $(( ? $content_opt:ident))?,)*
-            }) => {
-                match $ident.to_string().as_str() {
-                    $(
-                        $name => {
-                            $(
-                                let $content;
-                                syn::parenthesized!($content in $input);
-                                let $content = $content.parse()?;
-                            )?
-                            $(
-                                let $content_opt = if $input.peek(syn::token::Paren) {
-                                    let $content_opt;
-                                    syn::parenthesized!($content_opt in $input);
-                                    if $content_opt.is_empty() {
-                                        None
-                                    } else {
-                                        Some($content_opt.parse()?)
-                                    }
-                                } else {
+    macro_rules! rules {
+        (($input:ident, $ident:ident) {
+            $($name:literal => $rule:ident $(($content:ident))? $(( ? $content_opt:ident))?,)*
+        }) => {
+            match $ident.to_string().as_str() {
+                $(
+                    $name => {
+                        $(
+                            let $content;
+                            syn::parenthesized!($content in $input);
+                            let $content = $content.parse()?;
+                        )?
+                        $(
+                            let $content_opt = if $input.peek(syn::token::Paren) {
+                                let $content_opt;
+                                syn::parenthesized!($content_opt in $input);
+                                if $content_opt.is_empty() {
                                     None
-                                };
-                            )?
-                            Ok(model::RawRule {
-                                span: $ident.span(),
-                                kind: model::RawRuleKind::$rule $(($content))? $(($content_opt))?
-                            })
-                        }
-                    )*
-                    _ => Err(syn::Error::new($ident.span(), "unrecognized validation rule")),
-                }
-            };
-        }
-
-        rules! {
-            (input, ident) {
-                "skip" => Skip,
-                "adapt" => Adapt(content),
-                "rename" => Rename(content),
-                // "message" => Message(content),
-                "code" => Code(content),
-                "dive" => Dive(? content),
-                "required" => Required,
-                "ascii" => Ascii,
-                "alphanumeric" => Alphanumeric,
-                "email" => Email,
-                "url" => Url,
-                "ip" => Ip,
-                "ipv4" => IpV4,
-                "ipv6" => IpV6,
-                "credit_card" => CreditCard,
-                "phone_number" => PhoneNumber,
-                "length" => Length(content),
-                "matches" => Matches(content),
-                "range" => Range(content),
-                "contains" => Contains(content),
-                "prefix" => Prefix(content),
-                "suffix" => Suffix(content),
-                "pattern" => Pattern(content),
-                "custom" => Custom(content),
-                "inner" => Inner(content),
-                "if" => If(content),
+                                } else {
+                                    Some($content_opt.parse()?)
+                                }
+                            } else {
+                                None
+                            };
+                        )?
+                        Ok(model::RawRule {
+                            span: $ident.span(),
+                            kind: model::RawRuleKind::$rule $(($content))? $(($content_opt))?
+                        })
+                    }
+                )*
+                _ => Err(syn::Error::new($ident.span(), "unrecognized validation rule")),
             }
+        };
+    }
+
+    rules! {
+        (input, ident) {
+            "skip" => Skip,
+            "adapt" => Adapt(content),
+            "rename" => Rename(content),
+            // "message" => Message(content),
+            "code" => Code(content),
+            "dive" => Dive(? content),
+            "required" => Required,
+            "ascii" => Ascii,
+            "alphanumeric" => Alphanumeric,
+            "email" => Email,
+            "url" => Url,
+            "ip" => Ip,
+            "ipv4" => IpV4,
+            "ipv6" => IpV6,
+            "credit_card" => CreditCard,
+            "phone_number" => PhoneNumber,
+            "length" => Length(content),
+            "matches" => Matches(content),
+            "range" => Range(content),
+            "contains" => Contains(content),
+            "prefix" => Prefix(content),
+            "suffix" => Suffix(content),
+            "pattern" => Pattern(content),
+            "custom" => Custom(content),
+            "inner" => Inner(content),
+            "if" => If(content),
         }
     }
 }
@@ -592,33 +595,58 @@ impl<T: Parse> Parse for List<T> {
     }
 }
 
+enum IfRuleArgument {
+    Cond(Span, Expr),
+    Rule(model::RawRule),
+}
+
+impl Parse for IfRuleArgument {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let ident = Ident::parse_any(input)?;
+        if ident == "cond" && input.peek(Token![=]) {
+            input.parse::<Token![=]>()?;
+            Ok(Self::Cond(ident.span(), input.parse()?))
+        } else {
+            parse_raw_rule(input, ident).map(Self::Rule)
+        }
+    }
+}
+
 impl Parse for model::IfRule {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        // Parse "cond = <expr>,"
-        let cond_ident = input.parse::<Ident>()?;
-        if cond_ident != "cond" {
-            return Err(syn::Error::new(
-                cond_ident.span(),
-                "expected 'cond' in if rule",
-            ));
+        let args = Punctuated::<IfRuleArgument, Token![,]>::parse_terminated(input)?;
+        let mut condition = None;
+        let mut rules = Vec::new();
+        let mut error = None;
+
+        for arg in args {
+            match arg {
+                IfRuleArgument::Cond(span, expr) => {
+                    if condition.is_some() {
+                        error.maybe_fold(syn::Error::new(span, "duplicate argument"));
+                    } else {
+                        condition = Some(expr);
+                    }
+                }
+                IfRuleArgument::Rule(rule) => rules.push(rule),
+            }
         }
-        input.parse::<Token![=]>()?;
-        let condition = input.parse::<Expr>()?;
 
-        // Expect comma after condition
-        input.parse::<Token![,]>()?;
-
-        // Parse the remaining rules
-        let rules = input.parse::<List<model::RawRule>>()?;
-
-        if rules.contents.is_empty() {
-            return Err(syn::Error::new(
+        if rules.is_empty() {
+            error.maybe_fold(syn::Error::new(
                 input.span(),
                 "if rule must contain at least one validation rule",
             ));
         }
 
-        Ok(model::IfRule { condition, rules })
+        match (condition, error) {
+            (_, Some(error)) => Err(error),
+            (Some(condition), None) => Ok(model::IfRule {
+                condition,
+                rules: List { contents: rules },
+            }),
+            (None, None) => Err(syn::Error::new(input.span(), "missing `cond` argument")),
+        }
     }
 }
 
