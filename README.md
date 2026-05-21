@@ -117,9 +117,10 @@ Additional notes:
 - For `contains`, `prefix`, and `suffix`, the pattern must be a string literal, because the `Pattern` API [is currently unstable](https://github.com/rust-lang/rust/issues/27721).
 - For `if` conditional validation:
   - The condition expression can access `self` fields and context variables (e.g., `ctx`).
-  - Multiple rules can be specified after the condition: `if(cond = expr, rule1, rule2, ...)`.
+  - Multiple rules can be specified with the condition: `if(cond = expr, rule1, rule2, ...)`.
+  - The `cond = expr` argument may appear anywhere in the rule.
   - Multiple conditional blocks can be used on the same field.
-  - Conditional validation cannot be used inside `inner` rules.
+  - Conditional validation can be nested with `inner`.
 - Garde does not enable the default features of the `regex` crate - if you need extra regex features (e.g. Unicode) or better performance, add a dependency on `regex = "1"` to your `Cargo.toml`.
 
 If most of the fields on your struct are annotated with `#[garde(skip)]`, you may use `#[garde(allow_unvalidated)]` instead:
@@ -400,7 +401,7 @@ struct User {
 }
 ```
 
-You can use multiple rules within a single condition:
+You can use multiple rules within a single condition. `cond = ...` may appear anywhere:
 
 ```rust
 #[derive(garde::Validate)]
@@ -408,7 +409,7 @@ struct Account {
     #[garde(skip)]
     strict_mode: bool,
     
-    #[garde(if(cond = self.strict_mode, ascii, length(min = 12), alphanumeric))]
+    #[garde(if(ascii, cond = self.strict_mode, length(min = 12), alphanumeric))]
     password: String,
 }
 ```
@@ -447,6 +448,19 @@ struct ApiKey {
 
 struct Config {
     production: bool,
+}
+```
+
+Conditional validation can be nested with `inner`:
+
+```rust
+#[derive(garde::Validate)]
+struct Items {
+    #[garde(skip)]
+    check_items: bool,
+
+    #[garde(inner(if(cond = self.check_items, ascii)))]
+    items: Vec<String>,
 }
 ```
 
