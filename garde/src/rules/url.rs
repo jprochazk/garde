@@ -52,3 +52,36 @@ impl<T: Url> Url for Option<T> {
         }
     }
 }
+
+impl super::length::HasSimpleLength for url::Url {
+    fn length(&self) -> usize {
+        self.as_str().len()
+    }
+}
+
+impl super::length::HasChars for url::Url {
+    fn num_chars(&self) -> usize {
+        self.as_str().chars().count()
+    }
+}
+
+#[cfg(feature = "unicode")]
+impl super::length::HasGraphemes for url::Url {
+    fn num_graphemes(&self) -> usize {
+        use unicode_segmentation::UnicodeSegmentation;
+
+        self.as_str().graphemes(true).count()
+    }
+}
+
+impl super::length::HasBytes for url::Url {
+    fn num_bytes(&self) -> usize {
+        self.as_str().len()
+    }
+}
+
+impl super::length::HasUtf16CodeUnits for url::Url {
+    fn num_code_units(&self) -> usize {
+        self.as_str().encode_utf16().count()
+    }
+}

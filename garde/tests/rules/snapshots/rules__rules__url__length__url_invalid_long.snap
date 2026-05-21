@@ -1,0 +1,114 @@
+---
+source: garde/tests/./rules/url.rs
+expression: snapshot
+---
+Struct {
+    default: Url {
+        scheme: "https",
+        cannot_be_a_base: false,
+        username: "",
+        password: None,
+        host: Some(
+            Domain(
+                "www.youtube.com",
+            ),
+        ),
+        port: None,
+        path: "/watch",
+        query: Some(
+            "v=dQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQ",
+        ),
+        fragment: None,
+    },
+    simple: Url {
+        scheme: "https",
+        cannot_be_a_base: false,
+        username: "",
+        password: None,
+        host: Some(
+            Domain(
+                "www.youtube.com",
+            ),
+        ),
+        port: None,
+        path: "/watch",
+        query: Some(
+            "v=dQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQ",
+        ),
+        fragment: None,
+    },
+    bytes: Url {
+        scheme: "https",
+        cannot_be_a_base: false,
+        username: "",
+        password: None,
+        host: Some(
+            Domain(
+                "www.youtube.com",
+            ),
+        ),
+        port: None,
+        path: "/watch",
+        query: Some(
+            "v=dQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQ",
+        ),
+        fragment: None,
+    },
+    chars: Url {
+        scheme: "https",
+        cannot_be_a_base: false,
+        username: "",
+        password: None,
+        host: Some(
+            Domain(
+                "www.youtube.com",
+            ),
+        ),
+        port: None,
+        path: "/watch",
+        query: Some(
+            "v=dQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQ",
+        ),
+        fragment: None,
+    },
+    graphemes: Url {
+        scheme: "https",
+        cannot_be_a_base: false,
+        username: "",
+        password: None,
+        host: Some(
+            Domain(
+                "www.youtube.com",
+            ),
+        ),
+        port: None,
+        path: "/watch",
+        query: Some(
+            "v=dQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQ",
+        ),
+        fragment: None,
+    },
+    utf_16_code_units: Url {
+        scheme: "https",
+        cannot_be_a_base: false,
+        username: "",
+        password: None,
+        host: Some(
+            Domain(
+                "www.youtube.com",
+            ),
+        ),
+        port: None,
+        path: "/watch",
+        query: Some(
+            "v=dQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQdQw4w9WgXcQ",
+        ),
+        fragment: None,
+    },
+}
+bytes: length is greater than 100
+chars: length is greater than 100
+default: length is greater than 100
+graphemes: length is greater than 100
+simple: length is greater than 100
+utf_16_code_units: length is greater than 100

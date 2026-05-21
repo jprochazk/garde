@@ -1,0 +1,22 @@
+---
+source: garde/tests/./rules/url.rs
+expression: snapshot
+---
+Tuple(
+    Url {
+        scheme: "https",
+        cannot_be_a_base: false,
+        username: "",
+        password: None,
+        host: Some(
+            Domain(
+                "youtube.com",
+            ),
+        ),
+        port: None,
+        path: "/",
+        query: None,
+        fragment: None,
+    },
+)
+[0]: length is lower than 30
