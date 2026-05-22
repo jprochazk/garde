@@ -303,7 +303,9 @@ Validation may be customized via the `custom` rule, and the `context` attribute.
 
 The context may be any type without generic parameters. By default, the context is `()`.
 
-```rust,ignore
+```rust
+use garde::Validate;
+
 #[derive(garde::Validate)]
 #[garde(context(PasswordContext))]
 struct User {
@@ -312,23 +314,19 @@ struct User {
 }
 
 struct PasswordContext {
-    min_entropy: f32,
-    entropy: cracken::password_entropy::EntropyEstimator,
+    min_length: usize,
 }
 
 fn is_strong_password(value: &str, context: &PasswordContext) -> garde::Result {
-    let bits = context.entropy.estimate_password_entropy(value.as_bytes())
-        .map(|e| e.mask_entropy)
-        .unwrap_or(0.0);
-    if bits < context.min_entropy {
+    if value.len() < context.min_length {
         return Err(garde::Error::new("password is not strong enough"));
     }
     Ok(())
 }
 
-let ctx = PasswordContext { /* ... */ };
-let user = User { /* ... */ };
-user.validate(&ctx)?;
+let ctx = PasswordContext { min_length: 8 };
+let user = User { password: "correct horse battery staple".to_string() };
+assert!(user.validate_with(&ctx).is_ok());
 ```
 
 The validator function may accept the value as a reference to any type which it derefs to.
