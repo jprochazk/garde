@@ -1,0 +1,9 @@
+---
+source: garde/tests/./rules/length.rs
+assertion_line: 139
+expression: snapshot
+---
+BoxedSlice {
+    inner: [],
+}
+inner: length is lower than 1
