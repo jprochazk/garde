@@ -1,0 +1,11 @@
+---
+source: garde/tests/./rules/inner.rs
+assertion_line: 120
+expression: snapshot
+---
+BoxedSlice {
+    inner: [
+        "!!!!",
+    ],
+}
+inner[0]: not alphanumeric

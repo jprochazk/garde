@@ -1,0 +1,13 @@
+---
+source: garde/tests/./rules/length.rs
+assertion_line: 145
+expression: snapshot
+---
+BoxedSlice {
+    inner: [
+        "a",
+        "b",
+        "c",
+    ],
+}
+inner: length is greater than 2

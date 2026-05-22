@@ -84,6 +84,7 @@ macro_rules! impl_via_len {
 
 impl_via_len!(in<T> Vec<T>);
 impl_via_len!(in<'a, T> &'a Vec<T>);
+impl_via_len!(in<T> Box<[T]>);
 impl_via_len!(in<'a, T> &'a [T]);
 
 impl<const N: usize, T> Simple for [T; N] {

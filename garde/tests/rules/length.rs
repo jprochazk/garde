@@ -91,6 +91,12 @@ struct MinMaxEqual<'a> {
     equal: &'a str,
 }
 
+#[derive(Debug, garde::Validate)]
+struct BoxedSlice {
+    #[garde(length(min = 1, max = 2))]
+    inner: Box<[String]>,
+}
+
 #[test]
 fn min_max_equal_length_valid() {
     util::check_ok(
@@ -98,6 +104,12 @@ fn min_max_equal_length_valid() {
             // 'b' * 2
             min_max: "bb",
             equal: "bb",
+        }],
+        &(),
+    );
+    util::check_ok(
+        &[BoxedSlice {
+            inner: Box::new(["a".to_string(), "b".to_string()]),
         }],
         &(),
     )
@@ -122,6 +134,18 @@ fn min_max_equal_length_invalid() {
                 equal: "bbb"
             },
         ],
+        &()
+    );
+    util::check_fail!(
+        &[BoxedSlice {
+            inner: Box::new([]),
+        }],
+        &()
+    );
+    util::check_fail!(
+        &[BoxedSlice {
+            inner: Box::new(["a".to_string(), "b".to_string(), "c".to_string()]),
+        }],
         &()
     )
 }
