@@ -48,26 +48,26 @@ rust_decimal = ["dep:rust_decimal"]
 garde_derive = { workspace = true, optional = true, default-features = false }
 
 card-validate = { version = "2.3", optional = true }
-compact_str = { version = "0.8.0", default-features = false }
+compact_str = { version = "0.9.0", default-features = false }
 idna = { version = "1", optional = true }
 once_cell = { version = "1", optional = true }
-phonenumber = { version = "0.3.6+8.13.36", optional = true }
+phonenumber = { version = "0.3", optional = true }
 regex = { version = "1", default-features = false, features = ["std"], optional = true }
 rust_decimal = { version = "1", optional = true }
 serde = { version = "1", features = ["derive"], optional = true }
-smallvec = { version = "1.11.0", default-features = false }
-unicode-segmentation = { version = "1.10.1", optional = true }
+smallvec = { version = "1.15.1", default-features = false }
+unicode-segmentation = { version = "1.13.2", optional = true }
 url = { version = "2", optional = true }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 js-sys = { version = "0.3", optional = true }
 
 [dev-dependencies]
-glob = "0.3.1"
-insta = { version = "1.29" }
+glob = "0.3.3"
+insta = { version = "1.47.2" }
 owo-colors = { version = "4" }
-serde_json = { version = "1.0.112", features = ["preserve_order"] }
+serde_json = { version = "1.0.150", features = ["preserve_order"] }
 trybuild = { version = "1.0" }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
-wasm-bindgen-test = "0.3.38"
+wasm-bindgen-test = "0.3.71"
