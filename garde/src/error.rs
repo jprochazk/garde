@@ -200,8 +200,7 @@ impl std::fmt::Debug for Path {
         impl std::fmt::Debug for Components<'_> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 let mut list = f.debug_list();
-                list.entries(self.path.__iter().rev().map(|(_, c)| c))
-                    .finish()
+                list.entries(self.path.__iter().rev()).finish()
             }
         }
 
@@ -281,6 +280,22 @@ mod tests {
     fn path_join() {
         let path = Path::new("a").join("b").join("c");
         assert_eq!(path.to_string(), "a.b.c");
+    }
+
+    #[test]
+    fn path_debug_includes_component_kind() {
+        assert_ne!(
+            format!("{:?}", Path::new("content_fingerprints").join("0")),
+            format!("{:?}", Path::new("content_fingerprints").join(0)),
+        );
+        assert_eq!(
+            format!("{:?}", Path::new("content_fingerprints").join("0")),
+            "Path { components: [(Key, \"content_fingerprints\"), (Key, \"0\")] }",
+        );
+        assert_eq!(
+            format!("{:?}", Path::new("content_fingerprints").join(0)),
+            "Path { components: [(Key, \"content_fingerprints\"), (Index, \"0\")] }",
+        );
     }
 
     #[test]
