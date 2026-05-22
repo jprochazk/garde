@@ -50,6 +50,17 @@ impl<const N: usize, T> Inner<T> for [T; N] {
     }
 }
 
+impl<T> Inner<T> for Box<[T]> {
+    type Key = usize;
+
+    fn validate_inner<F>(&self, f: F)
+    where
+        F: FnMut(&T, &Self::Key),
+    {
+        self.as_ref().validate_inner(f)
+    }
+}
+
 impl<T> Inner<T> for &[T] {
     type Key = usize;
 

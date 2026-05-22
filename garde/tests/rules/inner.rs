@@ -51,6 +51,12 @@ struct OptionInsideSlice<'a> {
     inner: &'a [Option<&'a str>],
 }
 
+#[derive(Debug, garde::Validate)]
+struct BoxedSlice {
+    #[garde(inner(alphanumeric))]
+    inner: Box<[String]>,
+}
+
 #[test]
 fn alphanumeric_some_valid() {
     util::check_ok(
@@ -74,6 +80,12 @@ fn alphanumeric_some_valid() {
     util::check_ok(
         &[OptionInsideSlice {
             inner: &[Some("abcd0123")],
+        }],
+        &(),
+    );
+    util::check_ok(
+        &[BoxedSlice {
+            inner: Box::new(["abcd0123".to_string()]),
         }],
         &(),
     )
@@ -102,6 +114,12 @@ fn alphanumeric_some_invalid() {
     util::check_fail!(
         &[OptionInsideSlice {
             inner: &[Some("!!!!")],
+        }],
+        &(),
+    );
+    util::check_fail!(
+        &[BoxedSlice {
+            inner: Box::new(["!!!!".to_string()]),
         }],
         &(),
     )
