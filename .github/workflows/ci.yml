@@ -27,11 +27,11 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Runner includes Node v18, which seems to be too ancient for wasm-bindgen-test
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
 
@@ -76,7 +76,7 @@ jobs:
             EXCLUDE_UI_TESTS: "pattern_mismatched_types,non_unary_newtype"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@v1
@@ -110,7 +110,7 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@v1
@@ -119,7 +119,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install tools
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@v2.78.1
         with:
           tool: cargo-deny,cargo-audit,cargo-udeps,cargo-pants
 
