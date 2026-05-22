@@ -121,7 +121,8 @@ Additional notes:
   - The `cond = expr` argument may appear anywhere in the rule.
   - Multiple conditional blocks can be used on the same field.
   - Conditional validation can be nested with `inner`.
-- Garde does not enable the default features of the `regex` crate - if you need extra regex features (e.g. Unicode) or better performance, add a dependency on `regex = "1"` to your `Cargo.toml`.
+- Garde does not enable the default features of the `regex` crate
+  - For `pattern("<regex>")` rules, if you need extra regex features (e.g. Unicode) or better performance, add `regex = "1"` to your `Cargo.toml`, both in `[dependencies]` AND `[build-dependencies]`.
 
 If most of the fields on your struct are annotated with `#[garde(skip)]`, you may use `#[garde(allow_unvalidated)]` instead:
 
