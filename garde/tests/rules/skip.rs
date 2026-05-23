@@ -21,9 +21,27 @@ enum Enum {
     Tuple(#[garde(skip)] u64),
 }
 
+#[derive(Debug, garde::Validate)]
+struct Inner(#[garde(ascii)] String);
+
+#[allow(dead_code)]
+#[derive(Debug, garde::Validate)]
+enum SkipBeforeDive {
+    Variant(#[garde(skip)] u64, #[garde(dive)] Inner),
+}
+
 #[test]
 fn skip_valid() {
     util::check_ok(&[Struct { field: 50 }], &());
     util::check_ok(&[Tuple(50)], &());
     util::check_ok(&[Enum::Struct { field: 50 }, Enum::Tuple(50)], &());
+    util::check_ok(&[SkipBeforeDive::Variant(1, Inner("ascii".into()))], &());
+}
+
+#[test]
+fn skip_before_dive_validates_correct_field() {
+    util::check_fail!(
+        &[SkipBeforeDive::Variant(1, Inner("not ascii: 😀".into()))],
+        &()
+    );
 }

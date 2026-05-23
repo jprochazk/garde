@@ -1,0 +1,11 @@
+---
+source: garde/tests/./rules/skip.rs
+expression: snapshot
+---
+Variant(
+    1,
+    Inner(
+        "not ascii: 😀",
+    ),
+)
+[1][0]: not ascii
