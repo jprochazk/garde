@@ -346,7 +346,7 @@ dependencies = [
 
 [[package]]
 name = "garde"
-version = "0.22.1"
+version = "0.23.0"
 dependencies = [
  "card-validate",
  "compact_str",
@@ -371,7 +371,7 @@ dependencies = [
 
 [[package]]
 name = "garde_derive"
-version = "0.22.1"
+version = "0.23.0"
 dependencies = [
  "proc-macro2",
  "quote",
