@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: custom.length_greater_than(20)
+---
+custom: too long, maximum is 20

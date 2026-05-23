@@ -19,5 +19,3 @@ Test {
 }
 field: not a valid credit card number: invalid luhn
 inner[0]: not a valid credit card number: invalid luhn
-
-

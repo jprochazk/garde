@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "default.suffix_missing(\".com\")"
+---
+does not end with ".com"

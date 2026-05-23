@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "default.url_invalid(InvalidUrl::EmptyHost)"
+---
+not a valid url: empty host

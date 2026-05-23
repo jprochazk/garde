@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.matches_field_mismatch(\"confirm_password\")"
+---
+custom: must match confirm_password

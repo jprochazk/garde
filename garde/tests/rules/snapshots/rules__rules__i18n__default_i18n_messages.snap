@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: default.length_lower_than(5)
+---
+length is lower than 5

@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.email_invalid(InvalidEmail::InvalidDomain)"
+---
+custom: bad email - InvalidDomain

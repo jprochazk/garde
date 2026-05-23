@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: default.length_greater_than(10)
+---
+length is greater than 10

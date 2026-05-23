@@ -12,37 +12,31 @@
 //!
 //! This trait has a blanket implementation for all `T: garde::rules::AsStr`.
 
-use std::fmt::Display;
-
 use super::AsStr;
 use crate::error::Error;
+pub use crate::i18n::InvalidCreditCard;
 
 pub fn apply<T: CreditCard>(v: &T, _: ()) -> Result<(), Error> {
-    if let Err(e) = v.validate_credit_card() {
-        return Err(Error::new(format!("not a valid credit card number: {e}")));
+    if let Err(reason) = v.validate_credit_card() {
+        return Err(Error::new(i18n!(credit_card_invalid, reason)));
     }
     Ok(())
 }
 
 pub trait CreditCard {
-    type Error: Display;
-
-    fn validate_credit_card(&self) -> Result<(), Self::Error>;
+    fn validate_credit_card(&self) -> Result<(), InvalidCreditCard>;
 }
 
 impl<T: AsStr> CreditCard for T {
-    type Error = InvalidCard;
-
-    fn validate_credit_card(&self) -> Result<(), Self::Error> {
-        let _ = card_validate::Validate::from(self.as_str())?;
-        Ok(())
+    fn validate_credit_card(&self) -> Result<(), InvalidCreditCard> {
+        card_validate::Validate::from(self.as_str())
+            .map(|_| ())
+            .map_err(InvalidCreditCard::from)
     }
 }
 
 impl<T: CreditCard> CreditCard for Option<T> {
-    type Error = T::Error;
-
-    fn validate_credit_card(&self) -> Result<(), Self::Error> {
+    fn validate_credit_card(&self) -> Result<(), InvalidCreditCard> {
         match self {
             Some(value) => value.validate_credit_card(),
             None => Ok(()),
@@ -50,21 +44,14 @@ impl<T: CreditCard> CreditCard for Option<T> {
     }
 }
 
-pub struct InvalidCard(card_validate::ValidateError);
-impl Display for InvalidCard {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.0 {
-            card_validate::ValidateError::InvalidFormat => write!(f, "invalid format"),
-            card_validate::ValidateError::InvalidLength => write!(f, "invalid length"),
-            card_validate::ValidateError::InvalidLuhn => write!(f, "invalid luhn"),
-            card_validate::ValidateError::UnknownType => write!(f, "unknown type"),
-            _ => write!(f, "unknown error"),
+impl From<card_validate::ValidateError> for InvalidCreditCard {
+    fn from(e: card_validate::ValidateError) -> Self {
+        match e {
+            card_validate::ValidateError::InvalidFormat => InvalidCreditCard::InvalidFormat,
+            card_validate::ValidateError::InvalidLength => InvalidCreditCard::InvalidLength,
+            card_validate::ValidateError::InvalidLuhn => InvalidCreditCard::InvalidLuhn,
+            card_validate::ValidateError::UnknownType => InvalidCreditCard::UnknownType,
+            _ => InvalidCreditCard::Other,
         }
-    }
-}
-
-impl From<card_validate::ValidateError> for InvalidCard {
-    fn from(value: card_validate::ValidateError) -> Self {
-        Self(value)
     }
 }

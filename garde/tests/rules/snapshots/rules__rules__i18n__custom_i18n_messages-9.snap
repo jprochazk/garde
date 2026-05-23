@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.prefix_missing(\"www.\")"
+---
+custom: must start with 'www.'

@@ -1,0 +1,5 @@
+---
+source: garde/tests/./rules/i18n.rs
+expression: "custom.contains_missing(\"hello\")"
+---
+custom: missing required text 'hello'
