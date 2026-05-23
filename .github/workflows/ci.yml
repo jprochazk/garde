@@ -47,7 +47,11 @@ jobs:
           shared-key: "rust-stable-test"
 
       - name: Install wasm-bindgen-cli
-        run: cargo install wasm-bindgen-cli
+        run: |
+          VERSION=$(cargo metadata --format-version 1 --locked \
+            | jq -r '.packages[] | select(.name=="wasm-bindgen") | .version')
+          echo "Installing wasm-bindgen-cli v$VERSION (from Cargo.lock)"
+          cargo install --locked wasm-bindgen-cli --version "$VERSION"
 
       - name: Build xtask
         run: cargo build --manifest-path ./xtask/Cargo.toml
