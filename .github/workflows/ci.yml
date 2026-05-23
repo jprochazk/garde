@@ -75,10 +75,10 @@ jobs:
         include:
           - build: pinned
             rust: 1.87.0
-            EXCLUDE_UI_TESTS: "pattern_mismatched_types"
+            EXCLUDE_UI_TESTS: ""
           - build: stable
             rust: stable
-            EXCLUDE_UI_TESTS: ""
+            EXCLUDE_UI_TESTS: "pattern_mismatched_types"
           - build: nightly
             rust: nightly
             EXCLUDE_UI_TESTS: "pattern_mismatched_types,non_unary_newtype"
