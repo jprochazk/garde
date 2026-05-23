@@ -1,6 +1,6 @@
 use argp::FromArgs;
 
-use crate::util::{cargo, get_workspace_manifest, get_workspace_manifest_path, CommandExt as _};
+use crate::util::{get_workspace_manifest, get_workspace_manifest_path, rustup, CommandExt as _};
 use crate::Result;
 
 #[derive(FromArgs)]
@@ -10,6 +10,7 @@ pub struct Version {
     bump: Bump,
 }
 
+#[derive(Clone, Copy)]
 enum Bump {
     Patch,
     Minor,
@@ -42,6 +43,14 @@ impl Bump {
         }
         version
     }
+
+    fn upgrade(&self) -> Self {
+        match self {
+            Bump::Patch => Bump::Minor,
+            Bump::Minor => Bump::Major,
+            Bump::Major => Bump::Major,
+        }
+    }
 }
 
 impl argp::FromArgValue for Bump {
@@ -69,10 +78,18 @@ impl Version {
             .parse::<semver::Version>()?;
         println!("current version: {version}");
 
-        cargo("semver-checks")
+        // pre-1.0, a minor version bump is a major version bump.
+        let semver_checks_bump = if version.major < 1 {
+            self.bump.upgrade()
+        } else {
+            self.bump
+        };
+
+        rustup("run")
+            .with_args(["stable", "cargo", "semver-checks"])
             .with_arg("--all-features")
             .with_args(["-p", "garde"])
-            .with_args(["--release-type", self.bump.as_str()])
+            .with_args(["--release-type", semver_checks_bump.as_str()])
             .run()?;
 
         let version = self.bump.apply(version);
