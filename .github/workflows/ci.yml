@@ -135,7 +135,7 @@ jobs:
         run: rustup override set ${{ steps.toolchain.outputs.name }}
 
       - name: Install tools
-        uses: taiki-e/install-action@v2.78.1
+        uses: taiki-e/install-action@v2.79.5
         with:
           tool: cargo-deny,cargo-audit,cargo-udeps,cargo-pants
 
