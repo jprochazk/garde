@@ -137,7 +137,13 @@ impl ToTokens for Struct<'_> {
         Fields::new(
             self.fields
                 .iter()
-                .map(|(key, field)| (Binding::Ident(key), field, key.to_string())),
+                .map(|(key, field)| 
+                    (
+                        Binding::Ident(key),
+                        field,
+                        field.alias.as_ref().map_or_else(|| key.to_string(), |alias| alias.clone())
+                    )
+                ),
             |key, value| match self.is_transparent {
                 true => quote! {{
                     #value
@@ -163,15 +169,24 @@ impl ToTokens for Tuple<'_> {
             self.fields
                 .iter()
                 .enumerate()
-                .map(|(index, field)| (Binding::Index(index), field, index)),
-            |index, value| match self.is_transparent {
-                true => quote! {{
-                    #value
-                }},
-                false => quote! {{
-                    let mut __garde_path = ::garde::util::nested_path!(__garde_path, #index);
-                    #value
-                }},
+                .map(|(index, field)| (Binding::Index(index), field, (field.alias.clone(), index))),
+            |(alias, index), value|
+                match (self.is_transparent, alias) {
+                    (true, _) => quote! {{
+                        #value
+                    }},
+                    (false, Some(alias)) => {
+                        quote! {{
+                            let mut __garde_path = ::garde::util::nested_path!(__garde_path, #alias);
+                            #value
+                        }}
+                    },
+                    (false, None) => {
+                        quote! {{
+                            let mut __garde_path = ::garde::util::nested_path!(__garde_path, #index);
+                            #value
+                        }}
+                    },
             },
         )
         .to_tokens(tokens)
