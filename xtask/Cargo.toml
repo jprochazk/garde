@@ -13,9 +13,9 @@ publish = false
 
 [dependencies]
 anyhow = { version = "1.0.102", features = ["backtrace"] }
-argp = "0.4.0"
+argp = "0.4.1"
 glob = { version = "0.3.3", default-features = false }
 semver = "1.0.28"
-toml_edit = "0.25.11"
+toml_edit = "0.25.12"
 
 [workspace]
