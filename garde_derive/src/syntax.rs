@@ -106,6 +106,10 @@ impl Parse for model::Attr {
                 syn::parenthesized!(content in input);
                 Ok(model::Attr::Custom(content.parse()?))
             }
+            "crate" => {
+                let _ = input.parse::<Token![=]>()?;
+                Ok(model::Attr::Crate(input.parse()?))
+            }
             _ => Err(syn::Error::new(ident.span(), "unrecognized attribute")),
         }
     }

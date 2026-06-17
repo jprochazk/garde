@@ -1,0 +1,19 @@
+error: duplicate attribute `crate`
+ --> tests/ui/compile-fail/duplicate_crate.rs
+  |
+  | #[garde(crate = reexport)]
+  | ^
+
+error: field has no validation, use `#[garde(skip)]` if this is intentional
+ --> tests/ui/compile-fail/duplicate_crate.rs
+  |
+  |     field: &'a str,
+  |            ^
+
+error[E0432]: unresolved import `valuable`
+ --> tests/ui/compile-fail/duplicate_crate.rs
+  |
+  |     pub use valuable::*;
+  |             ^^^^^^^^ use of unresolved module or unlinked crate `valuable`
+  |
+  = help: if you wanted to use a crate named `valuable`, use `cargo add valuable` to add it to your `Cargo.toml`

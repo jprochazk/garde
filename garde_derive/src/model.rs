@@ -16,6 +16,7 @@ pub enum Attr {
     AllowUnvalidated,
     Transparent,
     Custom(Expr),
+    Crate(Path),
 }
 
 impl Attr {
@@ -33,6 +34,7 @@ impl Attr {
             Attr::AllowUnvalidated => "allow_unvalidated",
             Attr::Transparent => "transparent",
             Attr::Custom(..) => "custom",
+            Attr::Crate(..) => "crate",
         }
     }
 }
@@ -169,6 +171,7 @@ pub struct Validate {
     pub is_transparent: bool,
     pub kind: ValidateKind,
     pub custom_rules: Vec<Expr>,
+    pub crate_path: Option<Path>,
     // I don't know why Rust thinks this is unused.
     // It's both read and written, grep for `.allow_unvalidated`.
     #[allow(dead_code)]

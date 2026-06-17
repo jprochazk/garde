@@ -34,6 +34,8 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
 
     let custom_rules = get_custom_attrs(&attrs);
 
+    let crate_path = get_crate_path(&attrs);
+
     let options = get_options(&attrs);
 
     let kind = match kind {
@@ -86,6 +88,7 @@ pub fn check(input: model::Input) -> syn::Result<model::Validate> {
         is_transparent: transparent.is_some(),
         kind,
         custom_rules,
+        crate_path,
         options,
     })
 }
@@ -155,6 +158,15 @@ fn get_custom_attrs(attrs: &[(Span, model::Attr)]) -> Vec<Expr> {
             _ => None,
         })
         .collect()
+}
+
+fn get_crate_path(attrs: &[(Span, model::Attr)]) -> Option<syn::Path> {
+    for (_, attr) in attrs {
+        if let model::Attr::Crate(path) = attr {
+            return Some(path.clone());
+        }
+    }
+    None
 }
 
 fn is_unary_struct(k: &model::ValidateKind) -> bool {

@@ -11,14 +11,23 @@ pub fn emit(input: model::Validate) -> TokenStream2 {
     input.to_token_stream()
 }
 
+fn crate_path_tokens(crate_path: &Option<syn::Path>) -> TokenStream2 {
+    match crate_path {
+        Some(path) => quote!(#path),
+        None => quote!(::garde),
+    }
+}
+
 impl ToTokens for model::Validate {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let ident = &self.ident;
         let (context_ty, context_ident) = &self.context;
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
+        let garde_crate = crate_path_tokens(&self.crate_path);
         let ty = Type {
             is_transparent: self.is_transparent,
             kind: &self.kind,
+            garde_crate: &garde_crate,
         };
 
         let mut custom_rules = TokenStream2::new();
@@ -32,15 +41,15 @@ impl ToTokens for model::Validate {
         }
 
         quote! {
-            impl #impl_generics ::garde::Validate for #ident #ty_generics #where_clause {
+            impl #impl_generics #garde_crate::Validate for #ident #ty_generics #where_clause {
                 type Context = #context_ty ;
 
                 #[allow(clippy::needless_borrow)]
                 fn validate_into(
                     &self,
                     #context_ident: &Self::Context,
-                    mut __garde_path: &mut dyn FnMut() -> ::garde::Path,
-                    __garde_report: &mut ::garde::error::Report,
+                    mut __garde_path: &mut dyn FnMut() -> #garde_crate::Path,
+                    __garde_report: &mut #garde_crate::error::Report,
                 ) {
                     let __garde_user_ctx = &#context_ident;
                     #custom_rules
@@ -55,17 +64,20 @@ impl ToTokens for model::Validate {
 struct Type<'a> {
     is_transparent: bool,
     kind: &'a model::ValidateKind,
+    garde_crate: &'a TokenStream2,
 }
 
 impl ToTokens for Type<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let is_transparent = self.is_transparent;
+        let garde_crate = self.garde_crate;
         match &self.kind {
             model::ValidateKind::Struct(variant) => {
                 let bindings = Bindings(variant);
                 let validation = Variant {
                     is_transparent,
                     variant,
+                    garde_crate,
                 };
 
                 quote! {{
@@ -80,6 +92,7 @@ impl ToTokens for Type<'_> {
                         let validation = Variant {
                             is_transparent,
                             variant,
+                            garde_crate,
                         };
 
                         quote!(Self::#name #bindings => #validation)
@@ -102,16 +115,19 @@ impl ToTokens for Type<'_> {
 struct Variant<'a> {
     is_transparent: bool,
     variant: &'a model::ValidateVariant,
+    garde_crate: &'a TokenStream2,
 }
 
 impl ToTokens for Variant<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let is_transparent = self.is_transparent;
+        let garde_crate = self.garde_crate;
         match &self.variant {
             model::ValidateVariant::Struct(fields) => {
                 let fields = Struct {
                     is_transparent,
                     fields,
+                    garde_crate,
                 };
                 quote! {{#fields}}
             }
@@ -119,6 +135,7 @@ impl ToTokens for Variant<'_> {
                 let fields = Tuple {
                     is_transparent,
                     fields,
+                    garde_crate,
                 };
                 quote! {{#fields}}
             }
@@ -130,10 +147,12 @@ impl ToTokens for Variant<'_> {
 struct Struct<'a> {
     is_transparent: bool,
     fields: &'a [(Ident, model::ValidateField)],
+    garde_crate: &'a TokenStream2,
 }
 
 impl ToTokens for Struct<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
+        let garde_crate = self.garde_crate;
         Fields::new(
             self.fields
                 .iter()
@@ -143,10 +162,11 @@ impl ToTokens for Struct<'_> {
                     #value
                 }},
                 false => quote! {{
-                    let mut __garde_path = ::garde::util::nested_path!(__garde_path, #key);
+                    let mut __garde_path = #garde_crate::util::nested_path!(__garde_path, #key);
                     #value
                 }},
             },
+            garde_crate.clone(),
         )
         .to_tokens(tokens)
     }
@@ -155,10 +175,12 @@ impl ToTokens for Struct<'_> {
 struct Tuple<'a> {
     is_transparent: bool,
     fields: &'a [model::ValidateField],
+    garde_crate: &'a TokenStream2,
 }
 
 impl ToTokens for Tuple<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
+        let garde_crate = self.garde_crate;
         Fields::new(
             self.fields
                 .iter()
@@ -169,10 +191,11 @@ impl ToTokens for Tuple<'_> {
                     #value
                 }},
                 false => quote! {{
-                    let mut __garde_path = ::garde::util::nested_path!(__garde_path, #index);
+                    let mut __garde_path = #garde_crate::util::nested_path!(__garde_path, #index);
                     #value
                 }},
             },
+            garde_crate.clone(),
         )
         .to_tokens(tokens)
     }
@@ -181,6 +204,7 @@ impl ToTokens for Tuple<'_> {
 struct RuleSet<'a> {
     rules_mod: &'a TokenStream2,
     rule_set: &'a model::RuleSet,
+    garde_crate: &'a TokenStream2,
 }
 
 impl ToTokens for RuleSet<'_> {
@@ -188,6 +212,7 @@ impl ToTokens for RuleSet<'_> {
         let RuleSet {
             rules_mod,
             rule_set,
+            garde_crate,
         } = self;
 
         let outer = match rule_set.has_top_level_rules() {
@@ -195,6 +220,7 @@ impl ToTokens for RuleSet<'_> {
                 let rules = Rules {
                     rules_mod,
                     rule_set,
+                    garde_crate,
                 };
                 Some(quote! {#rules})
             }
@@ -203,6 +229,7 @@ impl ToTokens for RuleSet<'_> {
         let inner = rule_set.inner.as_deref().map(|rule_set| Inner {
             rules_mod,
             rule_set,
+            garde_crate,
         });
 
         match (outer, inner) {
@@ -223,6 +250,7 @@ impl ToTokens for RuleSet<'_> {
 struct Inner<'a> {
     rules_mod: &'a TokenStream2,
     rule_set: &'a model::RuleSet,
+    garde_crate: &'a TokenStream2,
 }
 
 impl ToTokens for Inner<'_> {
@@ -230,17 +258,19 @@ impl ToTokens for Inner<'_> {
         let Inner {
             rules_mod,
             rule_set,
+            garde_crate,
         } = self;
         let value = RuleSet {
             rules_mod,
             rule_set,
+            garde_crate,
         };
 
         quote! {
             #rules_mod::inner::apply(
                 &*__garde_binding,
                 |__garde_binding, __garde_inner_key| {
-                    let mut __garde_path = ::garde::util::nested_path!(__garde_path, __garde_inner_key);
+                    let mut __garde_path = #garde_crate::util::nested_path!(__garde_path, __garde_inner_key);
                     #value
                 }
             );
@@ -252,6 +282,7 @@ impl ToTokens for Inner<'_> {
 struct Rules<'a> {
     rules_mod: &'a TokenStream2,
     rule_set: &'a model::RuleSet,
+    garde_crate: &'a TokenStream2,
 }
 
 #[derive(Clone, Copy)]
@@ -274,6 +305,7 @@ impl ToTokens for Rules<'_> {
         let Rules {
             rules_mod,
             rule_set,
+            garde_crate,
         } = self;
 
         for custom_rule in rule_set.custom_rules.iter() {
@@ -374,6 +406,7 @@ impl ToTokens for Rules<'_> {
             let cond_rules = RuleSet {
                 rules_mod,
                 rule_set: &cond_rule_set.rule_set,
+                garde_crate,
             };
             quote! {
                 if #condition {
@@ -385,11 +418,11 @@ impl ToTokens for Rules<'_> {
     }
 }
 
-struct Fields<I, F>(RefCell<Option<I>>, F);
+struct Fields<I, F>(RefCell<Option<I>>, F, TokenStream2);
 
 impl<I, F> Fields<I, F> {
-    fn new(iter: I, f: F) -> Self {
-        Self(RefCell::new(Some(iter)), f)
+    fn new(iter: I, f: F, garde_crate: TokenStream2) -> Self {
+        Self(RefCell::new(Some(iter)), f, garde_crate)
     }
 }
 
@@ -404,7 +437,8 @@ where
             None => return,
         };
         let fields = fields.filter(|(_, field, _)| field.skip.is_none());
-        let default_rules_mod = quote!(::garde::rules);
+        let garde_crate = &self.2;
+        let default_rules_mod = quote!(#garde_crate::rules);
         for (binding, field, extra) in fields {
             let field_adapter = field
                 .adapter
@@ -418,6 +452,7 @@ where
             let rules = Rules {
                 rules_mod,
                 rule_set: &field.rule_set,
+                garde_crate,
             };
             let outer = match field.has_top_level_rules() {
                 true => Some(quote! {{#rules}}),
@@ -425,7 +460,7 @@ where
             };
             let inner = match (&field.dive, &field.rule_set.inner) {
                 (Some((_, None)), None) => Some(quote! {
-                    ::garde::validate::Validate::validate_into(
+                    #garde_crate::validate::Validate::validate_into(
                         &*__garde_binding,
                         __garde_user_ctx,
                         &mut __garde_path,
@@ -433,7 +468,7 @@ where
                     );
                 }),
                 (Some((_, Some(ctx))), None) => Some(quote! {
-                    ::garde::validate::Validate::validate_into(
+                    #garde_crate::validate::Validate::validate_into(
                         &*__garde_binding,
                         &#ctx,
                         &mut __garde_path,
@@ -444,6 +479,7 @@ where
                     Inner {
                         rules_mod,
                         rule_set: inner,
+                        garde_crate,
                     }
                     .to_token_stream(),
                 ),
