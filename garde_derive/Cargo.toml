@@ -29,4 +29,4 @@ quote = { version = "1" }
 regex = { version = "1", default-features = false, features = [
   "std",
 ], optional = true }
-syn = { version = "2", features = ["full", "derive"] }
+syn = { version = "3", features = ["full", "derive"] }
