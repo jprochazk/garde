@@ -8,6 +8,7 @@
 A Rust validation library
 
 - [Basic usage example](#basic-usage-example)
+- [Validated values](#validated-values)
 - [Validation rules](#available-validation-rules)
 - [Length modes](#length-modes)
 - [Inner type validation](#inner-type-validation)
@@ -79,6 +80,38 @@ if let Err(e) = data.validate() {
     println!("invalid data: {e}");
 }
 ```
+
+### Validated values
+
+Use `Unvalidated<T>` to validate a value and obtain a `Valid<T>`. Functions that require
+validated input can accept `Valid<T>` in their signatures:
+
+```rust
+use garde::{Unvalidated, Valid, Validate};
+
+#[derive(Validate)]
+struct User<'a> {
+    #[garde(length(min = 15))]
+    password: &'a str,
+}
+
+let invalid = Unvalidated::new(User { password: "too_short" });
+assert!(invalid.validate().is_err());
+
+let user: Valid<User<'_>> = Unvalidated::new(User {
+    password: "a_long_enough_password",
+}).validate().unwrap();
+assert_eq!(user.password, "a_long_enough_password");
+```
+
+`Unvalidated::validate` returns `Result<Valid<T>, Report>`. For a custom context, use
+`Unvalidated::validate_with(&context)` instead. `Valid<T>` provides shared access to
+the value through `Deref`, and `into_inner()` consumes the wrapper to return the raw value.
+
+Deriving `Validate` still permits constructing a raw `T`. `Valid<T>` records that
+validation succeeded when the wrapper was created; interior mutation or changes to
+the validation context can invalidate that earlier result. To enforce validation
+whenever your own type is constructed, keep its fields private and provide a fallible constructor.
 
 ### Available validation rules
 
