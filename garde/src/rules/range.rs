@@ -10,8 +10,10 @@
 //!
 //! The entrypoint is the [`Bounds`] trait. Implementing this trait for a type allows that type to be used with the `#[garde(range(...))]` rule.
 //!
-//! This trait is implemented for all primitive integer types.
+//! This trait is implemented for all primitive integer and floating-point types.
+//! If a floating-point value or bound is NaN, range validation fails.
 
+use std::cmp::Ordering;
 use std::fmt::Display;
 
 use crate::error::Error;
@@ -64,9 +66,9 @@ macro_rules! impl_for {
                     lower_bound: Self::Size,
                     upper_bound: Self::Size,
                 ) -> Result<(), OutOfBounds> {
-                    if self < &lower_bound {
+                    if !matches!(self.partial_cmp(&lower_bound), Some(Ordering::Equal | Ordering::Greater)) {
                         Err(OutOfBounds::Lower)
-                    } else if self > &upper_bound {
+                    } else if !matches!(self.partial_cmp(&upper_bound), Some(Ordering::Equal | Ordering::Less)) {
                         Err(OutOfBounds::Upper)
                     } else {
                         Ok(())
